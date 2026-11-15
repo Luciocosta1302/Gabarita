@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "attempts": {
                   Row: {
-                    "answer": string,"confidence": string | null,"correct": boolean,"created_at": string,"id": string,"question_id": string,"time_ms": number | null,"user_id": string
+                    "answer": string,"confidence": string | null,"correct": boolean,"created_at": string,"id": string,"question_id": string,"quiz_id": string | null,"time_ms": number | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "answer": string,"confidence"?: string | null,"correct": boolean,"created_at"?: string,"id"?: string,"question_id": string,"time_ms"?: number | null,"user_id"?: string
+                    "answer": string,"confidence"?: string | null,"correct": boolean,"created_at"?: string,"id"?: string,"question_id": string,"quiz_id"?: string | null,"time_ms"?: number | null,"user_id"?: string
                   }
                   Update: {
-                    "answer"?: string,"confidence"?: string | null,"correct"?: boolean,"created_at"?: string,"id"?: string,"question_id"?: string,"time_ms"?: number | null,"user_id"?: string
+                    "answer"?: string,"confidence"?: string | null,"correct"?: boolean,"created_at"?: string,"id"?: string,"question_id"?: string,"quiz_id"?: string | null,"time_ms"?: number | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -41,18 +41,24 @@ export type Database = {
 isOneToOne: false
       referencedRelation: "questions"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "attempts_quiz_id_fkey"
+      columns: ["quiz_id"]
+isOneToOne: false
+      referencedRelation: "quizzes"
+      referencedColumns: ["id"]
     }
                   ]
                 },"chunks": {
                   Row: {
-                    "content": string,"embedding": string | null,"id": string,"material_id": string,"page": number | null,"subject_id": string,"topic_id": string | null,"user_id": string
+                    "chunk_index": number,"content": string,"embedding": string | null,"id": string,"material_id": string,"page": number | null,"subject_id": string,"topic_id": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "content": string,"embedding"?: string | null,"id"?: string,"material_id": string,"page"?: number | null,"subject_id": string,"topic_id"?: string | null,"user_id"?: string
+                    "chunk_index"?: number,"content": string,"embedding"?: string | null,"id"?: string,"material_id": string,"page"?: number | null,"subject_id": string,"topic_id"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "content"?: string,"embedding"?: string | null,"id"?: string,"material_id"?: string,"page"?: number | null,"subject_id"?: string,"topic_id"?: string | null,"user_id"?: string
+                    "chunk_index"?: number,"content"?: string,"embedding"?: string | null,"id"?: string,"material_id"?: string,"page"?: number | null,"subject_id"?: string,"topic_id"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -77,20 +83,20 @@ isOneToOne: false
                   ]
                 },"error_notebook": {
                   Row: {
-                    "attempt_id": string,"created_at": string,"followup_question_id": string | null,"id": string,"user_id": string,"why_wrong": string | null
+                    "attempt_id": string,"created_at": string,"followup_question_id": string | null,"followup_status": string,"id": string,"resolved_at": string | null,"user_id": string,"why_wrong": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "attempt_id": string,"created_at"?: string,"followup_question_id"?: string | null,"id"?: string,"user_id"?: string,"why_wrong"?: string | null
+                    "attempt_id": string,"created_at"?: string,"followup_question_id"?: string | null,"followup_status"?: string,"id"?: string,"resolved_at"?: string | null,"user_id"?: string,"why_wrong"?: string | null
                   }
                   Update: {
-                    "attempt_id"?: string,"created_at"?: string,"followup_question_id"?: string | null,"id"?: string,"user_id"?: string,"why_wrong"?: string | null
+                    "attempt_id"?: string,"created_at"?: string,"followup_question_id"?: string | null,"followup_status"?: string,"id"?: string,"resolved_at"?: string | null,"user_id"?: string,"why_wrong"?: string | null
                   }
                   Relationships: [
                     {
       foreignKeyName: "error_notebook_attempt_id_fkey"
       columns: ["attempt_id"]
-isOneToOne: false
+isOneToOne: true
       referencedRelation: "attempts"
       referencedColumns: ["id"]
     },{
@@ -163,14 +169,14 @@ isOneToOne: false
                   ]
                 },"materials": {
                   Row: {
-                    "created_at": string,"id": string,"page_count": number | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
+                    "created_at": string,"error": string | null,"id": string,"page_count": number | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id": string,"title": string,"type": string,"user_id"?: string
+                    "created_at"?: string,"error"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id": string,"title": string,"type": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id"?: string,"title"?: string,"type"?: string,"user_id"?: string
+                    "created_at"?: string,"error"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id"?: string,"title"?: string,"type"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -217,14 +223,14 @@ isOneToOne: false
                   ]
                 },"questions": {
                   Row: {
-                    "answer": string,"chunk_id": string | null,"created_at": string,"difficulty": string | null,"explanation": string | null,"id": string,"options_json": Json | null,"source_page": number | null,"stem": string,"style": string | null,"subject_id": string,"topic_id": string | null,"type": string,"user_id": string
+                    "answer": string,"chunk_id": string | null,"created_at": string,"difficulty": string | null,"explanation": string | null,"id": string,"options_json": Json | null,"origin": string,"source_page": number | null,"source_quote": string | null,"stem": string,"style": string | null,"subject_id": string,"topic_id": string | null,"type": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "answer": string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"source_page"?: number | null,"stem": string,"style"?: string | null,"subject_id": string,"topic_id"?: string | null,"type": string,"user_id"?: string
+                    "answer": string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"origin"?: string,"source_page"?: number | null,"source_quote"?: string | null,"stem": string,"style"?: string | null,"subject_id": string,"topic_id"?: string | null,"type": string,"user_id"?: string
                   }
                   Update: {
-                    "answer"?: string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"source_page"?: number | null,"stem"?: string,"style"?: string | null,"subject_id"?: string,"topic_id"?: string | null,"type"?: string,"user_id"?: string
+                    "answer"?: string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"origin"?: string,"source_page"?: number | null,"source_quote"?: string | null,"stem"?: string,"style"?: string | null,"subject_id"?: string,"topic_id"?: string | null,"type"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -244,6 +250,32 @@ isOneToOne: false
       columns: ["topic_id"]
 isOneToOne: false
       referencedRelation: "topics"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"quizzes": {
+                  Row: {
+                    "created_at": string,"difficulty": string,"id": string,"material_id": string | null,"question_ids": (string)[],"subject_id": string,"title": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"difficulty"?: string,"id"?: string,"material_id"?: string | null,"question_ids"?: (string)[],"subject_id": string,"title": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"difficulty"?: string,"id"?: string,"material_id"?: string | null,"question_ids"?: (string)[],"subject_id"?: string,"title"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "quizzes_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "quizzes_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
       referencedColumns: ["id"]
     }
                   ]
@@ -335,6 +367,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"summaries": {
+                  Row: {
+                    "content_json": NonNullable<Json>,"created_at": string,"id": string,"material_id": string,"subject_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_json": NonNullable<Json>,"created_at"?: string,"id"?: string,"material_id": string,"subject_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "content_json"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"material_id"?: string,"subject_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "summaries_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: true
+      referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "summaries_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"teacher_profiles": {
                   Row: {
                     "created_at": string,"id": string,"likely_topics_json": NonNullable<Json>,"style_json": NonNullable<Json>,"subject_id": string,"user_id": string
@@ -381,7 +439,25 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "is_room_member":
+            "claim_jobs":
+{ Args: { "n"?: number,"p_user_id"?: string }; Returns: {
+              "attempts": number,
+"created_at": string,
+"error": string | null,
+"id": string,
+"kind": string,
+"payload_json": NonNullable<Json>,
+"status": string,
+"updated_at": string,
+"user_id": string
+            }[]
+                          SetofOptions: {
+        from: "*"
+        to: "jobs"
+        isOneToOne: false
+        isSetofReturn: true
+      } },
+"is_room_member":
 { Args: { "p_room_id": string }; Returns: boolean
                            },
 "match_chunks":
