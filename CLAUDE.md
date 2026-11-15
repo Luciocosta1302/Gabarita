@@ -165,3 +165,17 @@ tests/
 - Limite de upload: 20 MB por arquivo, 100 páginas no plano grátis
 - Commits pequenos, mensagem em português
 - Design mínimo: funcional primeiro
+
+---
+
+## 8. Estado do projeto (atualizar ao fim de cada fase)
+
+- **Fase 0 — concluída.** Ver README para comandos.
+- Decisões tomadas na Fase 0:
+  - Todas as tabelas da seção 4 já existem na migration inicial (com `user_id` e RLS), para as fases seguintes só adicionarem colunas/políticas.
+  - `chunks` tem `subject_id` redundante para a busca do RAG não precisar de join.
+  - Políticas das tabelas filhas checam também se a matéria/questão/tentativa pertence ao usuário (`owns_subject`).
+  - `profiles.plan` e `daily_quota_used` só mudam pelo servidor (service role); o usuário só edita `name` e `whatsapp_phone`.
+  - Bucket `materials` privado, 20 MB, caminho `<user_id>/...`.
+  - `lib/ai`: interface `AIProvider` (generateText, embed, transcribe) + `generateJSON` com Zod e 1 nova tentativa. `AI_PROVIDER=mock` em dev/testes. Fornecedores reais entram na Fase 1.
+  - Componentes shadcn em `components/ui` (estilo new-york). Para adicionar mais: `npx shadcn@latest add <nome>`.
