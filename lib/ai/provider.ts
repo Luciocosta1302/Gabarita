@@ -1,7 +1,9 @@
 import "server-only";
 
 import { generateJSONWith, type JSONRequest } from "./json";
+import { AnthropicProvider } from "./providers/anthropic";
 import { MockProvider } from "./providers/mock";
+import { OpenAIEmbeddings } from "./providers/openai";
 import type { AIProvider, TextRequest, TranscribeInput } from "./types";
 
 let current: AIProvider | null = null;
@@ -11,7 +13,9 @@ function createProvider(): AIProvider {
   switch (name) {
     case "mock":
       return new MockProvider();
-    // case "anthropic": Fase 1 — Claude (geração) + OpenAI (embeddings/Whisper)
+    case "anthropic":
+      // Claude (geração) + OpenAI (embeddings/Whisper)
+      return new AnthropicProvider(new OpenAIEmbeddings());
     default:
       throw new Error(`AI_PROVIDER desconhecido: "${name}"`);
   }

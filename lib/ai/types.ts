@@ -8,13 +8,22 @@ export type ModelTier = "smart" | "fast";
 
 export type ImageInput = { mediaType: "image/png" | "image/jpeg" | "image/webp" | "image/gif"; base64: string };
 
+export type DocumentInput = { mediaType: "application/pdf"; base64: string };
+
 export type TextRequest = {
   system?: string;
   prompt: string;
   tier?: ModelTier;
   maxTokens?: number;
-  /** Imagens para tarefas com visão (OCR de foto / PDF escaneado). */
+  /** Imagens para tarefas com visão (OCR de foto). */
   images?: ImageInput[];
+  /** PDFs inteiros (OCR de PDF escaneado). */
+  documents?: DocumentInput[];
+  /**
+   * Resposta falsa usada só pelo MockProvider (dev/testes sem chave). Cada prompt em lib/ai/prompts/
+   * monta a sua a partir da entrada, para o app funcionar de ponta a ponta sem IA real.
+   */
+  mock?: () => unknown;
 };
 
 export type Usage = { inputTokens: number; outputTokens: number };

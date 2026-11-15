@@ -4,7 +4,7 @@ type Handler = (req: TextRequest) => string | Promise<string>;
 
 /**
  * Fornecedor falso para testes e desenvolvimento sem chave.
- * - generateText: responde com as respostas enfileiradas (`enqueue`) ou com o `handler`.
+ * - generateText: responde com as respostas enfileiradas (`enqueue`), senão com `req.mock()`, senão com o `handler`.
  * - embed: vetor determinístico (mesmo texto => mesmo vetor), normalizado.
  * - transcribe: devolve um texto fixo.
  */
@@ -24,7 +24,7 @@ export class MockProvider implements AIProvider {
   async generateText(req: TextRequest): Promise<TextResult> {
     this.calls.push(req);
     const queued = this.queue.shift();
-    const text = queued ?? (await this.handler(req));
+    const text = queued ?? (req.mock ? JSON.stringify(req.mock()) : await this.handler(req));
     return {
       text,
       usage: { inputTokens: approxTokens(`${req.system ?? ""}${req.prompt}`), outputTokens: approxTokens(text) },
