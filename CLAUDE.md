@@ -179,3 +179,29 @@ tests/
   - Bucket `materials` privado, 20 MB, caminho `<user_id>/...`.
   - `lib/ai`: interface `AIProvider` (generateText, embed, transcribe) + `generateJSON` com Zod e 1 nova tentativa. `AI_PROVIDER=mock` em dev/testes. Fornecedores reais entram na Fase 1.
   - Componentes shadcn em `components/ui` (estilo new-york). Para adicionar mais: `npx shadcn@latest add <nome>`.
+- **Fase 1 — concluída** (com IA de teste; a IA real ainda não foi rodada contra as APIs).
+- Decisões tomadas na Fase 1:
+  - Migration `20261115100000_fase1_nucleo.sql`: `quizzes`, `summaries`, `attempts.quiz_id`, `questions.source_quote/origin`, `chunks.chunk_index`, `materials.error`, `error_notebook.followup_status/resolved_at` e a função `claim_jobs` (só service role).
+  - Upload: o navegador manda o arquivo direto para o Storage em `<user_id>/<material_id>/001.ext` (nomes definidos pelo servidor) e chama `/api/upload/complete`. Texto colado vira `001.txt`. Fotos: várias por material, cada foto = 1 página.
+  - Jobs (`lib/jobs/queue.ts`): `ingest_material` e `error_followup`. Rodam no `after()` da requisição, pela tela (`/api/jobs/process` como usuário) ou por cron (`JOBS_SECRET`). 3 tentativas; `UserFacingError` não tenta de novo e a mensagem aparece na tela.
+  - Extração: `pdf-parse` por página; página com menos de 40 caracteres vai para OCR da IA (PDF inteiro como documento, 10 páginas por chamada). Fotos são reduzidas com `sharp` (1568 px) e lidas pela IA. DOCX/texto viram "partes" de ~3000 caracteres. Limite: 100 páginas (grátis) / 300 (Pro).
+  - Trechos: ~800 tokens (aprox. 4 caracteres/token, sem tokenizer) e 100 de sobreposição; cada trecho guarda a página onde começa.
+  - D1: a IA devolve número do trecho + citação literal; `validateQuestions` confere a citação no trecho (corrige o trecho ou descarta a questão). Alternativas são embaralhadas no servidor. O navegador nunca recebe o gabarito antes de responder. "Ver no material" = `/chunks/<id>?q=<questão>` → material com o trecho e a citação destacados (+ link do PDF original na página).
+  - D6: errou → entrada no caderno + job que gera "por que errou" e questão parecida no mesmo trecho; acertar a parecida marca como resolvido.
+  - D7: confiança obrigatória antes de responder; medidor por matéria e por quiz (por tópico entra com os tópicos, Fase 2).
+  - IA real: `AnthropicProvider` (Sonnet 5.5 com fallback no servidor para recusas; Haiku 5.5 para OCR/flashcards/resumo parcial) + `OpenAIEmbeddings` (REST, sem SDK). `AI_PROVIDER=mock` usa a função `mock()` de cada prompt.
+  - Tema visual inicial (pedido do usuário): paleta lo-fi japonesa (creme, ameixa, rosé, cartões pastel) em `app/globals.css`, menu lateral ameixa. Sem ilustrações ainda.
+- Pendências conhecidas: chat não guarda histórico no banco; páginas de DOCX/texto são aproximadas; IA real sem teste automatizado (precisa de chave); contagem de tokens por usuário fica para a Fase 4.
+
+## 9. Proposta de design e páginas novas (do usuário, ainda não priorizada)
+
+Estética lo-fi japonesa aconchegante em todas as páginas: tons pastel, ilustrações, animações discretas, cenário que muda com o horário, cenários desbloqueáveis (biblioteca em Kyoto, quarto chuvoso em Tóquio, cafeteria à noite).
+Páginas propostas e relação com o plano:
+1. **Meu espaço de estudos**: Pomodoro, música lo-fi, sons de chuva, metas da sessão. *Novo.*
+2. **Trilhas de aprendizagem + Tutor IA**: caminho com pré-requisitos, etapas liberadas pelo desempenho; o tutor explica, propõe exercício mais simples e só avança quando o aluno entende. *Novo; estende D2, D6 e D8.*
+3. **Revisão inteligente**: é o D3 (FSRS, Fase 2).
+4. **Biblioteca pessoal**: materiais por disciplina, busca, conversar com cada documento. *Parte já existe (materiais + chat); faltam pastas, busca e chat por documento.*
+5. **Simulados com IA**: é o D16 + D5 (Fase 2).
+6. **Diário de aprendizagem**: registro ao fim da sessão, IA acompanha a evolução. *Novo.*
+7. Também no mock: Desempenho, Conquistas/sequência de dias, Comunidade, Anotações, Perfil. *Novos (Comunidade se aproxima do D14).*
+Ordem sugerida pelo usuário: Trilhas + Tutor → Espaço de estudos → Revisão → Simulados → Desempenho. **Decidir com o usuário como encaixar nas Fases 2–4.**

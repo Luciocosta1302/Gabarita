@@ -42,5 +42,8 @@ export function pickSentence(text: string, seed = 0): string {
     .map((s) => s.replace(/\s+/g, " ").trim())
     .filter((s) => s.length >= 20 && s.length <= 300);
   if (sentences.length === 0) return text.replace(/\s+/g, " ").trim().slice(0, 160);
-  return sentences[seed % sentences.length];
+  // frases inteiras (que começam com maiúscula/número) primeiro; o começo do trecho pode ser um pedaço
+  const whole = sentences.filter((s) => /^[\p{Lu}\d]/u.test(s));
+  const pool = whole.length ? whole : sentences;
+  return pool[seed % pool.length];
 }

@@ -28,6 +28,27 @@ npm run dev                   # http://localhost:3000
 | `npm run db:reset` | Recria o banco local aplicando as migrations |
 | `npm run db:types` | Gera `lib/supabase/database.types.ts` a partir do banco |
 
+## IA real
+
+Por padrão `AI_PROVIDER=mock`: tudo funciona de ponta a ponta com respostas falsas e sem custo
+(cada prompt em `lib/ai/prompts/` tem a sua resposta de teste). Para usar IA de verdade, no `.env.local`:
+
+```
+AI_PROVIDER=anthropic
+ANTHROPIC_API_KEY=...   # geração (Sonnet 5.5) e OCR de fotos/PDF escaneado (Haiku 5.5)
+OPENAI_API_KEY=...      # embeddings text-embedding-3-small (1536 dim) e Whisper
+```
+
+Trocar de mock para real **não** reaproveita os trechos já processados: os embeddings falsos não servem
+para a busca real. Reenvie os materiais (ou rode `npm run db:reset`).
+
+## Processamento em segundo plano
+
+Upload, OCR, embeddings e a "questão parecida" do caderno de erros rodam como jobs (tabela `jobs`).
+Eles começam logo depois da requisição (`after()` do Next) e, se algo travar, a própria tela cutuca
+`/api/jobs/process`. Em produção, configure também um cron chamando essa rota a cada minuto com
+`Authorization: Bearer $JOBS_SECRET` (na Vercel, `CRON_SECRET` + `vercel.json`).
+
 ## Login com Google
 
 1. Crie um OAuth Client (Web) no Google Cloud. Redirect URI: `http://127.0.0.1:54321/auth/v1/callback`.

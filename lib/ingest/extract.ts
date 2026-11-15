@@ -61,7 +61,8 @@ export async function extractPdf(data: Uint8Array, maxPages: number): Promise<Ex
     const result = await parser.getText();
     total = result.total;
     pages = result.pages.map((p) => ({ page: p.num, text: p.text }));
-  } catch {
+  } catch (e) {
+    console.error("[extract] pdf-parse falhou:", e);
     throw new UserFacingError("Não foi possível ler este PDF. Ele pode estar corrompido ou protegido por senha.");
   } finally {
     await parser.destroy().catch(() => {});
