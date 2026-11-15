@@ -8,5 +8,6 @@ export default defineConfig({
     include: ["tests/integration/**/*.test.ts"],
     testTimeout: 20000,
     fileParallelism: false,
+    alias: { "server-only": new URL("./tests/server-only-stub.ts", import.meta.url).pathname },
   },
 });

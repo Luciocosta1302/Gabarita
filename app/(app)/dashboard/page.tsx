@@ -7,6 +7,8 @@ import { EXAM_STYLE_LABELS } from "@/lib/exam-styles";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
+  const { data: profile } = await supabase.from("profiles").select("name").maybeSingle();
+  const firstName = profile?.name?.split(" ")[0];
   const { data: subjects } = await supabase
     .from("subjects")
     .select("id, name, exam_date, exam_style")
@@ -14,6 +16,14 @@ export default async function DashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      <section className="animate-rise from-pastel-rose via-pastel-peach to-pastel-lilac rounded-3xl bg-gradient-to-br p-6 shadow-sm md:p-8">
+        <h1 className="text-3xl font-bold">{firstName ? `Olá, ${firstName}!` : "Olá!"}</h1>
+        <p className="font-display text-xl">Vamos estudar hoje?</p>
+        <p className="text-foreground/75 mt-2 max-w-md text-sm">
+          Mande seu material, gere questões com fonte e descubra o que você ainda não sabe.
+        </p>
+      </section>
+
       <Card>
         <CardHeader>
           <CardTitle>Nova matéria</CardTitle>
@@ -31,7 +41,7 @@ export default async function DashboardPage() {
           <ul className="flex flex-col gap-2" data-testid="subject-list">
             {subjects.map((s) => (
               <li key={s.id}>
-                <Link href={`/subjects/${s.id}`} className="hover:bg-accent block rounded-md border p-3">
+                <Link href={`/subjects/${s.id}`} className="bg-card hover:bg-accent block rounded-xl border p-3 transition-colors">
                   <span className="font-medium">{s.name}</span>
                   <span className="text-muted-foreground block text-sm">
                     {EXAM_STYLE_LABELS[s.exam_style as keyof typeof EXAM_STYLE_LABELS] ?? s.exam_style}

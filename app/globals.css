@@ -4,42 +4,34 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  /* Estética lo-fi japonesa: creme quente, ameixa e rosé, com cartões em tons pastel. */
+  --radius: 1rem;
+  --background: oklch(0.965 0.012 60);
+  --foreground: oklch(0.27 0.04 350);
+  --card: oklch(0.985 0.008 60);
+  --card-foreground: oklch(0.27 0.04 350);
+  --primary: oklch(0.47 0.1 5);
+  --primary-foreground: oklch(0.98 0.01 60);
+  --secondary: oklch(0.93 0.025 20);
+  --secondary-foreground: oklch(0.32 0.06 355);
+  --muted: oklch(0.935 0.015 40);
+  --muted-foreground: oklch(0.5 0.035 350);
+  --accent: oklch(0.92 0.035 15);
+  --accent-foreground: oklch(0.32 0.06 355);
+  --destructive: oklch(0.58 0.17 22);
+  --success: oklch(0.55 0.11 150);
+  --border: oklch(0.88 0.025 30);
+  --input: oklch(0.86 0.03 30);
+  --ring: oklch(0.62 0.1 5);
+  /* menu lateral */
+  --sidebar: oklch(0.26 0.04 345);
+  --sidebar-foreground: oklch(0.92 0.02 30);
+  --sidebar-accent: oklch(0.38 0.07 355);
+  /* cartões pastel */
+  --pastel-lilac: oklch(0.9 0.04 320);
+  --pastel-peach: oklch(0.91 0.05 55);
+  --pastel-mint: oklch(0.92 0.045 140);
+  --pastel-rose: oklch(0.9 0.05 10);
 }
 
 @theme inline {
@@ -63,6 +55,15 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-success: var(--success);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-pastel-lilac: var(--pastel-lilac);
+  --color-pastel-peach: var(--pastel-peach);
+  --color-pastel-mint: var(--pastel-mint);
+  --color-pastel-rose: var(--pastel-rose);
+  --font-display: ui-serif, Georgia, "Times New Roman", serif;
 }
 
 @layer base {
@@ -72,5 +73,27 @@
   body {
     @apply bg-background text-foreground;
     font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  h1,
+  h2 {
+    font-family: var(--font-display);
+  }
+}
+
+/* animação discreta de entrada */
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@layer utilities {
+  .animate-rise {
+    animation: rise-in 0.35s ease-out both;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise {
+    animation: none;
   }
 }
