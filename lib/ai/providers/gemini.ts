@@ -1,3 +1,5 @@
+import { UserFacingError } from "@/lib/errors";
+
 import {
   EMBEDDING_DIMENSIONS,
   type AIProvider,
@@ -130,7 +132,11 @@ export class GeminiProvider implements AIProvider {
   }
 
   async transcribe(input: TranscribeInput): Promise<{ text: string }> {
-    const format = input.mimeType.includes("wav") ? "wav" : "mp3";
+    const name = input.filename.toLowerCase();
+    const format = input.mimeType.includes("wav") || name.endsWith(".wav") ? "wav" : input.mimeType.includes("mpeg") || name.endsWith(".mp3") ? "mp3" : null;
+    if (!format) throw new UserFacingError("Com a IA gratuita (Gemini), envie o áudio em MP3 ou WAV.");
+    // o pedido vai inteiro em base64: acima de ~14 MB passa do limite do Gemini
+    if (input.data.byteLength > 14 * 1024 * 1024) throw new UserFacingError("Áudio grande demais para a IA gratuita (máx. ~14 MB). Divida a aula em partes.");
     const { text } = await this.chat(
       this.models.fast,
       undefined,
@@ -141,7 +147,7 @@ export class GeminiProvider implements AIProvider {
           text: `Transcreva fielmente este áudio${input.language ? ` (idioma: ${input.language})` : ""}. Devolva só a transcrição.`,
         },
       ],
-      16000,
+      32000,
       false,
     );
     return { text };

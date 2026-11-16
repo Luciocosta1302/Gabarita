@@ -7,6 +7,7 @@ import { isUserFacing } from "@/lib/errors";
 import { createErrorFollowup } from "@/lib/generate/error-followup";
 import { ingestMaterial, markMaterialFailed } from "@/lib/ingest/pipeline";
 import { refreshPlan } from "@/lib/planner/service";
+import { analyzePastExam, rebuildTeacherProfile } from "@/lib/teacher/service";
 import { clusterSubjectTopics } from "@/lib/topics/cluster";
 import { createAdminClient, type AdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
@@ -35,10 +36,22 @@ const JOBS = {
     payload: z.object({ subject_id: z.uuid() }),
     run: async (admin: AdminClient, p: { subject_id: string }) => {
       await clusterSubjectTopics(admin, p.subject_id);
+      // tópicos novos: religa os "tópicos com mais chance de cair" do perfil do professor (D4)
+      const { count } = await admin.from("teacher_profiles").select("id", { count: "exact", head: true }).eq("subject_id", p.subject_id);
+      if (count) await rebuildTeacherProfile(admin, p.subject_id);
       const { data: s } = await admin.from("subjects").select("user_id").eq("id", p.subject_id).single();
       if (s) await refreshPlan(admin, s.user_id, p.subject_id);
     },
     onFail: async () => {},
+  },
+  analyze_past_exam: {
+    payload: z.object({ material_id: z.uuid() }),
+    run: async (admin: AdminClient, p: { material_id: string }) => {
+      await analyzePastExam(admin, p.material_id);
+      const { data: m } = await admin.from("materials").select("user_id, subject_id").eq("id", p.material_id).single();
+      if (m) await refreshPlan(admin, m.user_id, m.subject_id);
+    },
+    onFail: (admin: AdminClient, p: { material_id: string }, message: string) => markMaterialFailed(admin, p.material_id, message),
   },
   error_followup: {
     payload: z.object({ notebook_id: z.uuid() }),

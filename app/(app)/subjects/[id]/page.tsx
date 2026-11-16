@@ -31,6 +31,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
       .from("materials")
       .select("id, title, type, status, page_count, error")
       .eq("subject_id", id)
+      .neq("type", "past_exam")
       .order("created_at", { ascending: false }),
     supabase
       .from("quizzes")
@@ -51,6 +52,8 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
       .in("status", ["queued", "running"])
       .in("kind", ["ingest_material", "cluster_topics"]),
   ]);
+  const { count: teacherCount } = await supabase.from("teacher_profiles").select("id", { count: "exact", head: true }).eq("subject_id", id);
+  const hasTeacher = (teacherCount ?? 0) > 0;
   const todayTasks = ((planToday?.tasks_json ?? []) as { title: string; done?: boolean }[]).filter((t) => !t.done);
   const daysLeft = subject.exam_date ? daysBetween(today, subject.exam_date) : null;
 
@@ -73,6 +76,8 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
     { href: `/errors?subject=${id}`, title: "Caderno de erros", text: "Seus erros com explicação e questão parecida.", color: "bg-pastel-rose" },
     { href: `/review?subject=${id}`, title: "Revisar hoje", text: "Repetição espaçada dos cartões e erros.", color: "bg-pastel-lilac" },
     { href: "#simulado", title: "Simulado", text: "Prova cronometrada no estilo da banca.", color: "bg-pastel-peach" },
+    { href: `/subjects/${id}/professor`, title: "Prova do Professor", text: "Mande provas antigas: o estilo dele e o que mais cai.", color: "bg-pastel-mint" },
+    { href: `/subjects/${id}/feynman`, title: "Modo Feynman", text: "Explique com suas palavras (texto ou voz) e veja o que faltou.", color: "bg-pastel-rose" },
   ];
 
   return (
@@ -157,6 +162,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
             materials={ready.map((m) => ({ id: m.id, title: m.title }))}
             topics={topics.map((t) => ({ id: t.id, name: t.name }))}
             defaultStyle={subject.exam_style}
+            hasTeacher={hasTeacher}
           />
         </CardContent>
       </Card>

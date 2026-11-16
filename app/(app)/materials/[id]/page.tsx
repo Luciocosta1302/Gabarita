@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { Highlighted } from "@/components/materials/highlighted";
+import { SpeakSummary } from "@/components/materials/speak-summary";
 import { SummaryButton } from "@/components/materials/summary-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Summary } from "@/lib/ai/prompts/summary";
@@ -126,6 +127,9 @@ export default async function MaterialPage({
         <CardContent className="grid gap-4 text-sm">
           {summary ? (
             <div className="grid gap-4" data-testid="summary">
+              <SpeakSummary
+                text={[summary.title, summary.overview, ...summary.sections.map((s) => `${s.heading}. ${s.points.join(". ")}`)].join(". \n")}
+              />
               <p className="text-base">{summary.overview}</p>
               {summary.sections.map((s, i) => (
                 <section key={i} className="grid gap-1">

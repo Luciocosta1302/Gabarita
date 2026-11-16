@@ -18,11 +18,16 @@ async function planInput(db: DB, subjectId: string, today: string): Promise<Plan
   const { data: s } = await db.from("subjects").select("exam_date, hours_per_day").eq("id", subjectId).maybeSingle();
   if (!s?.exam_date) return null;
   const stats = await loadTopicStats(db, subjectId);
+  // D4: tópicos com mais chance de cair na prova do professor ganham mais tempo (até +75%)
+  const { data: tp } = await db.from("teacher_profiles").select("likely_topics_json").eq("subject_id", subjectId).maybeSingle();
+  const boost = new Map(((tp?.likely_topics_json ?? []) as { topicId: string; weight: number }[]).map((l) => [l.topicId, 1 + 0.15 * l.weight]));
   return {
     today,
     examDate: s.exam_date,
     minutesPerDay: Math.round(Number(s.hours_per_day ?? DEFAULT_HOURS_PER_DAY) * 60),
-    topics: stats.filter((t) => t.chunks > 0).map((t) => ({ id: t.id, name: t.name, weight: t.chunks, mastery: t.mastery })),
+    topics: stats
+      .filter((t) => t.chunks > 0)
+      .map((t) => ({ id: t.id, name: t.name, weight: t.chunks * (boost.get(t.id) ?? 1), mastery: t.mastery })),
   };
 }
 

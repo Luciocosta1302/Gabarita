@@ -105,3 +105,19 @@ export const sessionSchema = z.object({
   scene: z.enum(["quarto", "kyoto", "toquio", "cafe"]).optional(),
   goals: z.array(z.object({ title: z.string().trim().min(1).max(200), done: z.boolean() })).max(20).default([]),
 });
+
+export const MAX_FEYNMAN_AUDIO_BASE64 = 10_000_000; // ~3 min de WAV 16 kHz
+
+export const feynmanSchema = z
+  .object({
+    topic_id: z.uuid(),
+    text: z.string().trim().max(8000).optional(),
+    audio_base64: z.string().max(MAX_FEYNMAN_AUDIO_BASE64, "Áudio muito longo (máx. 3 min)").optional(),
+  })
+  .refine((v) => (v.text && v.text.length >= 30) || v.audio_base64, { message: "Escreva pelo menos algumas frases ou grave um áudio" });
+
+export const solvePhotoSchema = z.object({
+  image_base64: z.string().min(100).max(8_000_000, "Imagem muito grande"),
+  mime: z.enum(["image/jpeg", "image/png", "image/webp"]),
+  subject_id: optionalUuid,
+});

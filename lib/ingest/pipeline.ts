@@ -23,7 +23,7 @@ export async function ingestMaterial(admin: AdminClient, materialId: string) {
     .single();
   if (error || !material) throw new UserFacingError("Material não encontrado.");
   if (!material.storage_path) throw new UserFacingError("Material sem arquivo.");
-  if (!["pdf", "image", "docx", "text"].includes(material.type)) {
+  if (!["pdf", "image", "docx", "text", "audio"].includes(material.type)) {
     throw new UserFacingError("Este tipo de material ainda não é suportado.");
   }
 
@@ -66,7 +66,7 @@ export async function markMaterialFailed(admin: AdminClient, materialId: string,
 }
 
 /** Baixa todos os arquivos da pasta do material, em ordem de nome (001-..., 002-...). */
-async function downloadFolder(admin: AdminClient, folder: string): Promise<InputFile[]> {
+export async function downloadFolder(admin: AdminClient, folder: string): Promise<InputFile[]> {
   const prefix = folder.replace(/\/+$/, "");
   const { data: list, error } = await admin.storage
     .from(MATERIALS_BUCKET)

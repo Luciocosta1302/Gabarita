@@ -21,11 +21,12 @@ export const POST = apiRoute(createUploadSchema, async (input, { supabase, user 
   const folder = `${user.id}/${materialId}`;
 
   if (input.kind === "text") {
+    const pastExam = input.purpose === "past_exam";
     const { error } = await supabase.from("materials").insert({
       id: materialId,
       user_id: user.id,
       subject_id: input.subject_id,
-      type: "text",
+      type: pastExam ? "past_exam" : "text",
       title: input.title,
       storage_path: folder,
     });
@@ -34,7 +35,7 @@ export const POST = apiRoute(createUploadSchema, async (input, { supabase, user 
       .from(MATERIALS_BUCKET)
       .upload(`${folder}/001.txt`, new Blob([input.text], { type: "text/plain; charset=utf-8" }));
     if (upError) throw upError;
-    await enqueueJob(supabase, user.id, "ingest_material", { material_id: materialId });
+    await enqueueJob(supabase, user.id, pastExam ? "analyze_past_exam" : "ingest_material", { material_id: materialId });
     after(() => runJobs({ userId: user.id }));
     return NextResponse.json({ material_id: materialId, uploads: [] }, { status: 201 });
   }
@@ -52,7 +53,7 @@ export const POST = apiRoute(createUploadSchema, async (input, { supabase, user 
     id: materialId,
     user_id: user.id,
     subject_id: input.subject_id,
-    type: kind.type,
+    type: input.purpose === "past_exam" ? "past_exam" : kind.type,
     title: title.slice(0, 200),
     storage_path: folder,
   });

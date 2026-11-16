@@ -4,13 +4,13 @@ import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import sharp from "sharp";
 
-import { generateJSON } from "@/lib/ai/provider";
+import { generateJSON, transcribe } from "@/lib/ai/provider";
 import { ocrImagePrompt, ocrPdfPrompt } from "@/lib/ai/prompts/ocr";
 import { UserFacingError } from "@/lib/errors";
 
 import { cleanText, type PageText } from "./chunk";
 
-export type MaterialType = "pdf" | "image" | "docx" | "text";
+export type MaterialType = "pdf" | "image" | "docx" | "text" | "audio";
 export type InputFile = { name: string; mimeType: string; data: Uint8Array };
 
 /** Página com menos que isso de texto é considerada escaneada (sem camada de texto). */
@@ -37,6 +37,8 @@ export async function extractMaterial(
       return limitPages(splitPseudoPages(await extractDocx(files[0].data)), maxPages);
     case "text":
       return limitPages(splitPseudoPages(new TextDecoder().decode(files[0].data)), maxPages);
+    case "audio":
+      return limitPages(splitPseudoPages(await transcribeAudio(files[0])), maxPages);
   }
 }
 
@@ -117,6 +119,16 @@ async function extractImages(files: InputFile[]): Promise<Extracted> {
     return data.text;
   });
   return { pages: texts.map((text, i) => ({ page: i + 1, text })), pageCount: files.length };
+}
+
+// ---------------------------------------------------------------------------
+// Áudio de aula (D12): transcreve e vira texto corrido
+// ---------------------------------------------------------------------------
+
+async function transcribeAudio(f: InputFile) {
+  const { text } = await transcribe({ data: f.data, filename: f.name, mimeType: f.mimeType || "audio/mpeg", language: "pt" });
+  if (cleanText(text).length < 20) throw new UserFacingError("Não deu para entender a fala neste áudio.");
+  return text;
 }
 
 // ---------------------------------------------------------------------------

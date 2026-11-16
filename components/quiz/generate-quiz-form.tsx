@@ -19,11 +19,14 @@ export function GenerateQuizForm({
   materials,
   topics = [],
   defaultStyle = "livre",
+  hasTeacher = false,
 }: {
   subjectId: string;
   materials: MaterialOption[];
   topics?: TopicOption[];
   defaultStyle?: string;
+  /** D4: há perfil do professor → opção "Prova do professor" */
+  hasTeacher?: boolean;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -81,6 +84,7 @@ export function GenerateQuizForm({
       <div className="grid gap-2">
         <Label htmlFor="q-style">Estilo da banca</Label>
         <select id="q-style" name="style" defaultValue={selectableStyle(defaultStyle)} className={selectClass}>
+          {hasTeacher && <option value="professor">Prova do professor</option>}
           {SELECTABLE_STYLES.map((s) => (
             <option key={s} value={s}>
               {EXAM_STYLE_LABELS[s]}

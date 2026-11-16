@@ -14,7 +14,7 @@ import { ACCEPT, materialTypeFor } from "@/lib/validation/upload";
 
 type Created = { material_id: string; uploads: { name: string; path: string }[] };
 
-export function UploadForm({ subjectId }: { subjectId: string }) {
+export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string; purpose?: "study" | "past_exam" }) {
   const router = useRouter();
   const [mode, setMode] = useState<"files" | "text">("files");
   const [busy, setBusy] = useState<string | null>(null);
@@ -32,6 +32,7 @@ export function UploadForm({ subjectId }: { subjectId: string }) {
         await postJSON<Created>("/api/upload", {
           kind: "text",
           subject_id: subjectId,
+          purpose,
           title: String(form.get("title") ?? ""),
           text: String(form.get("text") ?? ""),
         });
@@ -48,6 +49,7 @@ export function UploadForm({ subjectId }: { subjectId: string }) {
         const created = await postJSON<Created>("/api/upload", {
           kind: "files",
           subject_id: subjectId,
+          purpose,
           title: String(form.get("title") ?? "") || undefined,
           files: meta,
         });
@@ -98,9 +100,13 @@ export function UploadForm({ subjectId }: { subjectId: string }) {
 
       {mode === "files" ? (
         <div className="grid gap-2">
-          <Label htmlFor="material-file">PDF, DOCX ou fotos (várias de uma vez)</Label>
+          <Label htmlFor="material-file">
+            {purpose === "past_exam" ? "Prova antiga: PDF, DOCX ou fotos" : "PDF, DOCX ou fotos (várias de uma vez) — ou áudio da aula"}
+          </Label>
           <Input id="material-file" ref={fileRef} type="file" accept={ACCEPT} multiple className="h-auto py-2" />
-          <p className="text-muted-foreground text-xs">Até 20 MB por arquivo e 100 páginas no plano grátis.</p>
+          <p className="text-muted-foreground text-xs">
+            Até 20 MB por arquivo e 100 páginas no plano grátis.{purpose === "study" && " Áudio de aula: MP3 ou WAV."}
+          </p>
         </div>
       ) : (
         <div className="grid gap-2">
@@ -115,7 +121,7 @@ export function UploadForm({ subjectId }: { subjectId: string }) {
         </p>
       )}
       <Button type="submit" disabled={!!busy} className="justify-self-start">
-        {busy ?? "Enviar material"}
+        {busy ?? (purpose === "past_exam" ? "Enviar prova" : "Enviar material")}
       </Button>
     </form>
   );

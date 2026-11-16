@@ -22,7 +22,7 @@ const STATUS: Record<string, { label: string; className: string }> = {
   error: { label: "Erro", className: "bg-destructive/15 text-destructive" },
 };
 
-const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto" };
+const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto", audio: "Áudio da aula", past_exam: "Prova antiga" };
 
 /** Lista de materiais. Enquanto algum está processando, atualiza a tela sozinha. */
 export function MaterialList({ materials }: { materials: MaterialRow[] }) {
@@ -51,7 +51,7 @@ export function MaterialList({ materials }: { materials: MaterialRow[] }) {
         return (
           <li key={m.id} className="bg-card flex items-center justify-between gap-3 rounded-xl border p-3">
             <div className="min-w-0">
-              {m.status === "ready" ? (
+              {m.status === "ready" && m.type !== "past_exam" ? (
                 <Link href={`/materials/${m.id}`} className="block truncate font-medium hover:underline">
                   {m.title}
                 </Link>
