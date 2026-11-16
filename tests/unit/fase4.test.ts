@@ -127,3 +127,16 @@ describe("conquistas", async () => {
     expect(evaluate(zero).every((b) => !b.unlocked && b.progress === 0)).toBe(true);
   });
 });
+
+describe("anotações: markdown simples", async () => {
+  const { parseBlocks } = await import("@/lib/notes/parse");
+  it("títulos, listas, citação e parágrafos", () => {
+    const b = parseBlocks("# Mitose\n- prófase\n- metáfase\n\n1. um\n2. dois\n> citação\nlinha 1\nlinha 2");
+    expect(b.map((x) => x.kind)).toEqual(["h", "ul", "ol", "quote", "p"]);
+    expect(b[1]).toEqual({ kind: "ul", items: ["prófase", "metáfase"] });
+    expect(b[4]).toEqual({ kind: "p", text: "linha 1\nlinha 2" });
+  });
+  it("não interpreta HTML", () => {
+    expect(parseBlocks("<script>x</script>")).toEqual([{ kind: "p", text: "<script>x</script>" }]);
+  });
+});

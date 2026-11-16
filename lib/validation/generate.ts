@@ -165,3 +165,15 @@ export const journalActionSchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("reflect") }),
 ]);
+
+export const noteActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("create"), subject_id: optionalUuid, title: z.string().trim().min(1).max(200).default("Sem título") }),
+  z.object({
+    action: z.literal("update"),
+    id: z.uuid(),
+    title: z.string().trim().min(1, "Dê um título").max(200).optional(),
+    content: z.string().max(100000, "Anotação muito longa").optional(),
+    subject_id: z.uuid().nullable().optional(),
+  }),
+  z.object({ action: z.literal("delete"), id: z.uuid() }),
+]);

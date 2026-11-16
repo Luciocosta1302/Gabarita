@@ -51,3 +51,16 @@ describe("biblioteca: chat por documento", () => {
     expect(await searchMaterialChunks(beto.client, ids[1], "célula", 50)).toHaveLength(0);
   });
 });
+
+describe("anotações", () => {
+  it("só o dono vê e edita; matéria precisa ser do dono", async () => {
+    const { data: n, error } = await ana.client.from("notes").insert({ user_id: ana.user.id, title: "Resumo", content: "# oi" }).select("id").single();
+    expect(error).toBeNull();
+    expect((await beto.client.from("notes").select("id").eq("id", n!.id)).data).toHaveLength(0);
+    const { data: upd } = await beto.client.from("notes").update({ content: "hack" }).eq("id", n!.id).select("id");
+    expect(upd).toHaveLength(0);
+    const { data: s } = await ana.client.from("subjects").insert({ user_id: ana.user.id, name: "Da Ana" }).select("id").single();
+    const { error: e2 } = await beto.client.from("notes").insert({ user_id: beto.user.id, subject_id: s!.id, title: "x" });
+    expect(e2).not.toBeNull();
+  });
+});
