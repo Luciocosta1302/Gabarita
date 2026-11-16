@@ -5,14 +5,9 @@
 import { createEmptyCard, FSRS, Rating, type Card, type Grade } from "ts-fsrs";
 
 export type FsrsState = Omit<Card, "due" | "last_review"> & { due: string; last_review?: string | null };
-export type ReviewGrade = "again" | "hard" | "good" | "easy";
+import type { ReviewGrade } from "./grades";
 
-export const GRADE_LABELS: Record<ReviewGrade, string> = {
-  again: "Errei",
-  hard: "Difícil",
-  good: "Bom",
-  easy: "Fácil",
-};
+export { GRADE_LABELS, type ReviewGrade } from "./grades";
 
 const GRADES: Record<ReviewGrade, Grade> = {
   again: Rating.Again,

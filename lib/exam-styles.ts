@@ -73,8 +73,13 @@ export const STYLE_SPECS: Record<ExamStyle, StyleSpec> = {
 };
 
 /** Estilos que o aluno pode escolher ao gerar questões agora. */
-export const SELECTABLE_STYLES = EXAM_STYLES.filter((s) => s !== "discursiva");
+export const SELECTABLE_STYLES = EXAM_STYLES.filter((s): s is Exclude<ExamStyle, "discursiva"> => s !== "discursiva");
 
 export function isTrueFalse(options: unknown): boolean {
   return Array.isArray(options) && options.length === 2 && options[0] === "Certo" && options[1] === "Errado";
+}
+
+/** Estilo padrão para os formulários: o da matéria, se puder ser escolhido; senão "livre". */
+export function selectableStyle(style: string | null | undefined): (typeof SELECTABLE_STYLES)[number] {
+  return (SELECTABLE_STYLES as readonly string[]).includes(style ?? "") ? (style as (typeof SELECTABLE_STYLES)[number]) : "livre";
 }

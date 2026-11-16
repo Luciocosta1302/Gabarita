@@ -3,12 +3,25 @@ import Link from "next/link";
 import { CreateSubjectForm } from "@/components/subjects/create-subject-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { todayBR } from "@/lib/dates";
 import { EXAM_STYLE_LABELS } from "@/lib/exam-styles";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
   const { data: profile } = await supabase.from("profiles").select("name").maybeSingle();
   const firstName = profile?.name?.split(" ")[0];
+  const today = todayBR();
+  const [{ data: planDays }, { count: dueReviews }] = await Promise.all([
+    supabase.from("plan_days").select("date, tasks_json, study_plans!inner(subject_id, subjects(name))").eq("date", today),
+    supabase.from("reviews").select("id", { count: "exact", head: true }).lte("due_at", new Date().toISOString()),
+  ]);
+  const todayTasks = (planDays ?? []).flatMap((d) =>
+    ((d.tasks_json ?? []) as { id: string; title: string; done?: boolean }[]).map((t) => ({
+      ...t,
+      subjectId: d.study_plans.subject_id,
+      subject: d.study_plans.subjects?.name ?? "",
+    })),
+  );
   const { data: subjects } = await supabase
     .from("subjects")
     .select("id, name, exam_date, exam_style")
@@ -23,6 +36,38 @@ export default async function DashboardPage() {
           Mande seu material, gere questões com fonte e descubra o que você ainda não sabe.
         </p>
       </section>
+
+      <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
+        <Card>
+          <CardHeader>
+            <CardTitle>Seu plano de hoje</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {todayTasks.length === 0 ? (
+              <p className="text-muted-foreground text-sm">Crie uma matéria com data de prova para ganhar um plano diário.</p>
+            ) : (
+              <ul className="grid gap-1.5 text-sm" data-testid="today-tasks">
+                {todayTasks.map((t) => (
+                  <li key={`${t.subjectId}-${t.id}`} className="flex items-center gap-2">
+                    <span aria-hidden>{t.done ? "☑" : "☐"}</span>
+                    <Link href={`/subjects/${t.subjectId}/plan`} className={t.done ? "text-muted-foreground line-through" : "hover:underline"}>
+                      {t.title}
+                    </Link>
+                    <span className="text-muted-foreground text-xs">· {t.subject}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        <Link href="/review" className="bg-pastel-mint grid content-center gap-1 rounded-2xl p-5 shadow-sm transition-transform hover:-translate-y-0.5">
+          <span className="font-semibold">Revisar hoje →</span>
+          <span className="font-display text-3xl font-bold" data-testid="due-count">
+            {dueReviews ?? 0}
+          </span>
+          <span className="text-foreground/75 text-xs">{dueReviews === 1 ? "item para revisar" : "itens para revisar"}</span>
+        </Link>
+      </div>
 
       <Card>
         <CardHeader>

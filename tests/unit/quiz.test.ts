@@ -74,3 +74,48 @@ describe("escolha de trechos", () => {
     expect(splitCounts(3, 10)).toEqual([3]);
   });
 });
+
+import { simuladoReport } from "@/lib/quiz/report";
+
+describe("relatório do simulado (D16)", () => {
+  const questions = [
+    { id: "q1", topicName: "Genética" },
+    { id: "q2", topicName: "Genética" },
+    { id: "q3", topicName: "Citologia" },
+    { id: "q4", topicName: "Citologia" },
+  ];
+  const attempts = [
+    { question_id: "q1", correct: false, time_ms: 60_000 },
+    { question_id: "q2", correct: false, time_ms: 30_000 },
+    { question_id: "q3", correct: true, time_ms: 30_000 },
+  ];
+  const r = simuladoReport({
+    questions,
+    attempts,
+    style: "cebraspe",
+    timeLimitS: 600,
+    startedAt: "2026-11-16T10:00:00Z",
+    finishedAt: "2026-11-16T10:04:00Z",
+  });
+
+  it("conta certas, erradas e em branco", () => {
+    expect([r.correct, r.wrong, r.blank, r.percent]).toEqual([1, 2, 1, 25]);
+  });
+  it("nota Cebraspe: errada anula certa", () => {
+    expect(r.cebraspeNet).toBe(-1);
+  });
+  it("tempo usado e média por questão respondida", () => {
+    expect(r.usedMs).toBe(240_000);
+    expect(r.avgMsPerAnswered).toBe(40_000);
+    expect(r.timeByQuestion[3]).toEqual({ id: "q4", index: 3, ms: null, correct: null });
+  });
+  it("tópicos fracos do pior para o melhor", () => {
+    expect(r.weakTopics).toEqual([
+      { name: "Genética", correct: 0, total: 2 },
+      { name: "Citologia", correct: 1, total: 2 },
+    ]);
+  });
+  it("sem Cebraspe não tem nota líquida", () => {
+    expect(simuladoReport({ questions, attempts, style: "enem", timeLimitS: 60, startedAt: null, finishedAt: null }).cebraspeNet).toBeNull();
+  });
+});

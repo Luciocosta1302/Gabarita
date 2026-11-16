@@ -8,11 +8,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DIFFICULTY_LABELS } from "@/lib/ai/prompts/questions";
 import { postJSON, selectClass } from "@/lib/api/client";
+import { EXAM_STYLE_LABELS, SELECTABLE_STYLES, selectableStyle } from "@/lib/exam-styles";
 import { MAX_QUESTIONS_PER_REQUEST } from "@/lib/limits";
 
 export type MaterialOption = { id: string; title: string };
+export type TopicOption = { id: string; name: string };
 
-export function GenerateQuizForm({ subjectId, materials }: { subjectId: string; materials: MaterialOption[] }) {
+export function GenerateQuizForm({
+  subjectId,
+  materials,
+  topics = [],
+  defaultStyle = "livre",
+}: {
+  subjectId: string;
+  materials: MaterialOption[];
+  topics?: TopicOption[];
+  defaultStyle?: string;
+}) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,8 +38,10 @@ export function GenerateQuizForm({ subjectId, materials }: { subjectId: string; 
       const res = await postJSON<{ quiz_id: string }>("/api/generate/questions", {
         subject_id: subjectId,
         material_id: form.get("material_id") || undefined,
+        topic_id: form.get("topic_id") || undefined,
         count: Number(form.get("count")),
         difficulty: form.get("difficulty"),
+        style: form.get("style") || undefined,
       });
       router.push(`/quiz/${res.quiz_id}`);
     } catch (err) {
@@ -64,6 +78,29 @@ export function GenerateQuizForm({ subjectId, materials }: { subjectId: string; 
           ))}
         </select>
       </div>
+      <div className="grid gap-2">
+        <Label htmlFor="q-style">Estilo da banca</Label>
+        <select id="q-style" name="style" defaultValue={selectableStyle(defaultStyle)} className={selectClass}>
+          {SELECTABLE_STYLES.map((s) => (
+            <option key={s} value={s}>
+              {EXAM_STYLE_LABELS[s]}
+            </option>
+          ))}
+        </select>
+      </div>
+      {topics.length > 0 && (
+        <div className="grid gap-2 sm:col-span-2">
+          <Label htmlFor="q-topic">Tópico</Label>
+          <select id="q-topic" name="topic_id" defaultValue="" className={selectClass}>
+            <option value="">Todos</option>
+            {topics.map((t) => (
+              <option key={t.id} value={t.id}>
+                {t.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {error && (
         <p role="alert" className="text-destructive text-sm sm:col-span-3">
           {error}

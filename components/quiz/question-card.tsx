@@ -6,6 +6,7 @@ import { useRef, useState } from "react";
 import type { AttemptResult } from "@/app/api/attempts/route";
 import { Button } from "@/components/ui/button";
 import { postJSON } from "@/lib/api/client";
+import { isTrueFalse } from "@/lib/exam-styles";
 import { CONFIDENCE_LABELS, CONFIDENCE_LEVELS, type Confidence } from "@/lib/quiz/confidence";
 import { indexToLetter, letterToIndex } from "@/lib/quiz/options";
 import { cn } from "@/lib/utils";
@@ -56,6 +57,7 @@ export function QuestionCard({
   }
 
   const correctIndex = result ? letterToIndex(result.answer) : null;
+  const tf = isTrueFalse(question.options);
 
   return (
     <div className="grid gap-4" data-testid="question-card">
@@ -82,7 +84,7 @@ export function QuestionCard({
                 state === "wrong" && "border-destructive bg-destructive/10",
               )}
             >
-              <span className="font-semibold">{indexToLetter(i)})</span>
+              {!tf && <span className="font-semibold">{indexToLetter(i)})</span>}
               <span>{opt}</span>
             </button>
           );
@@ -129,7 +131,9 @@ export function QuestionCard({
           className={cn("grid gap-2 rounded-xl p-4 text-sm", result.correct ? "bg-pastel-mint" : "bg-pastel-rose")}
         >
           <p className="font-semibold">
-            {result.correct ? "✓ Acertou!" : `✗ Errou. A resposta certa é ${result.answer}.`}
+            {result.correct
+              ? "✓ Acertou!"
+              : `✗ Errou. A resposta certa é ${tf ? question.options[correctIndex!] : result.answer}.`}
           </p>
           {result.explanation && <p>{result.explanation}</p>}
           {result.chunk_id && (

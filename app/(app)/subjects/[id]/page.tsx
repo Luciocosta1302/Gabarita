@@ -2,13 +2,18 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
+import { AutoRefresh } from "@/components/layout/auto-refresh";
 import { MaterialList } from "@/components/materials/material-list";
 import { UploadForm } from "@/components/materials/upload-form";
 import { ConfidenceMeter } from "@/components/quiz/confidence-meter";
 import { GenerateQuizForm } from "@/components/quiz/generate-quiz-form";
+import { SimuladoForm } from "@/components/quiz/simulado-form";
+import { DomainMap } from "@/components/topics/domain-map";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EXAM_STYLE_LABELS, type ExamStyle } from "@/lib/exam-styles";
+import { daysBetween, todayBR } from "@/lib/dates";
 import { confidenceStats } from "@/lib/quiz/confidence";
+import { loadTopicStats } from "@/lib/topics/stats";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -20,7 +25,8 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
   const { data: subject } = await supabase.from("subjects").select("*").eq("id", id).maybeSingle();
   if (!subject) notFound();
 
-  const [{ data: materials }, { data: quizzes }, { data: attempts }] = await Promise.all([
+  const today = todayBR();
+  const [{ data: materials }, { data: quizzes }, { data: attempts }, topics, { data: planToday }, { count: clustering }] = await Promise.all([
     supabase
       .from("materials")
       .select("id, title, type, status, page_count, error")
@@ -28,7 +34,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
       .order("created_at", { ascending: false }),
     supabase
       .from("quizzes")
-      .select("id, title, created_at, question_ids")
+      .select("id, title, created_at, question_ids, mode")
       .eq("subject_id", id)
       .order("created_at", { ascending: false })
       .limit(20),
@@ -37,9 +43,20 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
       .select("quiz_id, correct, confidence, questions!inner(subject_id)")
       .eq("questions.subject_id", id)
       .limit(5000),
+    loadTopicStats(supabase, id),
+    supabase.from("plan_days").select("tasks_json, study_plans!inner(subject_id)").eq("study_plans.subject_id", id).eq("date", today).maybeSingle(),
+    supabase
+      .from("jobs")
+      .select("id", { count: "exact", head: true })
+      .in("status", ["queued", "running"])
+      .in("kind", ["ingest_material", "cluster_topics"]),
   ]);
+  const todayTasks = ((planToday?.tasks_json ?? []) as { title: string; done?: boolean }[]).filter((t) => !t.done);
+  const daysLeft = subject.exam_date ? daysBetween(today, subject.exam_date) : null;
+
 
   const ready = (materials ?? []).filter((m) => m.status === "ready");
+  const waitingTopics = ready.length > 0 && topics.length === 0 && (clustering ?? 0) > 0;
   const byQuiz = new Map<string, { answered: number; correct: number }>();
   for (const a of attempts ?? []) {
     if (!a.quiz_id) continue;
@@ -54,6 +71,8 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
     { href: "#questoes", title: "Gerar questões", text: "Múltipla escolha, cada uma com a fonte.", color: "bg-pastel-peach" },
     { href: `/subjects/${id}/flashcards`, title: "Flashcards", text: "Cartões para memorizar o essencial.", color: "bg-pastel-mint" },
     { href: `/errors?subject=${id}`, title: "Caderno de erros", text: "Seus erros com explicação e questão parecida.", color: "bg-pastel-rose" },
+    { href: `/review?subject=${id}`, title: "Revisar hoje", text: "Repetição espaçada dos cartões e erros.", color: "bg-pastel-lilac" },
+    { href: "#simulado", title: "Simulado", text: "Prova cronometrada no estilo da banca.", color: "bg-pastel-peach" },
   ];
 
   return (
@@ -69,7 +88,27 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <AutoRefresh active={waitingTopics} every={4000} />
+
+      <Link
+        href={`/subjects/${id}/plan`}
+        data-testid="plan-card"
+        className="from-pastel-rose to-pastel-lilac animate-rise grid gap-1 rounded-2xl bg-gradient-to-br p-5 shadow-sm transition-transform hover:-translate-y-0.5"
+      >
+        <span className="font-semibold">Plano até a prova →</span>
+        {daysLeft != null && daysLeft > 0 ? (
+          <>
+            <span className="text-sm">
+              Faltam <strong>{daysLeft}</strong> {daysLeft === 1 ? "dia" : "dias"}.{" "}
+              {todayTasks.length ? `Hoje: ${todayTasks.slice(0, 3).map((t) => t.title).join(" · ")}` : "Nada pendente hoje."}
+            </span>
+          </>
+        ) : (
+          <span className="text-sm">Informe a data da prova e as horas por dia para montar o plano.</span>
+        )}
+      </Link>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
         {actions.map((a, i) => (
           <Link
             key={a.title}
@@ -93,12 +132,42 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
         </CardContent>
       </Card>
 
+      <Card id="dominio">
+        <CardHeader>
+          <CardTitle>Mapa de domínio</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {topics.length ? (
+            <DomainMap subjectId={id} topics={topics} />
+          ) : waitingTopics ? (
+            <p className="text-muted-foreground text-sm">Organizando o material em tópicos...</p>
+          ) : (
+            <p className="text-muted-foreground text-sm">Os tópicos aparecem aqui depois que você envia um material.</p>
+          )}
+        </CardContent>
+      </Card>
+
       <Card id="questoes">
         <CardHeader>
           <CardTitle>Gerar questões</CardTitle>
         </CardHeader>
         <CardContent>
-          <GenerateQuizForm subjectId={id} materials={ready.map((m) => ({ id: m.id, title: m.title }))} />
+          <GenerateQuizForm
+            subjectId={id}
+            materials={ready.map((m) => ({ id: m.id, title: m.title }))}
+            topics={topics.map((t) => ({ id: t.id, name: t.name }))}
+            defaultStyle={subject.exam_style}
+          />
+        </CardContent>
+      </Card>
+
+      <Card id="simulado">
+        <CardHeader>
+          <CardTitle>Simulado cronometrado</CardTitle>
+          <p className="text-muted-foreground text-sm">Tempo real de prova, sem ver a resposta até entregar. No fim, relatório com tempo por questão e tópicos fracos.</p>
+        </CardHeader>
+        <CardContent>
+          <SimuladoForm subjectId={id} defaultStyle={subject.exam_style} disabled={ready.length === 0} />
         </CardContent>
       </Card>
 
@@ -127,6 +196,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
                   <li key={q.id}>
                     <Link href={`/quiz/${q.id}`} className="hover:bg-accent flex justify-between gap-3 rounded-xl border p-3 text-sm">
                       <span>
+                        {q.mode === "simulado" && <span className="bg-pastel-peach mr-1 rounded-full px-2 py-0.5 text-xs">⏱</span>}
                         {q.title}
                         <span className="text-muted-foreground block text-xs">
                           {new Date(q.created_at).toLocaleDateString("pt-BR")}
