@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { STYLE_SPECS, type ExamStyle } from "@/lib/exam-styles";
 import { pickSentence } from "@/lib/text/quote";
 
 import { withGrounding } from "./base";
@@ -46,34 +47,33 @@ export type QuestionsInput = {
   chunks: SourceChunk[];
   count: number;
   difficulty: Difficulty | "misturada";
-  /** Estilo de prova/banca (D5 entra completo na Fase 2). */
-  styleHint?: string;
+  /** Estilo de prova/banca (D5). */
+  style?: ExamStyle;
 };
 
 const SYSTEM = withGrounding(
   [
-    "Você é um professor brasileiro que escreve questões de múltipla escolha a partir do material de estudo do aluno.",
+    "Você é um professor brasileiro que escreve questões de prova a partir do material de estudo do aluno.",
     "Cada questão deve ser respondível SOMENTE com o trecho indicado em `source`, e `quote` deve ser uma cópia literal de uma frase desse trecho.",
     "Escreva em português do Brasil. Alternativas plausíveis, uma única correta, sem 'todas as anteriores' ou 'nenhuma das anteriores'.",
     "Não mencione 'o trecho' ou 'o texto' no enunciado; pergunte sobre o conteúdo.",
   ].join("\n"),
 );
 
+function difficultyLine(d: QuestionsInput["difficulty"]) {
+  return d === "misturada" ? "Misture as dificuldades (fácil, média e difícil)." : `Todas com dificuldade "${d}".`;
+}
+
 export function questionsPrompt(input: QuestionsInput) {
-  const diff =
-    input.difficulty === "misturada"
-      ? "Misture as dificuldades (fácil, média e difícil)."
-      : `Todas com dificuldade "${input.difficulty}".`;
+  const spec = STYLE_SPECS[input.style ?? "livre"];
   const prompt = [
-    `Gere exatamente ${input.count} questões de múltipla escolha com 4 alternativas cada. ${diff}`,
-    input.styleHint ? `Estilo da prova: ${input.styleHint}.` : "",
+    `Gere exatamente ${input.count} questões de múltipla escolha com ${spec.options} alternativas cada. ${difficultyLine(input.difficulty)}`,
+    spec.guide,
     "Distribua as questões entre os trechos diferentes e não repita o mesmo conceito.",
     "",
     "Trechos do material:",
     formatSources(input.chunks),
-  ]
-    .filter((l) => l !== "")
-    .join("\n");
+  ].join("\n");
 
   return {
     system: SYSTEM,
@@ -84,12 +84,74 @@ export function questionsPrompt(input: QuestionsInput) {
       questions: Array.from({ length: input.count }, (_, i) => {
         const n = i % input.chunks.length;
         const quote = pickSentence(input.chunks[n].content, Math.floor(i / input.chunks.length));
+        const wrong = Array.from({ length: spec.options - 1 }, (_, k) => `Alternativa incorreta ${k + 1}`);
         return {
           source: n + 1,
           quote,
           stem: `Questão ${i + 1}: de acordo com o material, qual afirmação está correta?`,
-          options: [quote, "Alternativa incorreta 1", "Alternativa incorreta 2", "Alternativa incorreta 3"],
+          options: [quote, ...wrong],
           answer_index: 0,
+          explanation: `O material afirma: "${quote}"`,
+          difficulty: input.difficulty === "misturada" ? DIFFICULTIES[i % 3] : input.difficulty,
+        };
+      }),
+    }),
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Certo ou errado (Cebraspe)
+// ---------------------------------------------------------------------------
+
+export const tfFields = {
+  quote: mcqFields.quote,
+  statement: z.string().min(10).describe("Afirmação para o aluno julgar como certa ou errada"),
+  is_true: z.boolean().describe("true se a afirmação está CERTA segundo o material"),
+  explanation: z.string().min(10).describe("Por que está certa ou errada, com base no trecho"),
+  difficulty: z.enum(DIFFICULTIES),
+};
+
+export const trueFalseSchema = z.object({
+  items: z.array(
+    z.object({
+      source: z.number().int().min(1).describe("Número do trecho [T#] que embasa o item"),
+      ...tfFields,
+    }),
+  ),
+});
+export type GeneratedTrueFalse = z.infer<typeof trueFalseSchema>;
+
+const TF_SYSTEM = withGrounding(
+  [
+    "Você é um examinador brasileiro que escreve itens de 'certo ou errado' a partir do material de estudo do aluno.",
+    "Cada item deve ser julgável SOMENTE com o trecho indicado em `source`, e `quote` deve ser uma cópia literal da frase do trecho que decide se o item está certo ou errado.",
+    "Português do Brasil. Não mencione 'o trecho' ou 'o texto' na afirmação.",
+  ].join("\n"),
+);
+
+export function trueFalsePrompt(input: Omit<QuestionsInput, "style">) {
+  return {
+    system: TF_SYSTEM,
+    prompt: [
+      `Gere exatamente ${input.count} itens de certo ou errado. ${difficultyLine(input.difficulty)}`,
+      STYLE_SPECS.cebraspe.guide,
+      "Distribua os itens entre os trechos diferentes.",
+      "",
+      "Trechos do material:",
+      formatSources(input.chunks),
+    ].join("\n"),
+    schema: trueFalseSchema,
+    tier: "smart" as const,
+    mock: (): GeneratedTrueFalse => ({
+      items: Array.from({ length: input.count }, (_, i) => {
+        const n = i % input.chunks.length;
+        const quote = pickSentence(input.chunks[n].content, Math.floor(i / input.chunks.length));
+        return {
+          source: n + 1,
+          quote,
+          // no mock, itens pares certos e ímpares errados
+          statement: i % 2 === 0 ? `Item ${i + 1}: ${quote}` : `Item ${i + 1}: é falso que ${quote}`,
+          is_true: i % 2 === 0,
           explanation: `O material afirma: "${quote}"`,
           difficulty: input.difficulty === "misturada" ? DIFFICULTIES[i % 3] : input.difficulty,
         };

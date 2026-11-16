@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { createPlan } from "@/lib/planner/service";
 import { getUser } from "@/lib/supabase/server";
 import { createSubjectSchema } from "@/lib/validation/subject";
 
@@ -18,14 +19,27 @@ export async function createSubject(_prev: CreateSubjectState, formData: FormDat
     return { error: fields.find((m) => m?.length)?.[0] ?? "Dados inválidos" };
   }
 
-  const { error } = await supabase.from("subjects").insert({
+  const { data: created, error } = await supabase
+    .from("subjects")
+    .insert({
     user_id: user.id,
     name: parsed.data.name,
     exam_date: parsed.data.exam_date ?? null,
     hours_per_day: parsed.data.hours_per_day ?? null,
     exam_style: parsed.data.exam_style,
-  });
-  if (error) return { error: "Não foi possível criar a matéria." };
+    })
+    .select("id")
+    .single();
+  if (error || !created) return { error: "Não foi possível criar a matéria." };
+
+  // D2: com data de prova, o plano reverso já nasce (genérico até chegar o material).
+  if (parsed.data.exam_date) {
+    try {
+      await createPlan(supabase, user.id, created.id);
+    } catch (e) {
+      console.error("[plano] falha ao criar:", e);
+    }
+  }
 
   revalidatePath("/dashboard");
   return { ok: true };

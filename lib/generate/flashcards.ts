@@ -6,6 +6,7 @@ import { generateJSON } from "@/lib/ai/provider";
 import { flashcardsPrompt } from "@/lib/ai/prompts/flashcards";
 import { sourceAt, type SourceChunk } from "@/lib/ai/prompts/sources";
 import { UserFacingError } from "@/lib/errors";
+import { addToReview } from "@/lib/srs/service";
 import type { Database } from "@/lib/supabase/database.types";
 
 import { pickChunks } from "./pick";
@@ -51,7 +52,9 @@ export async function generateFlashcards(
     }));
   if (rows.length === 0) throw new UserFacingError("Não foi possível criar flashcards com base no material.");
 
-  const { error } = await supabase.from("flashcards").insert(rows);
-  if (error) throw error;
-  return { count: rows.length };
+  const { data: inserted, error } = await supabase.from("flashcards").insert(rows).select("id");
+  if (error || !inserted) throw error ?? new Error("Falha ao salvar flashcards");
+  // D3: todo flashcard novo entra na revisão espaçada (vence hoje).
+  await addToReview(supabase, userId, input.subjectId, "flashcard", inserted.map((r) => r.id));
+  return { count: inserted.length };
 }

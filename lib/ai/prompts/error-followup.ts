@@ -3,7 +3,7 @@ import { z } from "zod";
 import { pickSentence } from "@/lib/text/quote";
 
 import { withGrounding } from "./base";
-import { mcqFields } from "./questions";
+import { mcqFields, tfFields } from "./questions";
 
 /** D6: explica o erro e cria uma questão parecida (mesmo conceito, outro ângulo). */
 export const errorFollowupSchema = z.object({
@@ -13,6 +13,13 @@ export const errorFollowupSchema = z.object({
     .refine((q) => q.answer_index < q.options.length, { message: "answer_index fora das alternativas" }),
 });
 export type ErrorFollowup = z.infer<typeof errorFollowupSchema>;
+
+/** Variante para itens de certo ou errado (Cebraspe). */
+export const errorFollowupTfSchema = z.object({
+  why_wrong: errorFollowupSchema.shape.why_wrong,
+  followup: z.object(tfFields),
+});
+export type ErrorFollowupTf = z.infer<typeof errorFollowupTfSchema>;
 
 export type ErrorFollowupInput = {
   stem: string;
@@ -67,6 +74,44 @@ export function errorFollowupPrompt(input: ErrorFollowupInput) {
           explanation: `O material afirma: "${quote}"`,
           difficulty: "media",
         },
+      };
+    },
+  };
+}
+
+const TF_SYSTEM = withGrounding(
+  [
+    "Você é um tutor que ajuda o aluno a aprender com os próprios erros em itens de 'certo ou errado'.",
+    "Explique de forma direta por que o julgamento do aluno está errado (qual detalhe da afirmação decide), sem julgar.",
+    "Depois crie UM item novo de certo ou errado sobre o MESMO conceito, com outra afirmação.",
+    "O item novo deve ser julgável só com o trecho do material, e `quote` deve ser cópia literal de uma frase do trecho.",
+    "Português do Brasil.",
+  ].join("\n"),
+);
+
+export function errorFollowupTfPrompt(input: { statement: string; isTrue: boolean; explanation: string | null; source: { content: string; page: number | null } | null }) {
+  const prompt = [
+    `Item: ${input.statement}`,
+    `Gabarito: ${input.isTrue ? "CERTO" : "ERRADO"}`,
+    `O aluno julgou: ${input.isTrue ? "ERRADO" : "CERTO"}`,
+    input.explanation ? `Explicação original: ${input.explanation}` : "",
+    "",
+    input.source
+      ? `Trecho do material${input.source.page != null ? ` (página ${input.source.page})` : ""}:\n${input.source.content}`
+      : "Não há trecho do material disponível. Baseie-se apenas no item e na explicação acima.",
+  ]
+    .filter((l) => l !== "")
+    .join("\n");
+  return {
+    system: TF_SYSTEM,
+    prompt,
+    schema: errorFollowupTfSchema,
+    tier: "smart" as const,
+    mock: (): ErrorFollowupTf => {
+      const quote = pickSentence(input.source?.content ?? input.explanation ?? input.statement, 1);
+      return {
+        why_wrong: `O item estava ${input.isTrue ? "certo" : "errado"} segundo o material.`,
+        followup: { quote, statement: `Item parecido: ${quote}`, is_true: true, explanation: `O material afirma: "${quote}"`, difficulty: "media" },
       };
     },
   };

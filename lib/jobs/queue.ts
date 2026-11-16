@@ -6,6 +6,8 @@ import { z } from "zod";
 import { isUserFacing } from "@/lib/errors";
 import { createErrorFollowup } from "@/lib/generate/error-followup";
 import { ingestMaterial, markMaterialFailed } from "@/lib/ingest/pipeline";
+import { refreshPlan } from "@/lib/planner/service";
+import { clusterSubjectTopics } from "@/lib/topics/cluster";
 import { createAdminClient, type AdminClient } from "@/lib/supabase/admin";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -20,9 +22,23 @@ const MAX_ATTEMPTS = 3;
 const JOBS = {
   ingest_material: {
     payload: z.object({ material_id: z.uuid() }),
-    run: (admin: AdminClient, p: { material_id: string }) => ingestMaterial(admin, p.material_id),
+    run: async (admin: AdminClient, p: { material_id: string }) => {
+      await ingestMaterial(admin, p.material_id);
+      // Material pronto → agrupar os trechos em tópicos (D8), que depois atualizam o plano (D2).
+      const { data: m } = await admin.from("materials").select("user_id, subject_id").eq("id", p.material_id).single();
+      if (m) await enqueueAdmin(admin, m.user_id, "cluster_topics", { subject_id: m.subject_id });
+    },
     onFail: (admin: AdminClient, p: { material_id: string }, message: string) =>
       markMaterialFailed(admin, p.material_id, message),
+  },
+  cluster_topics: {
+    payload: z.object({ subject_id: z.uuid() }),
+    run: async (admin: AdminClient, p: { subject_id: string }) => {
+      await clusterSubjectTopics(admin, p.subject_id);
+      const { data: s } = await admin.from("subjects").select("user_id").eq("id", p.subject_id).single();
+      if (s) await refreshPlan(admin, s.user_id, p.subject_id);
+    },
+    onFail: async () => {},
   },
   error_followup: {
     payload: z.object({ notebook_id: z.uuid() }),
@@ -50,6 +66,18 @@ export async function enqueueJob<K extends JobKind>(
     .single();
   if (error || !data) throw error ?? new Error("Falha ao criar job");
   return data.id;
+}
+
+/** Enfileira pelo servidor (dentro de outro job), sem duplicar um igual que ainda está na fila. */
+async function enqueueAdmin(admin: AdminClient, userId: string, kind: JobKind, payload: Record<string, string>) {
+  const [[key, value]] = Object.entries(payload);
+  const { count } = await admin
+    .from("jobs")
+    .select("id", { count: "exact", head: true })
+    .eq("kind", kind)
+    .eq("status", "queued")
+    .eq(`payload_json->>${key}`, value);
+  if (!count) await admin.from("jobs").insert({ user_id: userId, kind, payload_json: payload });
 }
 
 const GENERIC_ERROR = "Algo deu errado ao processar. Tente de novo mais tarde.";
