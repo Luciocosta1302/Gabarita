@@ -150,3 +150,13 @@ describe("domínio por tópico (D8)", () => {
     expect(topicMastery([at(true, 1, "certeza")])).toBe(1);
   });
 });
+
+describe("plano sem tarefas repetidas no mesmo dia", () => {
+  it("o estudo de um tópico não aparece partido no mesmo dia", () => {
+    const days = buildPlan({ today, examDate: exam, minutesPerDay: 120, topics });
+    for (const d of days) {
+      const studyTopics = d.tasks.filter((t) => t.kind === "study").map((t) => t.topic_id);
+      expect(new Set(studyTopics).size).toBe(studyTopics.length);
+    }
+  });
+});

@@ -88,7 +88,7 @@ describe("material → tópicos (D8) → plano por tópico", () => {
     const { quizId } = await generateQuiz(ana.client, ana.user.id, { subjectId, topicId: topic.id, count: 2, difficulty: "media" });
     const { data: quiz } = await ana.client.from("quizzes").select("question_ids, topic_id").eq("id", quizId).single();
     expect(quiz!.topic_id).toBe(topic.id);
-    const { data: qs } = await ana.client.from("questions").select(QUESTION_FIELDS + ", topic_id").in("id", quiz!.question_ids);
+    const { data: qs } = await ana.client.from("questions").select("id, subject_id, answer, explanation, chunk_id, source_page, topic_id").in("id", quiz!.question_ids);
     expect(qs!.every((q) => q.topic_id === topic.id)).toBe(true);
 
     for (const q of qs!) await recordAttempt(ana.client, ana.user.id, q, { questionId: q.id, quizId, answer: q.answer, confidence: "certeza" });

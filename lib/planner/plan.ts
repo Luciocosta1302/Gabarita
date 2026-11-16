@@ -153,9 +153,15 @@ export function buildPlan(input: PlanInput): PlanDay[] {
       advance(Math.min(left, MIN_STUDY));
       const lastDay = di === learnDays.length - 1;
       const m = lastDay ? Math.min(left, MAX_STUDY_BLOCK) : Math.min(left, MAX_STUDY_BLOCK, Math.max(free(), MIN_STUDY));
-      const task: PlanTask = { id: id("study", t.id), kind: "study", title: `Estudar ${t.name}`, minutes: m, topic_id: t.id };
-      learnDays[di].tasks.push(task);
-      studyPieces.set(t.id, [...(studyPieces.get(t.id) ?? []), task]);
+      // pedaço do mesmo tópico no mesmo dia vira uma tarefa só
+      const prev = learnDays[di].tasks.at(-1);
+      if (prev?.kind === "study" && prev.topic_id === t.id) {
+        prev.minutes += m;
+      } else {
+        const task: PlanTask = { id: id("study", t.id), kind: "study", title: `Estudar ${t.name}`, minutes: m, topic_id: t.id };
+        learnDays[di].tasks.push(task);
+        studyPieces.set(t.id, [...(studyPieces.get(t.id) ?? []), task]);
+      }
       left -= m; // no último dia de estudo, o que não couber fica nele mesmo (plano apertado)
     }
   }
