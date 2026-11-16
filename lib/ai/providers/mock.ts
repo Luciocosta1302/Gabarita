@@ -36,7 +36,9 @@ export class MockProvider implements AIProvider {
   }
 
   async transcribe(): Promise<{ text: string }> {
-    return { text: "Transcrição de teste." };
+    return {
+      text: "Transcrição de teste. Hoje a aula foi sobre a respiração celular, que acontece nas mitocôndrias e libera energia na forma de ATP. Também falamos da fotossíntese, que ocorre nos cloroplastos.",
+    };
   }
 }
 
