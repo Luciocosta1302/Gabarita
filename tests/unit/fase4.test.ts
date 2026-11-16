@@ -107,3 +107,23 @@ describe("desempenho", () => {
     expect(recommendations({ weakTopics: [], dueReviews: 0, pendingToday: 0, sureWrongRate: null, sureTotal: 0, answered: 0 })[0].kind).toBe("start");
   });
 });
+
+describe("conquistas", async () => {
+  const { evaluate, levelOf, xpOf } = await import("@/lib/achievements/badges");
+  const zero = { answered: 0, correct: 0, streak: 0, focusMinutes: 0, materials: 0, errorsResolved: 0, simulados: 0, stepsDone: 0, feynman: 0, journal: 0, rooms: 0, flashcardReviews: 0 };
+  it("níveis: 100, 300, 600 XP", () => {
+    expect(levelOf(0).level).toBe(1);
+    expect(levelOf(99).level).toBe(1);
+    expect(levelOf(100).level).toBe(2);
+    expect(levelOf(300).level).toBe(3);
+    expect(levelOf(450).progress).toBeCloseTo(0.5);
+  });
+  it("XP e medalhas a partir dos números", () => {
+    const c = { ...zero, answered: 100, correct: 60, streak: 3 };
+    expect(xpOf(c)).toBe(100 * 2 + 60 * 3);
+    const got = evaluate(c).filter((b) => b.unlocked).map((b) => b.name);
+    expect(got).toEqual(expect.arrayContaining(["Primeiro passo", "Centena", "Mira boa", "Embalo"]));
+    expect(got).not.toContain("Uma semana");
+    expect(evaluate(zero).every((b) => !b.unlocked && b.progress === 0)).toBe(true);
+  });
+});

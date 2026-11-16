@@ -12,6 +12,7 @@ const LINKS = [
   { href: "/review", label: "Revisar hoje", icon: "↻" },
   { href: "/desempenho", label: "Desempenho", icon: "📈" },
   { href: "/diario", label: "Diário", icon: "📓" },
+  { href: "/conquistas", label: "Conquistas", icon: "🏅" },
   { href: "/resolver", label: "Foto da questão", icon: "📷" },
   { href: "/errors", label: "Caderno de erros", icon: "✎" },
   { href: "/salas", label: "Turmas", icon: "👥" },
