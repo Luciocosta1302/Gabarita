@@ -92,7 +92,9 @@ export function TutorSession({
   }, [messages.length]);
 
   const last = messages.at(-1);
-  const openQuestionId = last?.kind === "question" ? last.question?.id : null;
+  // a questão continua aberta mesmo com dúvidas/explicações depois dela, até chegar a correção
+  const lastQA = messages.findLast((m) => m.kind === "question" || m.kind === "feedback");
+  const openQuestionId = lastQA?.kind === "question" ? lastQA.question?.id : null;
   const done = status === "done";
 
   return (
@@ -193,9 +195,16 @@ export function TutorSession({
 
       {!done && messages.length > 0 && (
         <div className="bg-card grid gap-3 rounded-2xl border p-4">
-          <Button variant="outline" size="sm" className="justify-self-start" disabled={!!busy} onClick={() => act("again", { action: "again" }).catch(() => {})}>
-            {busy === "again" ? "Explicando..." : "Explicar de outro jeito"}
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" disabled={!!busy} onClick={() => act("again", { action: "again" }).catch(() => {})}>
+              {busy === "again" ? "Explicando..." : "Explicar de outro jeito"}
+            </Button>
+            {!openQuestionId && last?.kind !== "done" && (
+              <Button size="sm" disabled={!!busy} data-testid="tutor-continue" onClick={() => act("continue", { action: "continue" }).catch(() => {})}>
+                {busy === "continue" ? "Preparando..." : "Próxima questão"}
+              </Button>
+            )}
+          </div>
           <form
             className="flex items-end gap-2"
             onSubmit={(e) => {

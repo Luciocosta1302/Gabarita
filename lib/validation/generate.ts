@@ -98,6 +98,7 @@ export const tutorActionSchema = z.discriminatedUnion("action", [
     confidence: z.enum(CONFIDENCE_LEVELS, "Marque sua confiança antes de responder"),
   }),
   z.object({ action: z.literal("again"), step_id: z.uuid() }),
+  z.object({ action: z.literal("continue"), step_id: z.uuid() }),
   z.object({ action: z.literal("ask"), step_id: z.uuid(), question: z.string().trim().min(2).max(1000) }),
 ]);
 

@@ -7,6 +7,7 @@ import { chatPrompt } from "@/lib/ai/prompts/chat";
 import { pathPrompt, type Level } from "@/lib/ai/prompts/path";
 import { sourceAt } from "@/lib/ai/prompts/sources";
 import { tutorDiagnosePrompt, tutorExplainPrompt } from "@/lib/ai/prompts/tutor";
+import { PlanLimitError } from "@/lib/billing/limits";
 import { UserFacingError } from "@/lib/errors";
 import { createQuestions, type GenChunk } from "@/lib/generate/questions";
 import { letterToIndex } from "@/lib/quiz/options";
@@ -140,7 +141,8 @@ async function askQuestion(db: DB, userId: string, step: Awaited<ReturnType<type
 /** Abre a etapa: explicação + primeira questão (só na primeira vez). */
 export async function startStep(db: DB, userId: string, stepId: string) {
   const step = await loadStep(db, stepId);
-  const { count } = await db.from("tutor_messages").select("id", { count: "exact", head: true }).eq("step_id", stepId);
+  // já começou (tem explicação)? não refaz — uma dúvida feita antes de abrir não conta
+  const { count } = await db.from("tutor_messages").select("id", { count: "exact", head: true }).eq("step_id", stepId).eq("kind", "explanation");
   if (count) return;
   const chunks = await explain(db, userId, step);
   await askQuestion(db, userId, step, null, chunks);
@@ -153,19 +155,20 @@ export async function startStep(db: DB, userId: string, stepId: string) {
  * - errou: o tutor diagnostica a dificuldade, explica de outro jeito (mais simples) e passa uma questão mais fácil.
  * A resposta também passa pelo registro normal (caderno de erros, revisão espaçada, domínio por tópico).
  */
-export async function answerStep(db: DB, userId: string, stepId: string, input: { questionId: string; answer: string; confidence: string }) {
+export async function answerStep(
+  db: DB,
+  userId: string,
+  stepId: string,
+  input: { questionId: string; answer: string; confidence: string },
+  /** chamado antes de criar a próxima questão (cota do plano grátis) */
+  beforeQuestion?: () => Promise<void>,
+) {
   const step = await loadStep(db, stepId);
   if (step.status === "done") throw new UserFacingError("Esta etapa já foi concluída.");
 
   // a questão precisa ser a última pergunta do tutor nesta etapa, ainda sem resposta
-  const { data: last } = await db
-    .from("tutor_messages")
-    .select("kind, question_id")
-    .eq("step_id", stepId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single();
-  if (!last || last.kind !== "question" || last.question_id !== input.questionId) {
+  // (dúvidas e "explicar de outro jeito" no meio não fecham a questão)
+  if ((await openQuestionId(db, stepId)) !== input.questionId) {
     throw new UserFacingError("Essa questão não está mais aberta.");
   }
 
@@ -220,14 +223,48 @@ export async function answerStep(db: DB, userId: string, stepId: string, input: 
     const { data: own } = q.chunk_id && !failed.length
       ? await db.from("chunks").select("id, page, content, topic_id").eq("id", q.chunk_id).maybeSingle()
       : { data: null };
-    await askQuestion(db, userId, fresh, false, failed.length ? failed : own ? [own] : chunks);
-  } else {
+    if (await allowed(db, userId, stepId, beforeQuestion)) await askQuestion(db, userId, fresh, false, failed.length ? failed : own ? [own] : chunks);
+  } else if (await allowed(db, userId, stepId, beforeQuestion)) {
     await askQuestion(db, userId, fresh, true);
   }
   return { result, queuedJobs, passed: false };
 }
 
 /** Pede ao tutor para explicar de novo, mais simples, sem precisar errar. */
+/** Questão do tutor ainda sem resposta nesta etapa (a última pergunta, se não houver correção depois dela). */
+export async function openQuestionId(db: DB, stepId: string): Promise<string | null> {
+  const { data } = await db
+    .from("tutor_messages")
+    .select("kind, question_id")
+    .eq("step_id", stepId)
+    .in("kind", ["question", "feedback"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return data?.kind === "question" ? data.question_id : null;
+}
+
+/** Cota estourada: o tutor avisa na conversa em vez de criar a questão (o aluno continua amanhã ou no Pro). */
+async function allowed(db: DB, userId: string, stepId: string, check?: () => Promise<void>) {
+  if (!check) return true;
+  try {
+    await check();
+    return true;
+  } catch (e) {
+    if (!(e instanceof PlanLimitError)) throw e;
+    await addMessage(db, userId, stepId, "tutor", "chat", { text: `${e.message} Quando puder, clique em "Próxima questão" para continuar.` });
+    return false;
+  }
+}
+
+/** Sem questão aberta (ex.: parou pela cota): o tutor passa a próxima. */
+export async function continueStep(db: DB, userId: string, stepId: string) {
+  const step = await loadStep(db, stepId);
+  if (step.status === "done" || step.status === "locked") throw new UserFacingError("Esta etapa não está aberta.");
+  if (await openQuestionId(db, stepId)) return;
+  await askQuestion(db, userId, step, null);
+}
+
 export async function explainAgain(db: DB, userId: string, stepId: string) {
   const step = await loadStep(db, stepId);
   await addMessage(db, userId, stepId, "student", "chat", { text: "Pode explicar de outro jeito?" });
