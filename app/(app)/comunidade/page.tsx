@@ -1,0 +1,68 @@
+import Link from "next/link";
+
+import { CATEGORY_LABELS, NewPostForm } from "@/components/community/community";
+import { createClient } from "@/lib/supabase/server";
+import { cn } from "@/lib/utils";
+import { COMMUNITY_CATEGORIES } from "@/lib/validation/generate";
+
+export const metadata = { title: "Comunidade — Gabarita" };
+
+type Cat = (typeof COMMUNITY_CATEGORIES)[number];
+
+export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
+  const sp = await searchParams;
+  const cat = (COMMUNITY_CATEGORIES as readonly string[]).includes(sp.cat ?? "") ? (sp.cat as Cat) : null;
+  const supabase = await createClient();
+  let pq = supabase.from("community_posts").select("id, author_name, category, title, body, created_at").order("created_at", { ascending: false }).limit(50);
+  if (cat) pq = pq.eq("category", cat);
+  const { data: posts } = await pq;
+  const ids = (posts ?? []).map((p) => p.id);
+  const [{ data: likes }, { data: comments }] = ids.length
+    ? await Promise.all([
+        supabase.from("community_likes").select("post_id").in("post_id", ids),
+        supabase.from("community_comments").select("post_id").in("post_id", ids),
+      ])
+    : [{ data: [] }, { data: [] }];
+  const tally = (rows: { post_id: string }[] | null) => (rows ?? []).reduce((m, r) => m.set(r.post_id, (m.get(r.post_id) ?? 0) + 1), new Map<string, number>());
+  const likeCount = tally(likes);
+  const commentCount = tally(comments);
+
+  return (
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">Comunidade</h1>
+          <p className="text-muted-foreground text-sm">Tire dúvidas, troque dicas e encontre gente para estudar junto.</p>
+        </div>
+      </div>
+      <NewPostForm />
+      <nav aria-label="Categorias" className="flex flex-wrap gap-2">
+        <Link href="/comunidade" className={cn("rounded-full border px-3 py-1 text-sm", !cat ? "bg-primary text-primary-foreground" : "bg-card")}>
+          Tudo
+        </Link>
+        {COMMUNITY_CATEGORIES.map((c) => (
+          <Link key={c} href={`/comunidade?cat=${c}`} className={cn("rounded-full border px-3 py-1 text-sm", cat === c ? "bg-primary text-primary-foreground" : "bg-card")}>
+            {CATEGORY_LABELS[c]}
+          </Link>
+        ))}
+      </nav>
+      <ul className="grid gap-3" data-testid="posts">
+        {(posts ?? []).length === 0 && <li className="text-muted-foreground text-sm">Nenhum post ainda. Que tal começar?</li>}
+        {(posts ?? []).map((p) => (
+          <li key={p.id}>
+            <Link href={`/comunidade/${p.id}`} className="bg-card hover:bg-accent grid gap-1 rounded-2xl border p-4 shadow-sm">
+              <span className="text-muted-foreground text-xs">
+                {CATEGORY_LABELS[p.category as Cat]} · {p.author_name} · {new Date(p.created_at).toLocaleDateString("pt-BR")}
+              </span>
+              <span className="font-semibold">{p.title}</span>
+              <span className="text-muted-foreground line-clamp-2 text-sm">{p.body}</span>
+              <span className="text-muted-foreground text-xs">
+                ♥ {likeCount.get(p.id) ?? 0} · 💬 {commentCount.get(p.id) ?? 0}
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

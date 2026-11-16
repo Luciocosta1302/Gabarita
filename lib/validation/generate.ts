@@ -177,3 +177,18 @@ export const noteActionSchema = z.discriminatedUnion("action", [
   }),
   z.object({ action: z.literal("delete"), id: z.uuid() }),
 ]);
+
+export const COMMUNITY_CATEGORIES = ["duvida", "dica", "material", "grupo"] as const;
+
+export const communityActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("post"),
+    category: z.enum(COMMUNITY_CATEGORIES),
+    title: z.string().trim().min(3, "Título muito curto").max(160),
+    body: z.string().trim().min(1, "Escreva alguma coisa").max(5000),
+  }),
+  z.object({ action: z.literal("comment"), post_id: z.uuid(), body: z.string().trim().min(1, "Escreva alguma coisa").max(3000) }),
+  z.object({ action: z.literal("like"), post_id: z.uuid(), like: z.boolean() }),
+  z.object({ action: z.literal("delete_post"), id: z.uuid() }),
+  z.object({ action: z.literal("delete_comment"), id: z.uuid() }),
+]);

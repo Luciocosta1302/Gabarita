@@ -64,3 +64,27 @@ describe("anotações", () => {
     expect(e2).not.toBeNull();
   });
 });
+
+describe("comunidade", () => {
+  it("todos leem; nome vem do perfil; só o autor apaga; curtida única", async () => {
+    await ana.client.from("profiles").update({ name: "Ana Real" }).eq("id", ana.user.id);
+    const { data: p, error } = await ana.client
+      .from("community_posts")
+      .insert({ user_id: ana.user.id, author_name: "Outra Pessoa", category: "duvida", title: "Mitose x meiose", body: "Qual a diferença?" })
+      .select("id, author_name")
+      .single();
+    expect(error).toBeNull();
+    expect(p!.author_name).toBe("Ana Real");
+    const { data: seen } = await beto.client.from("community_posts").select("id").eq("id", p!.id);
+    expect(seen).toHaveLength(1);
+    expect((await beto.client.from("community_comments").insert({ user_id: beto.user.id, author_name: "", post_id: p!.id, body: "A meiose reduz." })).error).toBeNull();
+    expect((await beto.client.from("community_likes").insert({ post_id: p!.id, user_id: beto.user.id })).error).toBeNull();
+    expect((await beto.client.from("community_likes").insert({ post_id: p!.id, user_id: beto.user.id })).error).not.toBeNull();
+    expect((await beto.client.from("community_likes").insert({ post_id: p!.id, user_id: ana.user.id })).error).not.toBeNull();
+    await beto.client.from("community_posts").delete().eq("id", p!.id);
+    expect((await ana.client.from("community_posts").select("id").eq("id", p!.id)).data).toHaveLength(1);
+    await ana.client.from("community_posts").delete().eq("id", p!.id);
+    expect((await ana.client.from("community_posts").select("id").eq("id", p!.id)).data).toHaveLength(0);
+    expect((await beto.client.from("community_comments").select("id").eq("post_id", p!.id)).data).toHaveLength(0);
+  });
+});
