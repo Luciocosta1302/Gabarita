@@ -223,8 +223,8 @@ tests/
   - YouTube (`type = youtube`, `lib/ingest/html.ts#youtubeId`): o **Gemini assiste o vídeo pela URL** (sem baixar nada do YouTube; no endpoint compatível com OpenAI a URL vai como `image_url`) e transcreve com tempos `[mm:ss]` e texto da tela → "partes" de ~3000 caracteres. Medido: ~90 tokens/s de vídeo (3,5 min = 19,5 mil tokens, 7 s) → na cota grátis cabe até ~40 min por vídeo. Só vídeo público. Título pelo oEmbed público. Com `AI_PROVIDER=anthropic` não funciona (mensagem clara).
   - Página da web (`type = web`, `lib/ingest/links.ts`): o servidor busca a página (20 s, 20 MB, até 5 redirecionamentos), tira menus/scripts/rodapé e prefere `<article>`/`<main>` (`htmlToText`, sem biblioteca). Link de PDF vira material PDF (arquivo guardado no Storage). Menos de 200 caracteres = "copie e cole" (site com login ou que só carrega no navegador).
   - Segurança (SSRF): só http/https nas portas 80/443, sem usuário/senha no link, e o nome tem que apontar para IP público em cada redirecionamento (bloqueia 127.x, rede interna, 169.254.x de metadados da nuvem, IPv6 local). `LINK_FETCH_ALLOW_LOCAL=true` libera endereços locais **só para testes** (o Playwright liga sozinho); nunca em produção. Risco residual: DNS rebinding entre a checagem e a conexão.
-  - O material mostra "Abrir a página original" / "Assistir o vídeo original". Sem título dado pelo aluno, usa o da página/vídeo.
-- Pendências conhecidas: páginas de DOCX/texto/áudio são aproximadas; IA real sem teste automatizado (precisa de chave); vídeo do YouTube de ~40 min ou mais não foi testado com a IA real; os tempos `[mm:ss]` da transcrição ainda não viram links para o ponto do vídeo.
+  - O material mostra "Abrir a página original" / "Assistir o vídeo original". Sem título dado pelo aluno, usa o da página/vídeo. Na transcrição, os tempos `[mm:ss]` são links para aquele ponto do vídeo (`&t=90s`, `lib/text/timestamps.ts`).
+- Pendências conhecidas: páginas de DOCX/texto/áudio são aproximadas; IA real sem teste automatizado (precisa de chave); vídeo do YouTube de ~40 min ou mais não foi testado com a IA real.
 
 ## 9. Proposta de design e páginas novas (do usuário, ainda não priorizada)
 

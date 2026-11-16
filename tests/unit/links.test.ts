@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { decodeEntities, htmlToText, isPrivateAddress, youtubeId } from "@/lib/ingest/html";
+import { timestampSeconds, videoAt } from "@/lib/text/timestamps";
 import { createUploadSchema } from "@/lib/validation/upload";
 
 describe("links: YouTube", () => {
@@ -69,5 +70,17 @@ describe("links: validação do envio", () => {
     expect(createUploadSchema.safeParse({ ...base, url: "javascript:alert(1)" }).success).toBe(false);
     expect(createUploadSchema.safeParse({ ...base, url: "file:///etc/passwd" }).success).toBe(false);
     expect(createUploadSchema.safeParse({ ...base, url: "ftp://x.com/a" }).success).toBe(false);
+  });
+});
+
+describe("tempos da transcrição", () => {
+  it("[mm:ss] e [h:mm:ss] viram segundos", () => {
+    expect(timestampSeconds("[01:30]")).toBe(90);
+    expect(timestampSeconds("[1:02:03]")).toBe(3723);
+    expect(timestampSeconds("[00:75]")).toBeNull();
+    expect(timestampSeconds("01:30")).toBeNull();
+  });
+  it("link no ponto do vídeo", () => {
+    expect(videoAt("https://www.youtube.com/watch?v=jNQXAC9IVRw", 90)).toBe("https://www.youtube.com/watch?v=jNQXAC9IVRw&t=90s");
   });
 });

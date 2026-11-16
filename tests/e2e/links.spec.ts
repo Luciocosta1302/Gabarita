@@ -35,7 +35,9 @@ test("página da web e vídeo do YouTube viram material", async ({ page }) => {
     // o material do vídeo mostra a transcrição com os tempos e o link para o original
     await page.getByRole("link", { name: "https://www.youtube.com/watch?v=jNQXAC9IVRw" }).click();
     await expect(page.getByTestId("source-link")).toHaveAttribute("href", "https://www.youtube.com/watch?v=jNQXAC9IVRw");
-    await expect(page.getByText(/\[01:30\] A mitose/)).toBeVisible();
+    await expect(page.getByText(/A mitose gera duas/)).toBeVisible();
+    // os tempos viram links para aquele ponto do vídeo
+    await expect(page.getByTestId("video-time").filter({ hasText: "[01:30]" }).first()).toHaveAttribute("href", "https://www.youtube.com/watch?v=jNQXAC9IVRw&t=90s");
   } finally {
     server.close();
   }

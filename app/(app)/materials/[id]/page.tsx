@@ -37,6 +37,7 @@ export default async function MaterialPage({
   const isPaged = material.type === "pdf" || material.type === "image";
   const pageWord = isPaged ? "Página" : "Parte";
   const source = material.source_url && /^https?:\/\//.test(material.source_url) ? material.source_url : null;
+  const videoUrl = material.type === "youtube" ? source : null;
 
   // Trecho em foco (vindo de uma questão) + vizinhos; sem foco, o material inteiro.
   let focus: { chunk_index: number } | null = null;
@@ -118,7 +119,7 @@ export default async function MaterialPage({
                     {c.page != null ? `${pageWord} ${c.page}` : "Trecho"}
                     {isFocus ? " · trecho citado" : ""}
                   </div>
-                  <Highlighted text={c.content} quote={isFocus ? question?.source_quote : null} />
+                  <Highlighted text={c.content} quote={isFocus ? question?.source_quote : null} videoUrl={videoUrl} />
                 </div>
               );
             })}
@@ -176,7 +177,7 @@ export default async function MaterialPage({
             {chunks?.map((c) => (
               <div key={c.id} className="grid gap-1 border-b pb-4 last:border-0">
                 <span className="text-muted-foreground text-xs">{c.page != null ? `${pageWord} ${c.page}` : "Trecho"}</span>
-                <Highlighted text={c.content} />
+                <Highlighted text={c.content} videoUrl={videoUrl} />
               </div>
             ))}
           </CardContent>
