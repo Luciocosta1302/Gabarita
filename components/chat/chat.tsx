@@ -33,7 +33,7 @@ function withCitationLinks(text: string, citations: Citation[] = []) {
   });
 }
 
-export function Chat({ subjectId }: { subjectId: string }) {
+export function Chat({ subjectId, materialId }: { subjectId: string; materialId?: string }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
@@ -50,7 +50,7 @@ export function Chat({ subjectId }: { subjectId: string }) {
     setMessages((m) => [...m, { role: "user", content: text }]);
     setBusy(true);
     try {
-      const res = await postJSON<ChatResponse>("/api/chat", { subject_id: subjectId, message: text, history });
+      const res = await postJSON<ChatResponse>("/api/chat", { subject_id: subjectId, material_id: materialId, message: text, history });
       setMessages((m) => [...m, { role: "assistant", content: res.answer, citations: res.citations, noBasis: !res.has_basis }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao responder.");

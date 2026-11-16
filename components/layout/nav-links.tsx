@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/espaco", label: "Espaço de estudos", icon: "☕" },
   { href: "/trilhas", label: "Trilhas", icon: "⛩" },
   { href: "/review", label: "Revisar hoje", icon: "↻" },
+  { href: "/biblioteca", label: "Biblioteca", icon: "📚" },
   { href: "/desempenho", label: "Desempenho", icon: "📈" },
   { href: "/diario", label: "Diário", icon: "📓" },
   { href: "/conquistas", label: "Conquistas", icon: "🏅" },

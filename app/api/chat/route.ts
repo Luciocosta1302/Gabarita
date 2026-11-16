@@ -4,7 +4,7 @@ import { generateJSON } from "@/lib/ai/provider";
 import { chatPrompt } from "@/lib/ai/prompts/chat";
 import { sourceAt } from "@/lib/ai/prompts/sources";
 import { apiRoute, jsonError } from "@/lib/api/route";
-import { searchChunks } from "@/lib/rag/search";
+import { searchChunks, searchMaterialChunks } from "@/lib/rag/search";
 import { chatRequestSchema } from "@/lib/validation/generate";
 
 export const maxDuration = 120;
@@ -17,7 +17,13 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase }) => {
   const { data: subject } = await supabase.from("subjects").select("id").eq("id", input.subject_id).maybeSingle();
   if (!subject) return jsonError("Matéria não encontrada.", 404);
 
-  const chunks = await searchChunks(supabase, input.subject_id, input.message, 8);
+  if (input.material_id) {
+    const { data: m } = await supabase.from("materials").select("id").eq("id", input.material_id).eq("subject_id", input.subject_id).maybeSingle();
+    if (!m) return jsonError("Material não encontrado.", 404);
+  }
+  const chunks = input.material_id
+    ? await searchMaterialChunks(supabase, input.material_id, input.message, 8)
+    : await searchChunks(supabase, input.subject_id, input.message, 8);
   const { data } = await generateJSON(chatPrompt({ question: input.message, history: input.history, chunks }));
 
   const used = [...new Set(data.sources)].map((n) => ({ n, chunk: sourceAt(chunks, n) })).filter((x) => x.chunk);

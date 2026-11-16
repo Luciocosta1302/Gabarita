@@ -30,3 +30,11 @@ export async function searchChunks(
   if (error) throw error;
   return (data ?? []) as FoundChunk[];
 }
+
+/** Busca só dentro de um material (chat por documento na Biblioteca). */
+export async function searchMaterialChunks(supabase: SupabaseClient<Database>, materialId: string, query: string, k = 8): Promise<FoundChunk[]> {
+  const [vector] = await cachedEmbed([query], { purpose: "query" });
+  const { data, error } = await supabase.rpc("match_material_chunks", { query_embedding: toPgVector(vector), p_material_id: materialId, k });
+  if (error) throw error;
+  return (data ?? []) as FoundChunk[];
+}

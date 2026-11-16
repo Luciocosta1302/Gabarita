@@ -36,6 +36,8 @@ export const attemptSchema = z.object({
 
 export const chatRequestSchema = z.object({
   subject_id: z.uuid(),
+  /** Biblioteca: conversar com um único documento */
+  material_id: z.uuid().optional(),
   message: z.string().trim().min(1).max(2000),
   history: z
     .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(4000) }))
