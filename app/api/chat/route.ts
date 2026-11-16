@@ -13,7 +13,7 @@ export type Citation = { n: number; chunk_id: string; material_id: string; mater
 export type ChatResponse = { answer: string; has_basis: boolean; citations: Citation[] };
 
 /** Chat com o material (RAG): busca os trechos parecidos e responde citando página/trecho. */
-export const POST = apiRoute(chatRequestSchema, async (input, { supabase }) => {
+export const POST = apiRoute(chatRequestSchema, async (input, { supabase, user }) => {
   const { data: subject } = await supabase.from("subjects").select("id").eq("id", input.subject_id).maybeSingle();
   if (!subject) return jsonError("Matéria não encontrada.", 404);
 
@@ -24,7 +24,12 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase }) => {
   const chunks = input.material_id
     ? await searchMaterialChunks(supabase, input.material_id, input.message, 8)
     : await searchChunks(supabase, input.subject_id, input.message, 8);
-  const { data } = await generateJSON(chatPrompt({ question: input.message, history: input.history, chunks }));
+  // histórico salvo no banco (a mesma conversa: a matéria inteira ou um único documento)
+  let hq = supabase.from("chat_messages").select("role, content").eq("subject_id", input.subject_id).order("created_at", { ascending: false }).limit(10);
+  hq = input.material_id ? hq.eq("material_id", input.material_id) : hq.is("material_id", null);
+  const { data: past } = await hq;
+  const history = (past ?? []).reverse().map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
+  const { data } = await generateJSON(chatPrompt({ question: input.message, history, chunks }));
 
   const used = [...new Set(data.sources)].map((n) => ({ n, chunk: sourceAt(chunks, n) })).filter((x) => x.chunk);
   const materialIds = [...new Set(used.map((u) => u.chunk!.material_id))];
@@ -44,5 +49,19 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase }) => {
       page: chunk!.page,
     })),
   };
+  const { error } = await supabase.from("chat_messages").insert([
+    { user_id: user.id, subject_id: input.subject_id, material_id: input.material_id ?? null, role: "user", content: input.message },
+    {
+      user_id: user.id,
+      subject_id: input.subject_id,
+      material_id: input.material_id ?? null,
+      role: "assistant",
+      content: body.answer.slice(0, 8000) || "…",
+      citations_json: body.citations,
+      has_basis: body.has_basis,
+    },
+  ]);
+  if (error) throw error;
   return NextResponse.json(body);
 });
+

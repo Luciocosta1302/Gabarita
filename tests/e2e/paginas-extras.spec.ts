@@ -31,6 +31,14 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   await page.getByLabel("Sua pergunta").fill("O que cai na prova?");
   await page.getByRole("button", { name: "Enviar" }).click();
   await expect(page.getByTestId("chat-citations").first()).toContainText("bio");
+  // a conversa fica salva
+  await page.reload();
+  await expect(page.getByTestId("chat-messages")).toContainText("O que cai na prova?");
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Apagar conversa" }).click();
+  await expect(page.getByTestId("chat-messages")).not.toContainText("O que cai na prova?");
+  await page.reload();
+  await expect(page.getByTestId("chat-messages")).not.toContainText("O que cai na prova?");
 
   // Anotações: cria, escreve (salva sozinho), vê formatado, sobrevive ao recarregar
   await page.getByRole("link", { name: "Anotações" }).click();

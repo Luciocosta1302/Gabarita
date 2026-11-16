@@ -10,7 +10,7 @@ import { postJSON } from "@/lib/api/client";
 import { CITATION_SPLIT, citationNumbers } from "@/lib/text/citations";
 import { cn } from "@/lib/utils";
 
-type Message = { role: "user" | "assistant"; content: string; citations?: Citation[]; noBasis?: boolean };
+export type Message = { role: "user" | "assistant"; content: string; citations?: Citation[]; noBasis?: boolean };
 
 /** Troca os marcadores [n] da resposta por links para o trecho citado. */
 function withCitationLinks(text: string, citations: Citation[] = []) {
@@ -33,8 +33,8 @@ function withCitationLinks(text: string, citations: Citation[] = []) {
   });
 }
 
-export function Chat({ subjectId, materialId }: { subjectId: string; materialId?: string }) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function Chat({ subjectId, materialId, initial = [] }: { subjectId: string; materialId?: string; initial?: Message[] }) {
+  const [messages, setMessages] = useState<Message[]>(initial);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -46,11 +46,10 @@ export function Chat({ subjectId, materialId }: { subjectId: string; materialId?
     if (!text || busy) return;
     setError(null);
     setInput("");
-    const history = messages.slice(-10).map(({ role, content }) => ({ role, content }));
     setMessages((m) => [...m, { role: "user", content: text }]);
     setBusy(true);
     try {
-      const res = await postJSON<ChatResponse>("/api/chat", { subject_id: subjectId, material_id: materialId, message: text, history });
+      const res = await postJSON<ChatResponse>("/api/chat", { subject_id: subjectId, material_id: materialId, message: text });
       setMessages((m) => [...m, { role: "assistant", content: res.answer, citations: res.citations, noBasis: !res.has_basis }]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha ao responder.");
@@ -119,6 +118,25 @@ export function Chat({ subjectId, materialId }: { subjectId: string; materialId?
           Enviar
         </Button>
       </form>
+      {messages.length > 0 && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-muted-foreground justify-self-start"
+          disabled={busy}
+          onClick={async () => {
+            if (!window.confirm("Apagar esta conversa?")) return;
+            try {
+              await postJSON("/api/chat/clear", { subject_id: subjectId, material_id: materialId });
+              setMessages([]);
+            } catch (err) {
+              setError(err instanceof Error ? err.message : "Falha ao apagar.");
+            }
+          }}
+        >
+          Apagar conversa
+        </Button>
+      )}
     </div>
   );
 }

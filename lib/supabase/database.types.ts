@@ -63,6 +63,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"chat_messages": {
+                  Row: {
+                    "citations_json": NonNullable<Json>,"content": string,"created_at": string,"has_basis": boolean,"id": string,"material_id": string | null,"role": string,"subject_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "citations_json"?: NonNullable<Json>,"content": string,"created_at"?: string,"has_basis"?: boolean,"id"?: string,"material_id"?: string | null,"role": string,"subject_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "citations_json"?: NonNullable<Json>,"content"?: string,"created_at"?: string,"has_basis"?: boolean,"id"?: string,"material_id"?: string | null,"role"?: string,"subject_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "chat_messages_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "chat_messages_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"chunks": {
                   Row: {
                     "chunk_index": number,"content": string,"embedding": string | null,"id": string,"material_id": string,"page": number | null,"subject_id": string,"topic_id": string | null,"user_id": string

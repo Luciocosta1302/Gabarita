@@ -2,7 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { Chat } from "@/components/chat/chat";
+import type { Citation } from "@/app/api/chat/route";
+import { Chat, type Message } from "@/components/chat/chat";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function ChatPage({
@@ -22,6 +23,15 @@ export default async function ChatPage({
   const { data: doc } = materialId
     ? await supabase.from("materials").select("id, title, status").eq("id", materialId).eq("subject_id", subjectId).maybeSingle()
     : { data: null };
+  let hq = supabase.from("chat_messages").select("role, content, citations_json, has_basis").eq("subject_id", subjectId).order("created_at", { ascending: false }).limit(50);
+  hq = doc ? hq.eq("material_id", doc.id) : hq.is("material_id", null);
+  const { data: past } = await hq;
+  const initial: Message[] = (past ?? []).reverse().map((m) => ({
+    role: m.role as Message["role"],
+    content: m.content,
+    citations: m.role === "assistant" ? (m.citations_json as Citation[]) : undefined,
+    noBasis: m.role === "assistant" && !m.has_basis,
+  }));
   const { count } = await supabase
     .from("materials")
     .select("id", { count: "exact", head: true })
@@ -43,7 +53,7 @@ export default async function ChatPage({
         </p>
       )}
       {(doc ? doc.status === "ready" : count) ? (
-        <Chat subjectId={subjectId} materialId={doc?.id} />
+        <Chat subjectId={subjectId} materialId={doc?.id} initial={initial} />
       ) : (
         <p className="text-muted-foreground">Envie um material e espere ele ficar pronto para conversar com ele.</p>
       )}

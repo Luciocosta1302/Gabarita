@@ -88,3 +88,12 @@ describe("comunidade", () => {
     expect((await beto.client.from("community_comments").select("id").eq("post_id", p!.id)).data).toHaveLength(0);
   });
 });
+
+describe("histórico do chat", () => {
+  it("só o dono vê e só grava na própria matéria", async () => {
+    const { data: s } = await ana.client.from("subjects").insert({ user_id: ana.user.id, name: "Chat" }).select("id").single();
+    expect((await ana.client.from("chat_messages").insert({ user_id: ana.user.id, subject_id: s!.id, role: "user", content: "oi" })).error).toBeNull();
+    expect((await beto.client.from("chat_messages").select("id").eq("subject_id", s!.id)).data).toHaveLength(0);
+    expect((await beto.client.from("chat_messages").insert({ user_id: beto.user.id, subject_id: s!.id, role: "user", content: "x" })).error).not.toBeNull();
+  });
+});

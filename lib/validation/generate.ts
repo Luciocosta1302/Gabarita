@@ -34,15 +34,13 @@ export const attemptSchema = z.object({
   time_ms: z.number().int().min(0).max(3_600_000).optional(),
 });
 
+export const chatClearSchema = z.object({ subject_id: z.uuid(), material_id: z.uuid().optional() });
+
 export const chatRequestSchema = z.object({
   subject_id: z.uuid(),
   /** Biblioteca: conversar com um único documento */
   material_id: z.uuid().optional(),
   message: z.string().trim().min(1).max(2000),
-  history: z
-    .array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().max(4000) }))
-    .max(10)
-    .default([]),
 });
 
 const answerLetter = z.enum(["A", "B", "C", "D", "E"]);
