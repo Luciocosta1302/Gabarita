@@ -33,6 +33,9 @@ export type PlanInput = {
 };
 
 const MIN_STUDY = 15;
+/** teto de leitura: ~20 min por trecho do material (~2 páginas) */
+const MAX_STUDY_PER_CHUNK = 20;
+const PRACTICE_MINUTES = 15;
 const MAX_STUDY_BLOCK = 60;
 const QUESTIONS_PER_TOPIC = 10;
 const MINUTES_PER_QUESTION = 1.5;
@@ -121,7 +124,9 @@ export function buildPlan(input: PlanInput): PlanDay[] {
   type Item = { topic: PlanTopic; kind: "study" | "questions"; minutes: number };
   const queue: Item[] = [];
   input.topics.forEach((t, i) => {
-    const minutes = Math.max(MIN_STUDY, Math.round((studyBudget * need[i]) / needSum / 5) * 5);
+    const share = (studyBudget * need[i]) / needSum;
+    const ceiling = t.weight * MAX_STUDY_PER_CHUNK * (1 - 0.8 * (t.mastery ?? 0));
+    const minutes = Math.max(MIN_STUDY, Math.round(Math.min(share, ceiling) / 5) * 5);
     queue.push({ topic: t, kind: "study", minutes }, { topic: t, kind: "questions", minutes: qMinutes });
   });
 
@@ -187,6 +192,21 @@ export function buildPlan(input: PlanInput): PlanDay[] {
       });
     }
   }
+  // Tempo que sobrou nos dias de estudo vira prática mista dos tópicos já vistos até ali.
+  learnDays.forEach((d, i) => {
+    const seen = input.topics.filter((t) => (learnedOn.get(t.id) ?? Infinity) <= i);
+    if (seen.length === 0) return;
+    const blocks = Math.floor((cap - load(d)) / PRACTICE_MINUTES);
+    if (blocks <= 0) return;
+    const count = Math.min(30, blocks * 10);
+    d.tasks.push({
+      id: id("questions", "mix"),
+      kind: "questions",
+      title: `Praticar: ${count} questões do que já estudou`,
+      minutes: Math.round(count * MINUTES_PER_QUESTION),
+      count,
+    });
+  });
   return days;
 }
 

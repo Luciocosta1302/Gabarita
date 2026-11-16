@@ -160,3 +160,19 @@ describe("plano sem tarefas repetidas no mesmo dia", () => {
     }
   });
 });
+
+describe("pouco material", () => {
+  it("não enche dias de leitura: o tempo que sobra vira prática", () => {
+    const small = [
+      { id: "a", name: "A", weight: 3, mastery: null },
+      { id: "b", name: "B", weight: 3, mastery: null },
+    ];
+    const days = buildPlan({ today, examDate: exam, minutesPerDay: 120, topics: small });
+    const study = days.flatMap((d) => d.tasks).filter((t) => t.kind === "study").reduce((s, t) => s + t.minutes, 0);
+    expect(study).toBeLessThanOrEqual(2 * 3 * 20);
+    const practice = days.flatMap((d) => d.tasks).filter((t) => t.kind === "questions" && !t.topic_id);
+    expect(practice.length).toBeGreaterThan(3);
+    for (const d of days) expect(d.tasks.filter((t) => t.kind === "questions" && !t.topic_id).length).toBeLessThanOrEqual(1);
+    for (const d of days) expect(load(d)).toBeLessThanOrEqual(120 + 16);
+  });
+});
