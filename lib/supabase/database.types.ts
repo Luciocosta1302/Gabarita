@@ -189,14 +189,14 @@ isOneToOne: false
                   ]
                 },"plan_days": {
                   Row: {
-                    "date": string,"done": boolean,"id": string,"plan_id": string,"tasks_json": NonNullable<Json>,"user_id": string
+                    "date": string,"done": boolean,"id": string,"plan_id": string,"status": string,"tasks_json": NonNullable<Json>,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "date": string,"done"?: boolean,"id"?: string,"plan_id": string,"tasks_json"?: NonNullable<Json>,"user_id"?: string
+                    "date": string,"done"?: boolean,"id"?: string,"plan_id": string,"status"?: string,"tasks_json"?: NonNullable<Json>,"user_id"?: string
                   }
                   Update: {
-                    "date"?: string,"done"?: boolean,"id"?: string,"plan_id"?: string,"tasks_json"?: NonNullable<Json>,"user_id"?: string
+                    "date"?: string,"done"?: boolean,"id"?: string,"plan_id"?: string,"status"?: string,"tasks_json"?: NonNullable<Json>,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -255,14 +255,14 @@ isOneToOne: false
                   ]
                 },"quizzes": {
                   Row: {
-                    "created_at": string,"difficulty": string,"id": string,"material_id": string | null,"question_ids": (string)[],"subject_id": string,"title": string,"user_id": string
+                    "created_at": string,"difficulty": string,"finished_at": string | null,"id": string,"material_id": string | null,"mode": string,"question_ids": (string)[],"started_at": string | null,"style": string | null,"subject_id": string,"time_limit_s": number | null,"title": string,"topic_id": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"difficulty"?: string,"id"?: string,"material_id"?: string | null,"question_ids"?: (string)[],"subject_id": string,"title": string,"user_id"?: string
+                    "created_at"?: string,"difficulty"?: string,"finished_at"?: string | null,"id"?: string,"material_id"?: string | null,"mode"?: string,"question_ids"?: (string)[],"started_at"?: string | null,"style"?: string | null,"subject_id": string,"time_limit_s"?: number | null,"title": string,"topic_id"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"difficulty"?: string,"id"?: string,"material_id"?: string | null,"question_ids"?: (string)[],"subject_id"?: string,"title"?: string,"user_id"?: string
+                    "created_at"?: string,"difficulty"?: string,"finished_at"?: string | null,"id"?: string,"material_id"?: string | null,"mode"?: string,"question_ids"?: (string)[],"started_at"?: string | null,"style"?: string | null,"subject_id"?: string,"time_limit_s"?: number | null,"title"?: string,"topic_id"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -277,21 +277,33 @@ isOneToOne: false
 isOneToOne: false
       referencedRelation: "subjects"
       referencedColumns: ["id"]
+    },{
+      foreignKeyName: "quizzes_topic_id_fkey"
+      columns: ["topic_id"]
+isOneToOne: false
+      referencedRelation: "topics"
+      referencedColumns: ["id"]
     }
                   ]
                 },"reviews": {
                   Row: {
-                    "due_at": string,"fsrs_state_json": NonNullable<Json>,"id": string,"item_id": string,"item_type": string,"user_id": string
+                    "due_at": string,"fsrs_state_json": NonNullable<Json>,"id": string,"item_id": string,"item_type": string,"last_reviewed_at": string | null,"subject_id": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "due_at"?: string,"fsrs_state_json"?: NonNullable<Json>,"id"?: string,"item_id": string,"item_type": string,"user_id"?: string
+                    "due_at"?: string,"fsrs_state_json"?: NonNullable<Json>,"id"?: string,"item_id": string,"item_type": string,"last_reviewed_at"?: string | null,"subject_id"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "due_at"?: string,"fsrs_state_json"?: NonNullable<Json>,"id"?: string,"item_id"?: string,"item_type"?: string,"user_id"?: string
+                    "due_at"?: string,"fsrs_state_json"?: NonNullable<Json>,"id"?: string,"item_id"?: string,"item_type"?: string,"last_reviewed_at"?: string | null,"subject_id"?: string | null,"user_id"?: string
                   }
                   Relationships: [
-                    
+                    {
+      foreignKeyName: "reviews_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"room_members": {
                   Row: {
@@ -335,20 +347,20 @@ isOneToOne: false
                   ]
                 },"study_plans": {
                   Row: {
-                    "generated_at": string,"id": string,"subject_id": string,"user_id": string
+                    "generated_at": string,"id": string,"params_json": NonNullable<Json>,"subject_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "generated_at"?: string,"id"?: string,"subject_id": string,"user_id"?: string
+                    "generated_at"?: string,"id"?: string,"params_json"?: NonNullable<Json>,"subject_id": string,"user_id"?: string
                   }
                   Update: {
-                    "generated_at"?: string,"id"?: string,"subject_id"?: string,"user_id"?: string
+                    "generated_at"?: string,"id"?: string,"params_json"?: NonNullable<Json>,"subject_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
       foreignKeyName: "study_plans_subject_id_fkey"
       columns: ["subject_id"]
-isOneToOne: false
+isOneToOne: true
       referencedRelation: "subjects"
       referencedColumns: ["id"]
     }
@@ -415,14 +427,14 @@ isOneToOne: false
                   ]
                 },"topics": {
                   Row: {
-                    "id": string,"name": string,"subject_id": string,"summary": string | null,"user_id": string
+                    "created_at": string,"id": string,"name": string,"position": number,"subject_id": string,"summary": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "id"?: string,"name": string,"subject_id": string,"summary"?: string | null,"user_id"?: string
+                    "created_at"?: string,"id"?: string,"name": string,"position"?: number,"subject_id": string,"summary"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "id"?: string,"name"?: string,"subject_id"?: string,"summary"?: string | null,"user_id"?: string
+                    "created_at"?: string,"id"?: string,"name"?: string,"position"?: number,"subject_id"?: string,"summary"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {
