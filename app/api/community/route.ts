@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { apiRoute } from "@/lib/api/route";
+import { apiRoute, jsonError } from "@/lib/api/route";
 import { communityActionSchema } from "@/lib/validation/generate";
 
 /** Comunidade: todo aluno logado lê; cada um cria/apaga só o seu (RLS). O nome do autor vem do perfil. */
@@ -30,6 +30,17 @@ export const POST = apiRoute(communityActionSchema, async (input, { supabase, us
     case "delete_post": {
       const { error } = await supabase.from("community_posts").delete().eq("id", input.id).eq("user_id", user.id);
       if (error) throw error;
+      return NextResponse.json({ ok: true });
+    }
+    case "report": {
+      const { error } = await supabase
+        .from("community_reports")
+        .insert({ user_id: user.id, reason: input.reason, ...(input.target === "post" ? { post_id: input.id } : { comment_id: input.id }) });
+      // denunciar de novo o mesmo item não é erro
+      if (error && error.code !== "23505") {
+        if (error.code === "42501") return jsonError("Não dá para denunciar isso.", 403);
+        throw error;
+      }
       return NextResponse.json({ ok: true });
     }
     case "delete_comment": {

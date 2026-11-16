@@ -97,3 +97,29 @@ describe("histórico do chat", () => {
     expect((await beto.client.from("chat_messages").insert({ user_id: beto.user.id, subject_id: s!.id, role: "user", content: "x" })).error).not.toBeNull();
   });
 });
+
+describe("comunidade: denúncias", () => {
+  it("3 denúncias de alunos diferentes escondem o post (o autor ainda vê); não dá para denunciar o próprio", async () => {
+    const caio = await newUser("caio6");
+    const dani = await newUser("dani6");
+    const { data: p } = await ana.client
+      .from("community_posts")
+      .insert({ user_id: ana.user.id, author_name: "", category: "dica", title: "Vendo prova", body: "spam" })
+      .select("id")
+      .single();
+    expect((await ana.client.from("community_reports").insert({ user_id: ana.user.id, post_id: p!.id, reason: "spam" })).error).not.toBeNull();
+    for (const u of [beto, caio]) {
+      expect((await u.client.from("community_reports").insert({ user_id: u.user.id, post_id: p!.id, reason: "spam" })).error).toBeNull();
+    }
+    // repetir a denúncia não conta duas vezes
+    expect((await beto.client.from("community_reports").insert({ user_id: beto.user.id, post_id: p!.id, reason: "golpe" })).error).not.toBeNull();
+    expect((await dani.client.from("community_posts").select("id").eq("id", p!.id)).data).toHaveLength(1);
+    await dani.client.from("community_reports").insert({ user_id: dani.user.id, post_id: p!.id, reason: "golpe" });
+    expect((await dani.client.from("community_posts").select("id").eq("id", p!.id)).data).toHaveLength(0);
+    const { data: own } = await ana.client.from("community_posts").select("hidden").eq("id", p!.id).single();
+    expect(own!.hidden).toBe(true);
+    // ninguém tira o "escondido" pelo cliente
+    await ana.client.from("community_posts").update({ hidden: false }).eq("id", p!.id);
+    expect((await ana.client.from("community_posts").select("hidden").eq("id", p!.id).single()).data!.hidden).toBe(true);
+  });
+});

@@ -123,14 +123,14 @@ isOneToOne: false
                   ]
                 },"community_comments": {
                   Row: {
-                    "author_name": string,"body": string,"created_at": string,"id": string,"post_id": string,"user_id": string
+                    "author_name": string,"body": string,"created_at": string,"hidden": boolean,"id": string,"post_id": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_name": string,"body": string,"created_at"?: string,"id"?: string,"post_id": string,"user_id"?: string
+                    "author_name": string,"body": string,"created_at"?: string,"hidden"?: boolean,"id"?: string,"post_id": string,"user_id"?: string
                   }
                   Update: {
-                    "author_name"?: string,"body"?: string,"created_at"?: string,"id"?: string,"post_id"?: string,"user_id"?: string
+                    "author_name"?: string,"body"?: string,"created_at"?: string,"hidden"?: boolean,"id"?: string,"post_id"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -163,17 +163,43 @@ isOneToOne: false
                   ]
                 },"community_posts": {
                   Row: {
-                    "author_name": string,"body": string,"category": string,"created_at": string,"id": string,"title": string,"user_id": string
+                    "author_name": string,"body": string,"category": string,"created_at": string,"hidden": boolean,"id": string,"title": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "author_name": string,"body": string,"category": string,"created_at"?: string,"id"?: string,"title": string,"user_id"?: string
+                    "author_name": string,"body": string,"category": string,"created_at"?: string,"hidden"?: boolean,"id"?: string,"title": string,"user_id"?: string
                   }
                   Update: {
-                    "author_name"?: string,"body"?: string,"category"?: string,"created_at"?: string,"id"?: string,"title"?: string,"user_id"?: string
+                    "author_name"?: string,"body"?: string,"category"?: string,"created_at"?: string,"hidden"?: boolean,"id"?: string,"title"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
+                  ]
+                },"community_reports": {
+                  Row: {
+                    "comment_id": string | null,"created_at": string,"id": string,"post_id": string | null,"reason": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "comment_id"?: string | null,"created_at"?: string,"id"?: string,"post_id"?: string | null,"reason": string,"user_id"?: string
+                  }
+                  Update: {
+                    "comment_id"?: string | null,"created_at"?: string,"id"?: string,"post_id"?: string | null,"reason"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "community_reports_comment_id_fkey"
+      columns: ["comment_id"]
+isOneToOne: false
+      referencedRelation: "community_comments"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "community_reports_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "community_posts"
+      referencedColumns: ["id"]
+    }
                   ]
                 },"embedding_cache": {
                   Row: {

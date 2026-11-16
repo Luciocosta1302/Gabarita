@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
-import { CATEGORY_LABELS, CommentForm, DeleteButton, LikeButton } from "@/components/community/community";
+import { CATEGORY_LABELS, CommentForm, DeleteButton, LikeButton, ReportButton } from "@/components/community/community";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
@@ -13,8 +13,8 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
     data: { user },
   } = await supabase.auth.getUser();
   const [{ data: post }, { data: comments }, { data: likes }] = await Promise.all([
-    supabase.from("community_posts").select("id, user_id, author_name, category, title, body, created_at").eq("id", id).maybeSingle(),
-    supabase.from("community_comments").select("id, user_id, author_name, body, created_at").eq("post_id", id).order("created_at").limit(500),
+    supabase.from("community_posts").select("id, user_id, author_name, category, title, body, created_at, hidden").eq("id", id).maybeSingle(),
+    supabase.from("community_comments").select("id, user_id, author_name, body, created_at, hidden").eq("post_id", id).order("created_at").limit(500),
     supabase.from("community_likes").select("user_id").eq("post_id", id),
   ]);
   if (!post) notFound();
@@ -25,6 +25,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
       <Link href="/comunidade" className="text-muted-foreground text-sm hover:underline">
         ← Comunidade
       </Link>
+      {post.hidden && (
+        <p role="status" className="bg-pastel-rose rounded-2xl px-4 py-3 text-sm">
+          Este post recebeu várias denúncias e está escondido para os outros alunos.
+        </p>
+      )}
       <article className="bg-card grid gap-3 rounded-2xl border p-5 shadow-sm" data-testid="post">
         <span className="text-muted-foreground text-xs">
           {CATEGORY_LABELS[post.category as keyof typeof CATEGORY_LABELS]} · {post.author_name} · {new Date(post.created_at).toLocaleString("pt-BR")}
@@ -33,7 +38,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
         <div className="flex items-center gap-2">
           <LikeButton postId={post.id} liked={liked} count={likes?.length ?? 0} />
-          {post.user_id === user?.id && <DeleteButton action="delete_post" id={post.id} redirect="/comunidade" />}
+          {post.user_id === user?.id ? <DeleteButton action="delete_post" id={post.id} redirect="/comunidade" /> : <ReportButton target="post" id={post.id} />}
         </div>
       </article>
       <section className="grid gap-3">
@@ -45,8 +50,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 <span>
                   {c.author_name} · {new Date(c.created_at).toLocaleString("pt-BR")}
                 </span>
-                {c.user_id === user?.id && <DeleteButton action="delete_comment" id={c.id} />}
+                {c.user_id === user?.id ? <DeleteButton action="delete_comment" id={c.id} /> : <ReportButton target="comment" id={c.id} />}
               </div>
+              {c.hidden && <p className="text-destructive text-xs">Escondida por denúncias (só você vê).</p>}
               <p className="whitespace-pre-wrap">{c.body}</p>
             </li>
           ))}

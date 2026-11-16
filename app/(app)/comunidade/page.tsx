@@ -9,13 +9,23 @@ export const metadata = { title: "Comunidade — Gabarita" };
 
 type Cat = (typeof COMMUNITY_CATEGORIES)[number];
 
-export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ cat?: string }> }) {
+const PAGE_SIZE = 20;
+
+export default async function CommunityPage({ searchParams }: { searchParams: Promise<{ cat?: string; pagina?: string }> }) {
   const sp = await searchParams;
   const cat = (COMMUNITY_CATEGORIES as readonly string[]).includes(sp.cat ?? "") ? (sp.cat as Cat) : null;
   const supabase = await createClient();
-  let pq = supabase.from("community_posts").select("id, author_name, category, title, body, created_at").order("created_at", { ascending: false }).limit(50);
+  const pageNum = Math.max(1, Math.min(500, Number.parseInt(sp.pagina ?? "1", 10) || 1));
+  let pq = supabase
+    .from("community_posts")
+    .select("id, author_name, category, title, body, created_at", { count: "exact" })
+    .eq("hidden", false)
+    .order("created_at", { ascending: false })
+    .range((pageNum - 1) * PAGE_SIZE, pageNum * PAGE_SIZE - 1);
   if (cat) pq = pq.eq("category", cat);
-  const { data: posts } = await pq;
+  const { data: posts, count: total } = await pq;
+  const pages = Math.max(1, Math.ceil((total ?? 0) / PAGE_SIZE));
+  const pageHref = (n: number) => `/comunidade?${new URLSearchParams({ ...(cat ? { cat } : {}), ...(n > 1 ? { pagina: String(n) } : {}) })}`;
   const ids = (posts ?? []).map((p) => p.id);
   const [{ data: likes }, { data: comments }] = ids.length
     ? await Promise.all([
@@ -63,6 +73,15 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
           </li>
         ))}
       </ul>
+      {pages > 1 && (
+        <nav aria-label="Páginas" className="flex items-center justify-center gap-3 text-sm" data-testid="pagination">
+          {pageNum > 1 ? <Link href={pageHref(pageNum - 1)} className="text-primary underline">← Mais novos</Link> : <span />}
+          <span className="text-muted-foreground">
+            Página {pageNum} de {pages}
+          </span>
+          {pageNum < pages ? <Link href={pageHref(pageNum + 1)} className="text-primary underline">Mais antigos →</Link> : <span />}
+        </nav>
+      )}
     </div>
   );
 }

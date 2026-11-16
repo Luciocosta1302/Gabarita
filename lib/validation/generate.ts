@@ -178,6 +178,7 @@ export const noteActionSchema = z.discriminatedUnion("action", [
 ]);
 
 export const COMMUNITY_CATEGORIES = ["duvida", "dica", "material", "grupo"] as const;
+export const REPORT_REASONS = ["ofensivo", "spam", "golpe", "dados_pessoais", "outro"] as const;
 
 export const communityActionSchema = z.discriminatedUnion("action", [
   z.object({
@@ -190,4 +191,5 @@ export const communityActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("like"), post_id: z.uuid(), like: z.boolean() }),
   z.object({ action: z.literal("delete_post"), id: z.uuid() }),
   z.object({ action: z.literal("delete_comment"), id: z.uuid() }),
+  z.object({ action: z.literal("report"), target: z.enum(["post", "comment"]), id: z.uuid(), reason: z.enum(REPORT_REASONS) }),
 ]);

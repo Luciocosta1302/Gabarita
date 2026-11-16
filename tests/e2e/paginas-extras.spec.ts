@@ -91,6 +91,9 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   await beto.getByTestId("like").click();
   await expect(beto.getByTestId("like")).toHaveText("♥ 1");
   await expect(beto.getByTestId("post").getByRole("button", { name: "Apagar" })).toHaveCount(0);
+  await beto.getByTestId("post").getByRole("button", { name: "Denunciar" }).click();
+  await beto.getByRole("button", { name: "Spam / propaganda" }).click();
+  await expect(beto.getByText("Denúncia enviada. Obrigado!")).toBeVisible();
 
   await page.reload();
   await expect(page.getByTestId("comments")).toContainText("Valeu, ajudou!");

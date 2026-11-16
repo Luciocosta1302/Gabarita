@@ -143,3 +143,43 @@ export function DeleteButton({ action, id, redirect }: { action: "delete_post" |
     </Button>
   );
 }
+
+const REPORT_LABELS = { ofensivo: "Ofensivo ou discriminatório", spam: "Spam / propaganda", golpe: "Golpe ou venda de prova", dados_pessoais: "Expõe dados pessoais", outro: "Outro motivo" } as const;
+
+export function ReportButton({ target, id }: { target: "post" | "comment"; id: string }) {
+  const [open, setOpen] = useState(false);
+  const [done, setDone] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
+  if (done) return <span className="text-muted-foreground text-xs">Denúncia enviada. Obrigado!</span>;
+  if (!open)
+    return (
+      <Button size="sm" variant="ghost" className="text-muted-foreground" onClick={() => setOpen(true)}>
+        Denunciar
+      </Button>
+    );
+  return (
+    <span className="flex flex-wrap items-center gap-1 text-xs" data-testid="report-form">
+      {Object.entries(REPORT_LABELS).map(([k, v]) => (
+        <Button
+          key={k}
+          size="sm"
+          variant="outline"
+          onClick={async () => {
+            try {
+              await postJSON("/api/community", { action: "report", target, id, reason: k });
+              setDone(true);
+            } catch (e) {
+              setErr(e instanceof Error ? e.message : "Falha ao denunciar.");
+            }
+          }}
+        >
+          {v}
+        </Button>
+      ))}
+      <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
+        Cancelar
+      </Button>
+      {err && <span className="text-destructive">{err}</span>}
+    </span>
+  );
+}
