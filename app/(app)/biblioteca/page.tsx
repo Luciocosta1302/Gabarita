@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 export const metadata = { title: "Biblioteca — Gabarita" };
 
-const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto", audio: "Áudio", past_exam: "Prova antiga" };
+const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto", audio: "Áudio", web: "Página da web", youtube: "YouTube", past_exam: "Prova antiga" };
 const STATUS_LABEL: Record<string, string> = { pending: "na fila", processing: "processando", ready: "pronto", error: "erro" };
 
 /** Busca de texto: escapa os curingas do LIKE. */

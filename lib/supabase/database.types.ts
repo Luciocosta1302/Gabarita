@@ -377,14 +377,14 @@ isOneToOne: false
                   ]
                 },"materials": {
                   Row: {
-                    "created_at": string,"error": string | null,"extracted_text": string | null,"id": string,"page_count": number | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
+                    "created_at": string,"error": string | null,"extracted_text": string | null,"id": string,"page_count": number | null,"source_url": string | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"error"?: string | null,"extracted_text"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id": string,"title": string,"type": string,"user_id"?: string
+                    "created_at"?: string,"error"?: string | null,"extracted_text"?: string | null,"id"?: string,"page_count"?: number | null,"source_url"?: string | null,"status"?: string,"storage_path"?: string | null,"subject_id": string,"title": string,"type": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"error"?: string | null,"extracted_text"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id"?: string,"title"?: string,"type"?: string,"user_id"?: string
+                    "created_at"?: string,"error"?: string | null,"extracted_text"?: string | null,"id"?: string,"page_count"?: number | null,"source_url"?: string | null,"status"?: string,"storage_path"?: string | null,"subject_id"?: string,"title"?: string,"type"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {

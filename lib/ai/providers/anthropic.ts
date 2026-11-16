@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
+import { UserFacingError } from "@/lib/errors";
+
 import type { AIProvider, EmbedOptions, TextRequest, TextResult, TranscribeInput } from "../types";
 
 export class AIRefusalError extends Error {
@@ -82,5 +84,9 @@ export class AnthropicProvider implements AIProvider {
 
   transcribe(input: TranscribeInput) {
     return this.delegate.transcribe(input);
+  }
+
+  async transcribeVideo(): Promise<TextResult> {
+    throw new UserFacingError("Vídeos do YouTube só funcionam com a IA Gemini (AI_PROVIDER=gemini).");
   }
 }

@@ -22,7 +22,7 @@ const STATUS: Record<string, { label: string; className: string }> = {
   error: { label: "Erro", className: "bg-destructive/15 text-destructive" },
 };
 
-const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto", audio: "Áudio da aula", past_exam: "Prova antiga" };
+const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto", audio: "Áudio da aula", web: "Página da web", youtube: "Vídeo do YouTube", past_exam: "Prova antiga" };
 
 /** Lista de materiais. Enquanto algum está processando, atualiza a tela sozinha. */
 export function MaterialList({ materials }: { materials: MaterialRow[] }) {

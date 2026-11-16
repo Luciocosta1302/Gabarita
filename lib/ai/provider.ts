@@ -54,3 +54,8 @@ export async function embed(texts: string[], opts?: EmbedOptions) {
   return r;
 }
 export const transcribe = (input: TranscribeInput) => getProvider().transcribe(input);
+export async function transcribeVideo(url: string) {
+  const r = await getProvider().transcribeVideo(url);
+  recordUsage(r.usage);
+  return r;
+}

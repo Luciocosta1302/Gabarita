@@ -29,13 +29,14 @@ export default async function MaterialPage({
   const supabase = await createClient();
   const { data: material } = await supabase
     .from("materials")
-    .select("id, subject_id, title, type, status, page_count, storage_path")
+    .select("id, subject_id, title, type, status, page_count, storage_path, source_url")
     .eq("id", id)
     .maybeSingle();
   if (!material) notFound();
 
   const isPaged = material.type === "pdf" || material.type === "image";
   const pageWord = isPaged ? "Página" : "Parte";
+  const source = material.source_url && /^https?:\/\//.test(material.source_url) ? material.source_url : null;
 
   // Trecho em foco (vindo de uma questão) + vizinhos; sem foco, o material inteiro.
   let focus: { chunk_index: number } | null = null;
@@ -73,6 +74,14 @@ export default async function MaterialPage({
         <h1 className="mt-1 text-2xl font-bold">{material.title}</h1>
         <p className="text-muted-foreground text-sm">
           {material.page_count ? `${material.page_count} ${isPaged ? "páginas" : "partes"}` : ""}
+          {source && (
+            <>
+              {material.page_count ? " · " : ""}
+              <a href={source} target="_blank" rel="noreferrer noopener" className="text-primary underline" data-testid="source-link">
+                {material.type === "youtube" ? "Assistir o vídeo original" : "Abrir a página original"}
+              </a>
+            </>
+          )}
           {pdfUrl && (
             <>
               {" · "}

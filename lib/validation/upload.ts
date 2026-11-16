@@ -30,6 +30,18 @@ export const createUploadSchema = z.discriminatedUnion("kind", [
     title: z.string().trim().min(1, "Dê um título").max(200),
     text: z.string().trim().min(50, "Cole pelo menos algumas frases").max(MAX_PASTED_TEXT_CHARS, "Texto muito longo"),
   }),
+  /** Página da web, PDF por link ou vídeo do YouTube */
+  z.object({
+    kind: z.literal("link"),
+    subject_id: z.uuid(),
+    url: z
+      .string()
+      .trim()
+      .max(2000, "Link muito longo")
+      .transform((u) => (/^[a-z][a-z0-9+.-]*:\/\//i.test(u) ? u : `https://${u}`))
+      .pipe(z.url({ protocol: /^https?$/, error: "Cole um link válido (http ou https)" })),
+    title: z.preprocess((v) => (v === "" ? undefined : v), z.string().trim().max(200).optional()),
+  }),
 ]);
 
 type FileMeta = z.infer<typeof fileMeta>;

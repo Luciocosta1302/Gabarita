@@ -131,6 +131,42 @@ export class GeminiProvider implements AIProvider {
     return out;
   }
 
+  /**
+   * Vídeo público do YouTube: o Gemini busca e assiste o vídeo pela URL (mesmo recurso que o NotebookLM usa).
+   * No endpoint compatível com OpenAI, a URL vai como "image_url". Medido: ~90 tokens por segundo de vídeo
+   * (3,5 min = 19,5 mil tokens, 7 s). A cota grátis limita tokens por minuto, então cabe até ~40 min por vídeo.
+   */
+  async transcribeVideo(url: string): Promise<TextResult> {
+    try {
+      return await this.chat(
+        this.models.fast,
+        undefined,
+        [
+          { type: "image_url", image_url: { url } },
+          {
+            type: "text",
+            text: [
+              "Transcreva fielmente tudo o que é falado neste vídeo, no idioma original.",
+              "Divida em parágrafos curtos e comece cada parágrafo com o tempo no formato [mm:ss] (ou [h:mm:ss]).",
+              "Se houver texto importante na tela (slides, fórmulas, quadro) que não foi falado, inclua entre colchetes: [Na tela: ...].",
+              "Devolva só a transcrição, sem comentários.",
+            ].join("\n"),
+          },
+        ],
+        65000,
+        false,
+      );
+    } catch (e) {
+      if (e instanceof AIRateLimitError) {
+        throw Object.assign(new UserFacingError("A IA gratuita não deu conta desse vídeo agora (limite por minuto). Tente de novo em alguns minutos ou use um vídeo de até ~40 minutos."), { rateLimited: true });
+      }
+      const msg = e instanceof Error ? e.message : "";
+      if (/token|too long|exceeds|limit/i.test(msg)) throw new UserFacingError("Vídeo longo demais para a IA gratuita (até ~40 minutos por vídeo).");
+      if (/40[034]|not found|private|unavailable|invalid/i.test(msg)) throw new UserFacingError("Não conseguimos assistir esse vídeo. Ele precisa ser público (não pode ser privado nem não listado com restrição).");
+      throw e;
+    }
+  }
+
   async transcribe(input: TranscribeInput): Promise<{ text: string }> {
     const name = input.filename.toLowerCase();
     const format = input.mimeType.includes("wav") || name.endsWith(".wav") ? "wav" : input.mimeType.includes("mpeg") || name.endsWith(".mp3") ? "mp3" : null;

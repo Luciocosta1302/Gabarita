@@ -46,6 +46,8 @@ export interface AIProvider {
    */
   embed(texts: string[], opts?: EmbedOptions): Promise<number[][]>;
   transcribe(input: TranscribeInput): Promise<{ text: string }>;
+  /** Transcreve um vídeo público do YouTube pela URL (o próprio fornecedor busca o vídeo). */
+  transcribeVideo(url: string): Promise<TextResult>;
 }
 
 export const EMBEDDING_DIMENSIONS = 1536;

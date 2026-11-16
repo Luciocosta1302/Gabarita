@@ -3,6 +3,7 @@ import { after, NextResponse } from "next/server";
 import { apiRoute, jsonError } from "@/lib/api/route";
 import { MATERIALS_BUCKET } from "@/lib/ingest/pipeline";
 import { enqueueJob, runJobs } from "@/lib/jobs/queue";
+import { youtubeId, youtubeWatchUrl } from "@/lib/ingest/html";
 import { createUploadSchema, materialTypeFor, storagePathFor } from "@/lib/validation/upload";
 
 export const maxDuration = 300;
@@ -20,6 +21,26 @@ export const POST = apiRoute(createUploadSchema, async (input, { supabase, user 
 
   const materialId = crypto.randomUUID();
   const folder = `${user.id}/${materialId}`;
+
+  if (input.kind === "link") {
+    // YouTube vira transcrição pela IA; o resto é buscado como página (ou PDF) no processamento
+    const yt = youtubeId(input.url);
+    const url = yt ? youtubeWatchUrl(yt) : input.url;
+    const { error } = await supabase.from("materials").insert({
+      id: materialId,
+      user_id: user.id,
+      subject_id: input.subject_id,
+      type: yt ? "youtube" : "web",
+      // sem título: fica o link até o processamento achar o título da página/vídeo
+      title: (input.title || url).slice(0, 200),
+      source_url: url,
+      storage_path: folder,
+    });
+    if (error) throw error;
+    await enqueueJob(supabase, user.id, "ingest_material", { material_id: materialId });
+    after(() => runJobs({ userId: user.id }));
+    return NextResponse.json({ material_id: materialId, uploads: [] }, { status: 201 });
+  }
 
   if (input.kind === "text") {
     const pastExam = input.purpose === "past_exam";

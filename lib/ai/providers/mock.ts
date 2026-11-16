@@ -35,6 +35,11 @@ export class MockProvider implements AIProvider {
     return texts.map(fakeEmbedding);
   }
 
+  async transcribeVideo(url: string): Promise<TextResult> {
+    const text = `[00:00] Vídeo de teste (${url}). Nesta aula vamos falar sobre a divisão celular.\n\n[01:30] A mitose gera duas células-filhas iguais à célula-mãe e tem quatro fases: prófase, metáfase, anáfase e telófase.\n\n[04:10] A meiose tem duas divisões e gera quatro células com metade dos cromossomos, os gametas.`;
+    return { text, usage: { inputTokens: 1000, outputTokens: approxTokens(text) } };
+  }
+
   async transcribe(): Promise<{ text: string }> {
     return {
       text: "Transcrição de teste. Hoje a aula foi sobre a respiração celular, que acontece nas mitocôndrias e libera energia na forma de ATP. Também falamos da fotossíntese, que ocorre nos cloroplastos.",

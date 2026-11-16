@@ -16,7 +16,7 @@ type Created = { material_id: string; uploads: { name: string; path: string }[] 
 
 export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string; purpose?: "study" | "past_exam" }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"files" | "text">("files");
+  const [mode, setMode] = useState<"files" | "text" | "link">("files");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -27,7 +27,15 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
     setError(null);
     const form = new FormData(e.currentTarget);
     try {
-      if (mode === "text") {
+      if (mode === "link") {
+        setBusy("Enviando link...");
+        await postJSON<Created>("/api/upload", {
+          kind: "link",
+          subject_id: subjectId,
+          url: String(form.get("url") ?? ""),
+          title: String(form.get("title") ?? ""),
+        });
+      } else if (mode === "text") {
         setBusy("Enviando texto...");
         await postJSON<Created>("/api/upload", {
           kind: "text",
@@ -78,7 +86,7 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
   return (
     <form ref={formRef} onSubmit={submit} className="grid gap-4">
       <div className="flex gap-2" role="tablist">
-        {(["files", "text"] as const).map((m) => (
+        {(purpose === "study" ? (["files", "link", "text"] as const) : (["files", "text"] as const)).map((m) => (
           <Button
             key={m}
             type="button"
@@ -88,13 +96,13 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
             variant={mode === m ? "default" : "outline"}
             onClick={() => setMode(m)}
           >
-            {m === "files" ? "Arquivo ou fotos" : "Colar texto"}
+            {m === "files" ? "Arquivo ou fotos" : m === "link" ? "Link ou YouTube" : "Colar texto"}
           </Button>
         ))}
       </div>
 
       <div className="grid gap-2">
-        <Label htmlFor="material-title">Título {mode === "files" && "(opcional)"}</Label>
+        <Label htmlFor="material-title">Título {mode !== "text" && "(opcional)"}</Label>
         <Input id="material-title" name="title" maxLength={200} placeholder="Ex.: Capítulo 3 — Funções" />
       </div>
 
@@ -106,6 +114,15 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
           <Input id="material-file" ref={fileRef} type="file" accept={ACCEPT} multiple className="h-auto py-2" />
           <p className="text-muted-foreground text-xs">
             Até 20 MB por arquivo e 100 páginas por material.{purpose === "study" && " Áudio de aula: MP3 ou WAV."}
+          </p>
+        </div>
+      ) : mode === "link" ? (
+        <div className="grid gap-2">
+          <Label htmlFor="material-url">Link da página, do PDF ou do vídeo</Label>
+          <Input id="material-url" name="url" type="url" inputMode="url" required maxLength={2000} placeholder="https://..." />
+          <p className="text-muted-foreground text-xs">
+            Páginas da web e PDFs: o texto vira material. YouTube: a IA assiste o vídeo e transcreve a fala com os tempos (vídeo público, até uns 40 minutos com a IA gratuita).
+            Sites que exigem login não funcionam.
           </p>
         </div>
       ) : (

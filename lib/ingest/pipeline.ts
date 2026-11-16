@@ -1,12 +1,15 @@
 import "server-only";
 
+import { transcribeVideo } from "@/lib/ai/provider";
 import { UserFacingError } from "@/lib/errors";
 import { MAX_PAGES } from "@/lib/limits";
 import type { AdminClient } from "@/lib/supabase/admin";
 
 import { chunkPages } from "./chunk";
 import { embedTexts, toPgVector } from "./embed";
-import { extractMaterial, type InputFile, type MaterialType } from "./extract";
+import { type Extracted, extractMaterial, extractPdf, type InputFile, type MaterialType, splitPseudoPages } from "./extract";
+import { youtubeId, youtubeWatchUrl } from "./html";
+import { fetchLink, youtubeTitle } from "./links";
 
 export const MATERIALS_BUCKET = "materials";
 const INSERT_BATCH = 100;
@@ -18,20 +21,22 @@ const INSERT_BATCH = 100;
 export async function ingestMaterial(admin: AdminClient, materialId: string) {
   const { data: material, error } = await admin
     .from("materials")
-    .select("id, user_id, subject_id, type, storage_path")
+    .select("id, user_id, subject_id, type, storage_path, source_url, title")
     .eq("id", materialId)
     .single();
   if (error || !material) throw new UserFacingError("Material não encontrado.");
   if (!material.storage_path) throw new UserFacingError("Material sem arquivo.");
-  if (!["pdf", "image", "docx", "text", "audio"].includes(material.type)) {
+  if (!["pdf", "image", "docx", "text", "audio", "web", "youtube"].includes(material.type)) {
     throw new UserFacingError("Este tipo de material ainda não é suportado.");
   }
 
   await admin.from("materials").update({ status: "processing", error: null }).eq("id", materialId);
 
 
-  const files = await downloadFolder(admin, material.storage_path);
-  const { pages, pageCount } = await extractMaterial(material.type as MaterialType, files, { maxPages: MAX_PAGES });
+  const { pages, pageCount } =
+    material.type === "web" || material.type === "youtube"
+      ? await extractLink(admin, material)
+      : await extractMaterial(material.type as MaterialType, await downloadFolder(admin, material.storage_path), { maxPages: MAX_PAGES });
 
   const chunks = chunkPages(pages);
   if (chunks.length === 0) throw new UserFacingError("Não encontramos texto neste material.");
@@ -57,6 +62,46 @@ export async function ingestMaterial(admin: AdminClient, materialId: string) {
 
   await admin.from("materials").update({ status: "ready", page_count: pageCount, error: null }).eq("id", materialId);
   return { chunks: chunks.length, pages: pageCount };
+}
+
+type LinkMaterial = { id: string; type: string; storage_path: string | null; source_url: string | null; title: string };
+
+/**
+ * Link: página da web (texto ou PDF por link) ou vídeo do YouTube (transcrito pela IA).
+ * Sem título dado pelo aluno (título = o próprio link), usa o título da página/vídeo.
+ */
+async function extractLink(admin: AdminClient, m: LinkMaterial): Promise<Extracted> {
+  if (!m.source_url) throw new UserFacingError("Material sem link.");
+  let ex: Extracted;
+  let title: string | null = null;
+  if (m.type === "youtube") {
+    const id = youtubeId(m.source_url);
+    if (!id) throw new UserFacingError("Link do YouTube inválido.");
+    const url = youtubeWatchUrl(id);
+    const [{ text }, t] = await Promise.all([transcribeVideo(url), youtubeTitle(url)]);
+    if (text.replace(/\[[\d:]+\]/g, "").trim().length < 50) throw new UserFacingError("Não deu para entender a fala neste vídeo.");
+    ex = splitPseudoPages(text);
+    title = t;
+  } else {
+    const got = await fetchLink(m.source_url);
+    if (got.kind === "pdf") {
+      // guarda o PDF para o "Abrir PDF original" funcionar como num upload
+      if (m.storage_path) {
+        await admin.storage.from(MATERIALS_BUCKET).upload(`${m.storage_path}/001.pdf`, got.data, { contentType: "application/pdf", upsert: true });
+      }
+      ex = await extractPdf(got.data, MAX_PAGES);
+      await admin.from("materials").update({ type: "pdf" }).eq("id", m.id);
+    } else {
+      if (got.text.length < 200) {
+        throw new UserFacingError("Quase não há texto nessa página (ela pode exigir login ou carregar o conteúdo só no navegador). Copie o texto e cole como material.");
+      }
+      ex = splitPseudoPages(got.text);
+      title = got.title;
+    }
+  }
+  if (ex.pageCount > MAX_PAGES) throw new UserFacingError(`O conteúdo tem ${ex.pageCount} partes; o limite é ${MAX_PAGES} por material.`);
+  if (title && m.title === m.source_url.slice(0, 200)) await admin.from("materials").update({ title }).eq("id", m.id);
+  return ex;
 }
 
 export async function markMaterialFailed(admin: AdminClient, materialId: string, message: string) {
