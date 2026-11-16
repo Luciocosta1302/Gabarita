@@ -5,7 +5,9 @@ import { z } from "zod";
 import { MaterialList } from "@/components/materials/material-list";
 import { UploadForm } from "@/components/materials/upload-form";
 import { TeacherQuizButton } from "@/components/teacher/teacher-quiz-button";
+import { ProGate } from "@/components/billing/pro-gate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { loadPlan } from "@/lib/billing/limits";
 import type { TeacherProfile } from "@/lib/ai/prompts/teacher";
 import { createClient } from "@/lib/supabase/server";
 import type { LikelyTopic } from "@/lib/teacher/logic";
@@ -17,13 +19,27 @@ const TYPE_LABELS: Record<string, string> = {
   calculo: "Cálculo",
   outro: "Outro",
 };
-const LENGTH_LABELS = { curto: "curtos", medio: "médios", longo: "longos" } as const;
+const LENGTH_LABELS = {
+  curto: "curtos",
+  medio: "médios",
+  longo: "longos",
+} as const;
 
-export default async function TeacherPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function TeacherPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const supabase = await createClient();
-  const { data: subject } = await supabase.from("subjects").select("id, name").eq("id", id).maybeSingle();
+  const { data: auth } = await supabase.auth.getUser();
+  const pro = (await loadPlan(supabase, auth.user!.id)).pro;
+  const { data: subject } = await supabase
+    .from("subjects")
+    .select("id, name")
+    .eq("id", id)
+    .maybeSingle();
   if (!subject) notFound();
   const [{ data: exams }, { data: tp }] = await Promise.all([
     supabase
@@ -32,33 +48,50 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
       .eq("subject_id", id)
       .eq("type", "past_exam")
       .order("created_at", { ascending: false }),
-    supabase.from("teacher_profiles").select("style_json, likely_topics_json, exams_count, updated_at").eq("subject_id", id).maybeSingle(),
+    supabase
+      .from("teacher_profiles")
+      .select("style_json, likely_topics_json, exams_count, updated_at")
+      .eq("subject_id", id)
+      .maybeSingle(),
   ]);
   const profile = tp?.style_json as TeacherProfile | undefined;
   const likely = (tp?.likely_topics_json ?? []) as LikelyTopic[];
 
   return (
     <div className="flex flex-col gap-6">
-      <Link href={`/subjects/${id}`} className="text-muted-foreground text-sm hover:underline">
+      <Link
+        href={`/subjects/${id}`}
+        className="text-muted-foreground text-sm hover:underline"
+      >
         ← {subject.name}
       </Link>
       <div className="from-pastel-mint to-pastel-lilac animate-rise rounded-3xl bg-gradient-to-br p-6">
         <h1 className="text-3xl font-bold">Prova do Professor</h1>
         <p className="text-sm">
-          Mande provas antigas deste professor (ou da banca). O Gabarita aprende o estilo dele — tipo de questão, tamanho
-          do enunciado, pegadinhas — e mostra os tópicos com mais chance de cair. Depois, gere questões iguais às dele.
+          Mande provas antigas deste professor (ou da banca). O Gabarita aprende
+          o estilo dele — tipo de questão, tamanho do enunciado, pegadinhas — e
+          mostra os tópicos com mais chance de cair. Depois, gere questões
+          iguais às dele.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Provas antigas</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <UploadForm subjectId={id} purpose="past_exam" />
-          <MaterialList materials={exams ?? []} />
-        </CardContent>
-      </Card>
+      {!pro && (
+        <ProGate feature="professor">
+          Mande as provas antigas do seu professor e gere questões iguais às
+          dele, com os tópicos que mais caem.
+        </ProGate>
+      )}
+      {pro && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Provas antigas</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-6">
+            <UploadForm subjectId={id} purpose="past_exam" />
+            <MaterialList materials={exams ?? []} />
+          </CardContent>
+        </Card>
+      )}
 
       {profile ? (
         <>
@@ -66,7 +99,8 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
             <CardHeader>
               <CardTitle>O estilo do professor</CardTitle>
               <p className="text-muted-foreground text-xs">
-                Baseado em {tp!.exams_count} {tp!.exams_count === 1 ? "prova" : "provas"}
+                Baseado em {tp!.exams_count}{" "}
+                {tp!.exams_count === 1 ? "prova" : "provas"}
               </p>
             </CardHeader>
             <CardContent className="grid gap-4 text-sm">
@@ -75,17 +109,23 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
                 {profile.question_types.map((t) => (
                   <div key={t.type} className="grid gap-1">
                     <span className="flex justify-between">
-                      {TYPE_LABELS[t.type] ?? t.type} <span>{Math.round(t.share)}%</span>
+                      {TYPE_LABELS[t.type] ?? t.type}{" "}
+                      <span>{Math.round(t.share)}%</span>
                     </span>
                     <span className="bg-muted h-1.5 overflow-hidden rounded-full">
-                      <span className="bg-primary block h-full" style={{ width: `${t.share}%` }} />
+                      <span
+                        className="bg-primary block h-full"
+                        style={{ width: `${t.share}%` }}
+                      />
                     </span>
                   </div>
                 ))}
               </div>
               <p>
                 Enunciados {LENGTH_LABELS[profile.stem_length]}
-                {profile.options_count ? ` · ${profile.options_count} alternativas` : ""}
+                {profile.options_count
+                  ? ` · ${profile.options_count} alternativas`
+                  : ""}
               </p>
               {profile.traps.length > 0 && (
                 <div className="bg-pastel-rose/60 rounded-xl p-3">
@@ -108,13 +148,19 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
                 <div className="grid gap-1">
                   <span className="font-semibold">Exemplos de enunciado</span>
                   {profile.example_stems.map((e, i) => (
-                    <blockquote key={i} className="border-primary/40 border-l-2 pl-3 italic">
+                    <blockquote
+                      key={i}
+                      className="border-primary/40 border-l-2 pl-3 italic"
+                    >
                       {e}
                     </blockquote>
                   ))}
                 </div>
               )}
-              <TeacherQuizButton subjectId={id} label="Gerar 10 questões no estilo do professor" />
+              <TeacherQuizButton
+                subjectId={id}
+                label="Gerar 10 questões no estilo do professor"
+              />
             </CardContent>
           </Card>
 
@@ -132,26 +178,46 @@ export default async function TeacherPage({ params }: { params: Promise<{ id: st
               ) : (
                 <ol className="grid gap-2" data-testid="likely-topics">
                   {likely.map((l) => (
-                    <li key={l.topicId} className="bg-card flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm">
+                    <li
+                      key={l.topicId}
+                      className="bg-card flex flex-wrap items-center justify-between gap-2 rounded-xl border p-3 text-sm"
+                    >
                       <span>
                         <span className="font-semibold">{l.name}</span>{" "}
-                        <span aria-label={`chance ${l.weight} de 5`} className="text-primary">
+                        <span
+                          aria-label={`chance ${l.weight} de 5`}
+                          className="text-primary"
+                        >
                           {"★".repeat(l.weight)}
-                          <span className="text-muted-foreground">{"★".repeat(5 - l.weight)}</span>
+                          <span className="text-muted-foreground">
+                            {"★".repeat(5 - l.weight)}
+                          </span>
                         </span>
-                        <span className="text-muted-foreground block text-xs">{l.reason}</span>
+                        <span className="text-muted-foreground block text-xs">
+                          {l.reason}
+                        </span>
                       </span>
-                      <TeacherQuizButton subjectId={id} topicId={l.topicId} count={5} label="Praticar no estilo" variant="outline" />
+                      <TeacherQuizButton
+                        subjectId={id}
+                        topicId={l.topicId}
+                        count={5}
+                        label="Praticar no estilo"
+                        variant="outline"
+                      />
                     </li>
                   ))}
                 </ol>
               )}
-              <p className="text-muted-foreground mt-3 text-xs">Esses tópicos também ganham mais tempo no seu plano até a prova.</p>
+              <p className="text-muted-foreground mt-3 text-xs">
+                Esses tópicos também ganham mais tempo no seu plano até a prova.
+              </p>
             </CardContent>
           </Card>
         </>
       ) : (
-        <p className="text-muted-foreground text-sm">O perfil aparece aqui depois que a primeira prova for analisada.</p>
+        <p className="text-muted-foreground text-sm">
+          O perfil aparece aqui depois que a primeira prova for analisada.
+        </p>
       )}
     </div>
   );

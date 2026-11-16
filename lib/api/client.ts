@@ -5,8 +5,8 @@ export async function postJSON<T>(url: string, body: unknown): Promise<T> {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
-  const json = (await res.json().catch(() => ({}))) as { error?: string };
-  if (!res.ok) throw new Error(json.error ?? `Erro ${res.status}`);
+  const json = (await res.json().catch(() => ({}))) as { error?: string; upgrade?: boolean };
+  if (!res.ok) throw Object.assign(new Error(json.error ?? `Erro ${res.status}`), { upgrade: !!json.upgrade });
   return json as T;
 }
 

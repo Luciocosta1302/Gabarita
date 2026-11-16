@@ -6,6 +6,7 @@ import { GeminiProvider } from "./providers/gemini";
 import { MockProvider } from "./providers/mock";
 import { OpenAIEmbeddings } from "./providers/openai";
 import type { AIProvider, EmbedOptions, TextRequest, TranscribeInput } from "./types";
+import { recordUsage } from "./usage";
 
 let current: AIProvider | null = null;
 
@@ -35,7 +36,21 @@ export function setProvider(p: AIProvider | null) {
   current = p;
 }
 
-export const generateText = (req: TextRequest) => getProvider().generateText(req);
-export const generateJSON = <T>(req: JSONRequest<T>) => generateJSONWith(getProvider(), req);
-export const embed = (texts: string[], opts?: EmbedOptions) => getProvider().embed(texts, opts);
+// Toda chamada registra o uso de tokens do usuário da requisição/job atual (lib/ai/usage).
+export async function generateText(req: TextRequest) {
+  const r = await getProvider().generateText(req);
+  recordUsage(r.usage);
+  return r;
+}
+export async function generateJSON<T>(req: JSONRequest<T>) {
+  const r = await generateJSONWith(getProvider(), req);
+  recordUsage(r.usage);
+  return r;
+}
+export async function embed(texts: string[], opts?: EmbedOptions) {
+  const r = await getProvider().embed(texts, opts);
+  // embeddings cobram só a entrada; aproximação de 4 caracteres por token
+  recordUsage({ inputTokens: Math.ceil(texts.join("").length / 4), outputTokens: 0 });
+  return r;
+}
 export const transcribe = (input: TranscribeInput) => getProvider().transcribe(input);

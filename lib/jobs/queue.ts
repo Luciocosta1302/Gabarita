@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { z } from "zod";
 
+import { withUsage } from "@/lib/ai/usage";
 import { isUserFacing } from "@/lib/errors";
 import { createErrorFollowup } from "@/lib/generate/error-followup";
 import { ingestMaterial, markMaterialFailed } from "@/lib/ingest/pipeline";
@@ -108,7 +109,7 @@ export async function runJobs({ userId, max = 20 }: { userId?: string; max?: num
     const job = jobs?.[0];
     if (!job) break;
     processed++;
-    await runOne(admin, job);
+    await withUsage(job.user_id, () => runOne(admin, job));
   }
   return processed;
 }

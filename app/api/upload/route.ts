@@ -1,6 +1,7 @@
 import { after, NextResponse } from "next/server";
 
 import { apiRoute, jsonError } from "@/lib/api/route";
+import { assertCanAddMaterial, assertPro } from "@/lib/billing/limits";
 import { MATERIALS_BUCKET } from "@/lib/ingest/pipeline";
 import { enqueueJob, runJobs } from "@/lib/jobs/queue";
 import { createUploadSchema, materialTypeFor, storagePathFor } from "@/lib/validation/upload";
@@ -16,6 +17,10 @@ export const maxDuration = 300;
 export const POST = apiRoute(createUploadSchema, async (input, { supabase, user }) => {
   const { data: subject } = await supabase.from("subjects").select("id").eq("id", input.subject_id).maybeSingle();
   if (!subject) return jsonError("Matéria não encontrada.", 404);
+
+  // limites do plano: provas antigas são do Pro; material de estudo, 2/mês no grátis
+  if (input.purpose === "past_exam") await assertPro(supabase, user.id, "professor");
+  else await assertCanAddMaterial(supabase, user.id);
 
   const materialId = crypto.randomUUID();
   const folder = `${user.id}/${materialId}`;

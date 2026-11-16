@@ -1,13 +1,13 @@
 import "server-only";
 
-import { embed } from "@/lib/ai/provider";
+import { cachedEmbed } from "@/lib/ai/embed-cache";
 
 const BATCH = 100;
 
 /** Gera embeddings em lotes (o fornecedor tem limite de itens por chamada). */
 export async function embedTexts(texts: string[]): Promise<number[][]> {
   const out: number[][] = [];
-  for (let i = 0; i < texts.length; i += BATCH) out.push(...(await embed(texts.slice(i, i + BATCH), { purpose: "document" })));
+  for (let i = 0; i < texts.length; i += BATCH) out.push(...(await cachedEmbed(texts.slice(i, i + BATCH), { purpose: "document" })));
   return out;
 }
 

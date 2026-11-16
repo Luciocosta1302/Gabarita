@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { embed } from "@/lib/ai/provider";
+import { cachedEmbed } from "@/lib/ai/embed-cache";
 import { toPgVector } from "@/lib/ingest/embed";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -21,7 +21,7 @@ export async function searchChunks(
   query: string,
   k = 8,
 ): Promise<FoundChunk[]> {
-  const [vector] = await embed([query], { purpose: "query" });
+  const [vector] = await cachedEmbed([query], { purpose: "query" });
   const { data, error } = await supabase.rpc("match_chunks", {
     query_embedding: toPgVector(vector),
     p_subject_id: subjectId,

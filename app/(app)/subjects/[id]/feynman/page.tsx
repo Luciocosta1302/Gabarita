@@ -3,13 +3,17 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { FeynmanForm } from "@/components/feynman/feynman-form";
+import { ProGate } from "@/components/billing/pro-gate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { loadPlan } from "@/lib/billing/limits";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function FeynmanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const supabase = await createClient();
+  const { data: auth } = await supabase.auth.getUser();
+  const pro = (await loadPlan(supabase, auth.user!.id)).pro;
   const { data: subject } = await supabase.from("subjects").select("id, name").eq("id", id).maybeSingle();
   if (!subject) notFound();
   const [{ data: topics }, { data: sessions }] = await Promise.all([
@@ -34,11 +38,15 @@ export default async function FeynmanPage({ params }: { params: Promise<{ id: st
           Gabarita compara com o seu material e mostra o que acertou, o que faltou e o que está errado.
         </p>
       </div>
-      <Card>
-        <CardContent className="pt-6">
-          <FeynmanForm topics={topics ?? []} />
-        </CardContent>
-      </Card>
+      {pro ? (
+        <Card>
+          <CardContent className="pt-6">
+            <FeynmanForm topics={topics ?? []} />
+          </CardContent>
+        </Card>
+      ) : (
+        <ProGate feature="feynman">Explique os conceitos por texto ou voz e descubra exatamente o que faltou entender.</ProGate>
+      )}
       {sessions && sessions.length > 0 && (
         <Card>
           <CardHeader>
