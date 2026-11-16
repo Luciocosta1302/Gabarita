@@ -214,4 +214,10 @@ Páginas propostas e relação com o plano:
 5. **Simulados com IA**: é o D16 + D5 (Fase 2).
 6. **Diário de aprendizagem**: registro ao fim da sessão, IA acompanha a evolução. *Novo.*
 7. Também no mock: Desempenho, Conquistas/sequência de dias, Comunidade, Anotações, Perfil. *Novos (Comunidade se aproxima do D14).*
-Ordem sugerida pelo usuário: Trilhas + Tutor → Espaço de estudos → Revisão → Simulados → Desempenho. **Decidir com o usuário como encaixar nas Fases 2–4.**
+Ordem sugerida pelo usuário: Trilhas + Tutor → Espaço de estudos → Revisão → Simulados → Desempenho.
+
+**Feito depois da Fase 2 (pedido do usuário: "faça as duas"):**
+- Migration `20261116200000_trilhas_espaco.sql`: `learning_paths`, `path_steps`, `tutor_messages`, `study_sessions` (todas com RLS) e `questions.origin` aceita `tutor`.
+- **Trilhas + Tutor IA** (`lib/paths/`, `/trilhas`): a IA monta a trilha (3–10 etapas, níveis, pré-requisitos) a partir dos tópicos (D8) e do objetivo do aluno; `normalizePath` garante pré-requisitos só de etapas anteriores e todo tópico coberto. Etapa: explicação com citações → questão (`createQuestions`, mesma checagem de fonte D1) → errou: diagnóstico + explicação "de outro jeito" + questão fácil sobre o MESMO trecho; acertou: questão mais difícil. Conclui com 2 acertos seguidos e libera as dependentes. Respostas passam por `recordAttempt` (caderno de erros, FSRS, domínio). Dúvida livre e "explicar de outro jeito" a qualquer momento. Citações `[n]` ou `[T#]` viram link (`lib/text/citations.ts`).
+- **Espaço de estudos** (`lib/focus/`, `/espaco`): Pomodoro (25/5, 50/10, 15/3; pausa longa a cada N focos), música lo-fi e chuva **gerados no navegador** (Web Audio, sem arquivos nem música de terceiros), cenário em SVG próprio que muda com o horário (madrugada/amanhecer/dia/entardecer/noite), 4 cenários desbloqueáveis por minutos de foco (0/100/300/600), metas da sessão (do plano de hoje ou livres, guardadas no navegador), sequência de dias. Cada foco concluído vira `study_sessions`.
+- **Ainda não feitos da proposta:** Diário de aprendizagem, Desempenho, Conquistas além da sequência, Comunidade, Anotações, Perfil, biblioteca com pastas/busca/chat por documento.

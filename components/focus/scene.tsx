@@ -43,8 +43,12 @@ function Sky({ tod, forceNight, uid }: { tod: TimeOfDay; forceNight?: boolean; u
         <circle cx={t === "entardecer" ? 600 : t === "amanhecer" ? 160 : 620} cy={t === "dia" ? 70 : 190} r="34" fill={t === "dia" ? "#fff4cf" : "#ffd29a"} opacity="0.95" />
       )}
       {/* montanha nevada ao fundo */}
-      <path d="M180 330 L330 170 L370 200 L400 182 L560 330 Z" fill={dark ? "#3b2f55" : "#8b7fa8"} opacity="0.8" />
-      <path d="M318 183 L330 170 L370 200 L400 182 L414 196 L392 205 L370 214 L345 200 Z" fill="#f7f1f6" opacity={dark ? 0.6 : 0.95} />
+      <path d="M170 330 L355 168 L405 168 L590 330 Z" fill={dark ? "#3b2f55" : "#8b7fa8"} opacity="0.85" />
+      <path
+        d="M320 199 L355 168 L405 168 L440 199 L426 206 L412 196 L397 209 L381 197 L366 209 L350 197 L334 207 Z"
+        fill="#f7f1f6"
+        opacity={dark ? 0.55 : 0.95}
+      />
       {/* cidade */}
       <g fill={dark ? "#251d3b" : "#5f5277"}>
         {[[0, 300, 70, 150], [60, 270, 50, 180], [110, 310, 80, 140], [190, 285, 45, 165], [240, 320, 90, 130], [520, 295, 60, 155], [575, 265, 55, 185], [630, 305, 80, 145], [705, 280, 95, 170]].map(([x, y, w, h], i) => (
