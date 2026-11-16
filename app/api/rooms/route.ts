@@ -28,4 +28,4 @@ export const POST = apiRoute(roomActionSchema, async (input, { supabase, user })
     case "submit":
       return NextResponse.json(await submitRoomQuiz(supabase, user.id, { roomQuizId: input.room_quiz_id, answers: input.answers, timeMs: input.time_ms }));
   }
-});
+}, { ai: true });

@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { NextResponse } from "next/server";
 
 import { runJobs } from "@/lib/jobs/queue";
@@ -10,10 +12,16 @@ export const maxDuration = 300;
  * - Cron (Vercel Cron, pg_cron...): `Authorization: Bearer <JOBS_SECRET>` → processa a fila toda.
  * - Aluno logado (a tela chama quando algo está demorando): processa só os jobs dele.
  */
+/** Compara em tempo constante (não dá para adivinhar o segredo medindo o tempo da resposta). */
+function sameSecret(given: string | null, secret: string) {
+  const a = Buffer.from(given ?? "");
+  const b = Buffer.from(`Bearer ${secret}`);
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
 async function handle(req: Request) {
   const secret = process.env.JOBS_SECRET || process.env.CRON_SECRET;
-  const auth = req.headers.get("authorization");
-  if (secret && auth === `Bearer ${secret}`) {
+  if (secret && sameSecret(req.headers.get("authorization"), secret)) {
     return NextResponse.json({ processed: await runJobs({ max: 50 }) });
   }
   const { user } = await getUser();

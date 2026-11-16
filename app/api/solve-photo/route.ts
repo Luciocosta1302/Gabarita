@@ -14,4 +14,4 @@ export const POST = apiRoute(solvePhotoSchema, async (input, { supabase }) => {
   }
   const r = await solvePhoto(supabase, { image: new Uint8Array(Buffer.from(input.image_base64, "base64")), subjectId: input.subject_id });
   return NextResponse.json(r);
-});
+}, { ai: true });

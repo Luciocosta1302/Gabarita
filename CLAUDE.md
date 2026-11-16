@@ -224,6 +224,15 @@ tests/
   - Página da web (`type = web`, `lib/ingest/links.ts`): o servidor busca a página (20 s, 20 MB, até 5 redirecionamentos), tira menus/scripts/rodapé e prefere `<article>`/`<main>` (`htmlToText`, sem biblioteca). Link de PDF vira material PDF (arquivo guardado no Storage). Menos de 200 caracteres = "copie e cole" (site com login ou que só carrega no navegador).
   - Segurança (SSRF): só http/https nas portas 80/443, sem usuário/senha no link, e o nome tem que apontar para IP público em cada redirecionamento (bloqueia 127.x, rede interna, 169.254.x de metadados da nuvem, IPv6 local). `LINK_FETCH_ALLOW_LOCAL=true` libera endereços locais **só para testes** (o Playwright liga sozinho); nunca em produção. Risco residual: DNS rebinding entre a checagem e a conexão.
   - O material mostra "Abrir a página original" / "Assistir o vídeo original". Sem título dado pelo aluno, usa o da página/vídeo. Na transcrição, os tempos `[mm:ss]` são links para aquele ponto do vídeo (`&t=90s`, `lib/text/timestamps.ts`).
+- **Revisão de segurança (pedido do usuário, lista de 19 pontos):** migration `20261123100000_seguranca.sql` + `lib/api/route.ts` + `next.config.ts`.
+  - API: toda rota passa por `apiRoute` → confere a origem (`Origin` diferente do host = 403, contra CSRF; cookies já são SameSite=Lax), exige `Content-Type: application/json` (415), exige login, aplica **limite de requisições** por aluno (`hit_rate_limit`, tabela `rate_limits` sem acesso direto: 120/min geral; rotas de IA com `{ ai: true }` também 15/min e 400/dia), valida com Zod e nunca devolve erro interno (500 genérico).
+  - Storage: bucket `materials` só aceita PDF, DOCX, imagens, áudio e texto (`allowed_mime_types`), 20 MB, pasta do próprio aluno.
+  - Funções internas (`owns_subject`, `is_room_member`) fora do alcance de quem não está logado; funções de gatilho sem permissão de chamada direta.
+  - Login: senha 8+ com letras e número (Zod + `config.toml`), cadastro com mensagem genérica (não revela se o e-mail existe), `safeNext` bloqueia `//` e `/\` (redirecionamento aberto). Cookies de sessão `SameSite=Lax` e `Secure` em HTTPS.
+  - Cabeçalhos: `frame-ancestors 'none'` + `X-Frame-Options`, `nosniff`, `Referrer-Policy`, HSTS, `Permissions-Policy` (microfone/câmera só do app), sem `X-Powered-By`.
+  - Cron `/api/jobs/process`: segredo comparado em tempo constante.
+  - Dependências: `npm audit --omit=dev` = 0 (o PostCSS antigo dentro do Next foi trocado por `overrides`); restam avisos moderados só em ferramentas de desenvolvimento (eslint).
+  - Já estava ok: RLS em todas as tabelas, chave de admin só no servidor (`server-only`, conferido no código do navegador), nada de SQL montado com texto, sem HTML cru na tela, SSRF dos links, `.env*` fora do git (histórico sem chaves).
 - Pendências conhecidas: páginas de DOCX/texto/áudio são aproximadas; IA real sem teste automatizado (precisa de chave); vídeo do YouTube de ~40 min ou mais não foi testado com a IA real.
 
 ## 9. Proposta de design e páginas novas (do usuário, ainda não priorizada)

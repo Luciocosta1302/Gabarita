@@ -17,4 +17,4 @@ export const POST = apiRoute(generateQuestionsSchema, async (input, { supabase, 
     mode: input.mode,
   });
   return NextResponse.json({ quiz_id: result.quizId, count: result.count, requested: result.requested }, { status: 201 });
-});
+}, { ai: true });

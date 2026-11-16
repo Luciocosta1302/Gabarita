@@ -32,4 +32,4 @@ export const POST = apiRoute(tutorActionSchema, async (input, { supabase, user }
       await askTutor(supabase, user.id, input.step_id, input.question);
       return NextResponse.json({ ok: true });
   }
-});
+}, { ai: true });

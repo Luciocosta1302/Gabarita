@@ -13,4 +13,4 @@ export const POST = apiRoute(generateFlashcardsSchema, async (input, { supabase,
     count: input.count,
   });
   return NextResponse.json(result, { status: 201 });
-});
+}, { ai: true });

@@ -533,6 +533,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"rate_limits": {
+                  Row: {
+                    "bucket": string,"hits": number,"user_id": string,"window_start": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "bucket": string,"hits"?: number,"user_id": string,"window_start": string
+                  }
+                  Update: {
+                    "bucket"?: string,"hits"?: number,"user_id"?: string,"window_start"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"reviews": {
                   Row: {
                     "due_at": string,"fsrs_state_json": NonNullable<Json>,"id": string,"item_id": string,"item_type": string,"last_reviewed_at": string | null,"subject_id": string | null,"user_id": string
@@ -858,6 +872,9 @@ isOneToOne: false
         isOneToOne: false
         isSetofReturn: true
       } },
+"hit_rate_limit":
+{ Args: { "p_bucket": string,"p_limit": number,"p_window_seconds": number }; Returns: boolean
+                           },
 "is_room_member":
 { Args: { "p_room_id": string }; Returns: boolean
                            },

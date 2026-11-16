@@ -40,7 +40,11 @@ export async function signup(_prev: AuthState, formData: FormData): Promise<Auth
       emailRedirectTo: `${origin}/auth/callback`,
     },
   });
-  if (error) return { error: error.message, ...kept };
+  // mensagem genérica: não revela se o e-mail já tem conta (só a senha fraca é explicada)
+  if (error) {
+    const weak = error.code === "weak_password";
+    return { error: weak ? "Essa senha é fraca ou já apareceu em vazamentos. Escolha outra." : "Não foi possível criar a conta. Se você já tem conta, entre pelo login.", ...kept };
+  }
 
   // Com confirmação de e-mail ligada (produção) não há sessão ainda.
   if (!data.session) return { message: "Enviamos um link de confirmação para o seu e-mail." };

@@ -63,5 +63,5 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase, user }
   ]);
   if (error) throw error;
   return NextResponse.json(body);
-});
+}, { ai: true });
 

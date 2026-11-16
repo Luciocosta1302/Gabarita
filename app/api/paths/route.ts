@@ -10,4 +10,4 @@ export const maxDuration = 120;
 export const POST = apiRoute(createPathSchema, async (input, { supabase, user }) => {
   const id = await createPath(supabase, user.id, input.subject_id, input.goal);
   return NextResponse.json({ path_id: id }, { status: 201 });
-});
+}, { ai: true });

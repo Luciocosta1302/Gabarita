@@ -83,4 +83,4 @@ export const POST = apiRoute(createUploadSchema, async (input, { supabase, user 
 
   const uploads = input.files.map((f, i) => ({ name: f.name, path: storagePathFor(user.id, materialId, i, f) }));
   return NextResponse.json({ material_id: materialId, uploads }, { status: 201 });
-});
+}, { ai: true });

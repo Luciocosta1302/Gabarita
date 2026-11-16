@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 
 import { publicEnv } from "@/lib/env";
 import type { Database } from "@/lib/supabase/database.types";
@@ -10,6 +10,8 @@ import type { Database } from "@/lib/supabase/database.types";
 export async function createClient() {
   const env = publicEnv();
   const cookieStore = await cookies();
+  // em HTTPS os cookies de sessão só trafegam criptografados (Secure); SameSite=Lax vem do Supabase
+  const secure = ((await headers()).get("x-forwarded-proto") ?? "").split(",")[0].trim() === "https";
 
   return createServerClient<Database>(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
@@ -18,7 +20,7 @@ export async function createClient() {
       },
       setAll(cookiesToSet) {
         try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options));
+          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, { ...options, sameSite: "lax", secure }));
         } catch {
           // Chamado de um Server Component: o middleware cuida de renovar a sessão.
         }

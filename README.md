@@ -76,3 +76,21 @@ Configure chamadas com `Authorization: Bearer $JOBS_SECRET`:
 | Rota | Frequência | Para quê |
 |---|---|---|
 | `/api/jobs/process` | a cada minuto | fila de processamento (upload, tópicos, provas antigas, caderno de erros) |
+
+## Antes de publicar (segurança)
+
+No painel do Supabase de produção:
+
+1. **Authentication → Providers → Email**: ligue a confirmação de e-mail e a proteção contra senhas vazadas;
+   senha mínima 8 com letras e números (igual ao `supabase/config.toml`).
+2. **Authentication → URL Configuration**: `Site URL` e `Redirect URLs` só com o domínio do app (`https://seu-dominio/auth/callback`).
+3. **Authentication → Rate Limits**: mantenha os limites de login/cadastro; se aparecer abuso, ligue o CAPTCHA.
+4. Rode as migrations (`npx supabase db push`) — elas criam o RLS, os limites de requisição e os tipos de arquivo do Storage.
+
+No servidor (Vercel ou outro):
+
+- `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY` e `JOBS_SECRET` só como variáveis de ambiente do servidor (nunca com `NEXT_PUBLIC_`).
+- `JOBS_SECRET` longo e aleatório (ex.: `openssl rand -hex 32`).
+- **Nunca** ligue `LINK_FETCH_ALLOW_LOCAL` em produção.
+- Sirva só por HTTPS (os cookies ficam `Secure` e o HSTS passa a valer).
+- `npm audit --omit=dev` antes de cada deploy.

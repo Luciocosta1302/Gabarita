@@ -9,6 +9,7 @@ const PUBLIC_PATHS = ["/login", "/signup", "/auth"];
 export async function updateSession(request: NextRequest) {
   const env = publicEnv();
   let response = NextResponse.next({ request });
+  const secure = request.nextUrl.protocol === "https:" || request.headers.get("x-forwarded-proto")?.split(",")[0].trim() === "https";
 
   const supabase = createServerClient(env.NEXT_PUBLIC_SUPABASE_URL, env.NEXT_PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
@@ -18,7 +19,7 @@ export async function updateSession(request: NextRequest) {
       setAll(cookiesToSet) {
         cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
         response = NextResponse.next({ request });
-        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, { ...options, sameSite: "lax", secure }));
       },
     },
   });

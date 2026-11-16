@@ -19,4 +19,4 @@ export const POST = apiRoute(journalActionSchema, async (input, { supabase, user
   });
   if (error) throw error;
   return NextResponse.json({ ok: true }, { status: 201 });
-});
+}, { ai: true });

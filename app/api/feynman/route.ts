@@ -14,4 +14,4 @@ export const POST = apiRoute(feynmanSchema, async (input, { supabase, user }) =>
     audio: input.audio_base64 ? new Uint8Array(Buffer.from(input.audio_base64, "base64")) : undefined,
   });
   return NextResponse.json(r, { status: 201 });
-});
+}, { ai: true });

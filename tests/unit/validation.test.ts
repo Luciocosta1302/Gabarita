@@ -27,10 +27,19 @@ describe("auth", () => {
     expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "123" }).success).toBe(false);
   });
 
+  it("senha precisa de letras e número", () => {
+    expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "abcdefgh" }).success).toBe(false);
+    expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "12345678" }).success).toBe(false);
+    expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "senha-forte-123" }).success).toBe(true);
+  });
+
   it("safeNext bloqueia redirecionamento para fora", () => {
     expect(safeNext("/subjects/1")).toBe("/subjects/1");
     expect(safeNext("//evil.com")).toBe("/dashboard");
     expect(safeNext("https://evil.com")).toBe("/dashboard");
+    expect(safeNext("/\\evil.com")).toBe("/dashboard");
+    expect(safeNext("/a b")).toBe("/dashboard");
+    expect(safeNext("/subjects/1?x=2")).toBe("/subjects/1?x=2");
     expect(safeNext(undefined)).toBe("/dashboard");
   });
 });
