@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { postJSON, selectClass } from "@/lib/api/client";
-import { EXAM_STYLE_LABELS, SELECTABLE_STYLES, STYLE_SPECS, selectableStyle, type ExamStyle } from "@/lib/exam-styles";
+import { EXAM_STYLE_LABELS, SIMULADO_STYLES, STYLE_SPECS, simuladoStyle, type ExamStyle } from "@/lib/exam-styles";
 import { MAX_QUESTIONS_PER_REQUEST } from "@/lib/limits";
 
 /** D16 — cria um simulado cronometrado no estilo da banca. */
 export function SimuladoForm({ subjectId, defaultStyle, disabled }: { subjectId: string; defaultStyle: string; disabled?: boolean }) {
   const router = useRouter();
-  const [style, setStyle] = useState<ExamStyle>(selectableStyle(defaultStyle));
+  const [style, setStyle] = useState<ExamStyle>(simuladoStyle(defaultStyle));
   const [count, setCount] = useState(20);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,7 +54,7 @@ export function SimuladoForm({ subjectId, defaultStyle, disabled }: { subjectId:
       <div className="grid gap-2">
         <Label htmlFor="s-style">Banca</Label>
         <select id="s-style" value={style} onChange={(e) => setStyle(e.target.value as ExamStyle)} className={selectClass}>
-          {SELECTABLE_STYLES.map((s) => (
+          {SIMULADO_STYLES.map((s) => (
             <option key={s} value={s}>
               {EXAM_STYLE_LABELS[s]}
             </option>

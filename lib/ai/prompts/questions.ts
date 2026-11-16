@@ -49,6 +49,10 @@ export type QuestionsInput = {
   difficulty: Difficulty | "misturada";
   /** Estilo de prova/banca (D5). */
   style?: ExamStyle;
+  /** D4: estilo do professor (substitui as instruções da banca) */
+  styleGuide?: string;
+  /** nº de alternativas (padrão: o da banca) */
+  options?: number;
 };
 
 const SYSTEM = withGrounding(
@@ -66,9 +70,10 @@ function difficultyLine(d: QuestionsInput["difficulty"]) {
 
 export function questionsPrompt(input: QuestionsInput) {
   const spec = STYLE_SPECS[input.style ?? "livre"];
+  const optionsCount = input.options ?? (spec.options >= 4 ? spec.options : 4);
   const prompt = [
-    `Gere exatamente ${input.count} questões de múltipla escolha com ${spec.options} alternativas cada. ${difficultyLine(input.difficulty)}`,
-    spec.guide,
+    `Gere exatamente ${input.count} questões de múltipla escolha com ${optionsCount} alternativas cada. ${difficultyLine(input.difficulty)}`,
+    input.styleGuide ?? spec.guide,
     "Distribua as questões entre os trechos diferentes e não repita o mesmo conceito.",
     "",
     "Trechos do material:",
@@ -84,7 +89,7 @@ export function questionsPrompt(input: QuestionsInput) {
       questions: Array.from({ length: input.count }, (_, i) => {
         const n = i % input.chunks.length;
         const quote = pickSentence(input.chunks[n].content, Math.floor(i / input.chunks.length));
-        const wrong = Array.from({ length: spec.options - 1 }, (_, k) => `Alternativa incorreta ${k + 1}`);
+        const wrong = Array.from({ length: optionsCount - 1 }, (_, k) => `Alternativa incorreta ${k + 1}`);
         return {
           source: n + 1,
           quote,

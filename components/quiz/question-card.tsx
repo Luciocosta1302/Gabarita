@@ -5,11 +5,14 @@ import { useRef, useState } from "react";
 
 import type { AttemptResult } from "@/app/api/attempts/route";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { postJSON } from "@/lib/api/client";
 import { isTrueFalse } from "@/lib/exam-styles";
 import { CONFIDENCE_LABELS, CONFIDENCE_LEVELS, type Confidence } from "@/lib/quiz/confidence";
 import { indexToLetter, letterToIndex } from "@/lib/quiz/options";
 import { cn } from "@/lib/utils";
+
+import { OpenFeedback } from "./open-feedback";
 
 export type PublicQuestion = { id: string; stem: string; options: string[] };
 
@@ -31,7 +34,9 @@ export function QuestionCard({
   /** envio próprio (ex.: tutor da trilha); padrão = /api/attempts */
   submit?: (body: { question_id: string; answer: string; confidence: Confidence; time_ms: number }) => Promise<AttemptResult>;
 }) {
+  const open = question.options.length === 0; // discursiva (D10)
   const [chosen, setChosen] = useState<number | null>(null);
+  const [text, setText] = useState("");
   const [confidence, setConfidence] = useState<Confidence | null>(null);
   const [result, setResult] = useState<AttemptResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -39,11 +44,16 @@ export function QuestionCard({
   const started = useRef(Date.now());
 
   async function answer() {
-    if (chosen == null || !confidence) return;
+    if ((open ? !text.trim() : chosen == null) || !confidence) return;
     setBusy(true);
     setError(null);
     try {
-      const body = { question_id: question.id, answer: indexToLetter(chosen), confidence, time_ms: Date.now() - started.current };
+      const body = {
+        question_id: question.id,
+        answer: open ? text.trim() : indexToLetter(chosen!),
+        confidence,
+        time_ms: Date.now() - started.current,
+      };
       const r = submit ? await submit(body) : await postJSON<AttemptResult>("/api/attempts", { ...body, quiz_id: quizId });
       setResult(r);
       onAnswered?.(r);
@@ -62,7 +72,18 @@ export function QuestionCard({
       {header}
       <p className="text-lg leading-relaxed font-medium">{question.stem}</p>
 
-      <div role="radiogroup" aria-label="Alternativas" className="grid gap-2">
+      {open && (
+        <Textarea
+          aria-label="Sua resposta"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+          disabled={!!result || busy}
+          rows={6}
+          maxLength={5000}
+          placeholder="Escreva sua resposta com suas palavras (um parágrafo)..."
+        />
+      )}
+      <div role="radiogroup" aria-label="Alternativas" className={cn("grid gap-2", open && "hidden")}>
         {question.options.map((opt, i) => {
           const isChosen = chosen === i;
           const state = result ? (i === correctIndex ? "correct" : isChosen ? "wrong" : "idle") : isChosen ? "chosen" : "idle";
@@ -116,13 +137,14 @@ export function QuestionCard({
               {error}
             </p>
           )}
-          <Button onClick={answer} disabled={chosen == null || !confidence || busy} className="justify-self-start">
-            {busy ? "Enviando..." : "Responder"}
+          <Button onClick={answer} disabled={(open ? !text.trim() : chosen == null) || !confidence || busy} className="justify-self-start">
+            {busy ? (open ? "Corrigindo..." : "Enviando...") : "Responder"}
           </Button>
         </>
       )}
 
-      {result && (
+      {result?.feedback && <OpenFeedback result={result} questionId={question.id} />}
+      {result && !result.feedback && (
         <div
           role="status"
           data-testid="answer-feedback"

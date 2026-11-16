@@ -13,7 +13,7 @@ export const EXAM_STYLE_LABELS: Record<ExamStyle, string> = {
 };
 
 export type StyleSpec = {
-  format: "multiple_choice" | "true_false";
+  format: "multiple_choice" | "true_false" | "open";
   options: number;
   /** instruções de estilo para a IA */
   guide: string;
@@ -63,23 +63,29 @@ export const STYLE_SPECS: Record<ExamStyle, StyleSpec> = {
       "Estilo Vunesp: enunciado objetivo de tamanho médio e alternativas curtas. Cobra conceitos e aplicação simples.",
     minutesPerQuestion: 2.5,
   },
-  // A correção de discursivas com rubrica é a Fase 3 (D10). Até lá, gera objetivas no estilo livre.
+  // D10: questões abertas, corrigidas com rubrica (conteúdo, clareza, termos).
   discursiva: {
-    format: "multiple_choice",
-    options: 4,
-    guide: "Questões objetivas de faculdade: enunciado direto e alternativas plausíveis.",
-    minutesPerQuestion: 2,
+    format: "open",
+    options: 0,
+    guide: "Questões discursivas: pedem explicação, comparação ou justificativa em um parágrafo.",
+    minutesPerQuestion: 8,
   },
 };
 
-/** Estilos que o aluno pode escolher ao gerar questões agora. */
-export const SELECTABLE_STYLES = EXAM_STYLES.filter((s): s is Exclude<ExamStyle, "discursiva"> => s !== "discursiva");
+/** Estilos que o aluno pode escolher ao gerar questões. */
+export const SELECTABLE_STYLES = EXAM_STYLES;
+/** O simulado é corrigido de uma vez, então fica só com objetivas. */
+export const SIMULADO_STYLES = EXAM_STYLES.filter((s): s is Exclude<ExamStyle, "discursiva"> => s !== "discursiva");
 
 export function isTrueFalse(options: unknown): boolean {
   return Array.isArray(options) && options.length === 2 && options[0] === "Certo" && options[1] === "Errado";
 }
 
 /** Estilo padrão para os formulários: o da matéria, se puder ser escolhido; senão "livre". */
-export function selectableStyle(style: string | null | undefined): (typeof SELECTABLE_STYLES)[number] {
-  return (SELECTABLE_STYLES as readonly string[]).includes(style ?? "") ? (style as (typeof SELECTABLE_STYLES)[number]) : "livre";
+export function selectableStyle(style: string | null | undefined): ExamStyle {
+  return (EXAM_STYLES as readonly string[]).includes(style ?? "") ? (style as ExamStyle) : "livre";
+}
+
+export function simuladoStyle(style: string | null | undefined): (typeof SIMULADO_STYLES)[number] {
+  return (SIMULADO_STYLES as readonly string[]).includes(style ?? "") ? (style as (typeof SIMULADO_STYLES)[number]) : "livre";
 }

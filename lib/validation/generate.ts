@@ -13,7 +13,7 @@ export const generateQuestionsSchema = z.object({
   topic_id: optionalUuid,
   count: z.coerce.number().int().min(1).max(MAX_QUESTIONS_PER_REQUEST),
   difficulty: z.enum([...DIFFICULTIES, "misturada"]).default("misturada"),
-  style: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.enum(SELECTABLE_STYLES).optional()),
+  style: z.preprocess((v) => (v === "" || v === null ? undefined : v), z.enum([...SELECTABLE_STYLES, "professor"]).optional()),
   mode: z.enum(["pratica", "simulado"]).default("pratica"),
 });
 
@@ -28,7 +28,8 @@ export const generateSummarySchema = z.object({ material_id: z.uuid() });
 export const attemptSchema = z.object({
   question_id: z.uuid(),
   quiz_id: optionalUuid,
-  answer: z.enum(["A", "B", "C", "D", "E"]),
+  /** letra (A–E) nas objetivas; texto livre nas discursivas */
+  answer: z.string().trim().min(1, "Escreva sua resposta").max(5000, "Resposta muito longa (máx. 5000 caracteres)"),
   confidence: z.enum(CONFIDENCE_LEVELS, "Marque sua confiança antes de responder"),
   time_ms: z.number().int().min(0).max(3_600_000).optional(),
 });

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { questionsPrompt, trueFalsePrompt } from "@/lib/ai/prompts/questions";
 import { errorFollowupTfPrompt } from "@/lib/ai/prompts/error-followup";
 import { topicsPrompt } from "@/lib/ai/prompts/topics";
-import { STYLE_SPECS, isTrueFalse, selectableStyle } from "@/lib/exam-styles";
+import { STYLE_SPECS, isTrueFalse, selectableStyle, simuladoStyle } from "@/lib/exam-styles";
 import { validateTrueFalse } from "@/lib/generate/questions";
 import { gradeFromAttempt, newCard, review } from "@/lib/srs/fsrs";
 import { resolveAssignments } from "@/lib/topics/cluster";
@@ -61,7 +61,9 @@ describe("estilos de banca (D5)", () => {
     expect(STYLE_SPECS.enem).toMatchObject({ format: "multiple_choice", options: 5 });
     expect(STYLE_SPECS.cebraspe.format).toBe("true_false");
     expect(STYLE_SPECS.livre.options).toBe(4);
-    expect(selectableStyle("discursiva")).toBe("livre");
+    expect(selectableStyle("discursiva")).toBe("discursiva");
+    expect(simuladoStyle("discursiva")).toBe("livre"); // simulado só com objetivas
+    expect(STYLE_SPECS.discursiva.format).toBe("open");
     expect(selectableStyle("fgv")).toBe("fgv");
   });
 

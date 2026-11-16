@@ -25,14 +25,14 @@ export type Database = {
           Tables: {
             "attempts": {
                   Row: {
-                    "answer": string,"confidence": string | null,"correct": boolean,"created_at": string,"id": string,"question_id": string,"quiz_id": string | null,"time_ms": number | null,"user_id": string
+                    "answer": string,"confidence": string | null,"correct": boolean,"created_at": string,"feedback_json": Json | null,"id": string,"question_id": string,"quiz_id": string | null,"score": number | null,"time_ms": number | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "answer": string,"confidence"?: string | null,"correct": boolean,"created_at"?: string,"id"?: string,"question_id": string,"quiz_id"?: string | null,"time_ms"?: number | null,"user_id"?: string
+                    "answer": string,"confidence"?: string | null,"correct": boolean,"created_at"?: string,"feedback_json"?: Json | null,"id"?: string,"question_id": string,"quiz_id"?: string | null,"score"?: number | null,"time_ms"?: number | null,"user_id"?: string
                   }
                   Update: {
-                    "answer"?: string,"confidence"?: string | null,"correct"?: boolean,"created_at"?: string,"id"?: string,"question_id"?: string,"quiz_id"?: string | null,"time_ms"?: number | null,"user_id"?: string
+                    "answer"?: string,"confidence"?: string | null,"correct"?: boolean,"created_at"?: string,"feedback_json"?: Json | null,"id"?: string,"question_id"?: string,"quiz_id"?: string | null,"score"?: number | null,"time_ms"?: number | null,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -109,17 +109,23 @@ isOneToOne: false
                   ]
                 },"feynman_sessions": {
                   Row: {
-                    "created_at": string,"feedback_json": Json | null,"id": string,"topic_id": string | null,"transcript": string,"user_id": string
+                    "created_at": string,"feedback_json": Json | null,"id": string,"mode": string,"score": number | null,"subject_id": string | null,"topic_id": string | null,"transcript": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"feedback_json"?: Json | null,"id"?: string,"topic_id"?: string | null,"transcript": string,"user_id"?: string
+                    "created_at"?: string,"feedback_json"?: Json | null,"id"?: string,"mode"?: string,"score"?: number | null,"subject_id"?: string | null,"topic_id"?: string | null,"transcript": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"feedback_json"?: Json | null,"id"?: string,"topic_id"?: string | null,"transcript"?: string,"user_id"?: string
+                    "created_at"?: string,"feedback_json"?: Json | null,"id"?: string,"mode"?: string,"score"?: number | null,"subject_id"?: string | null,"topic_id"?: string | null,"transcript"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
+      foreignKeyName: "feynman_sessions_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    },{
       foreignKeyName: "feynman_sessions_topic_id_fkey"
       columns: ["topic_id"]
 isOneToOne: false
@@ -189,14 +195,14 @@ isOneToOne: false
                   ]
                 },"materials": {
                   Row: {
-                    "created_at": string,"error": string | null,"id": string,"page_count": number | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
+                    "created_at": string,"error": string | null,"extracted_text": string | null,"id": string,"page_count": number | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"error"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id": string,"title": string,"type": string,"user_id"?: string
+                    "created_at"?: string,"error"?: string | null,"extracted_text"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id": string,"title": string,"type": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"error"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id"?: string,"title"?: string,"type"?: string,"user_id"?: string
+                    "created_at"?: string,"error"?: string | null,"extracted_text"?: string | null,"id"?: string,"page_count"?: number | null,"status"?: string,"storage_path"?: string | null,"subject_id"?: string,"title"?: string,"type"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -263,14 +269,14 @@ isOneToOne: false
                   ]
                 },"questions": {
                   Row: {
-                    "answer": string,"chunk_id": string | null,"created_at": string,"difficulty": string | null,"explanation": string | null,"id": string,"options_json": Json | null,"origin": string,"source_page": number | null,"source_quote": string | null,"stem": string,"style": string | null,"subject_id": string,"topic_id": string | null,"type": string,"user_id": string
+                    "answer": string,"chunk_id": string | null,"created_at": string,"difficulty": string | null,"explanation": string | null,"id": string,"options_json": Json | null,"origin": string,"rubric_json": Json | null,"source_page": number | null,"source_quote": string | null,"stem": string,"style": string | null,"subject_id": string,"topic_id": string | null,"type": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "answer": string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"origin"?: string,"source_page"?: number | null,"source_quote"?: string | null,"stem": string,"style"?: string | null,"subject_id": string,"topic_id"?: string | null,"type": string,"user_id"?: string
+                    "answer": string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"origin"?: string,"rubric_json"?: Json | null,"source_page"?: number | null,"source_quote"?: string | null,"stem": string,"style"?: string | null,"subject_id": string,"topic_id"?: string | null,"type": string,"user_id"?: string
                   }
                   Update: {
-                    "answer"?: string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"origin"?: string,"source_page"?: number | null,"source_quote"?: string | null,"stem"?: string,"style"?: string | null,"subject_id"?: string,"topic_id"?: string | null,"type"?: string,"user_id"?: string
+                    "answer"?: string,"chunk_id"?: string | null,"created_at"?: string,"difficulty"?: string | null,"explanation"?: string | null,"id"?: string,"options_json"?: Json | null,"origin"?: string,"rubric_json"?: Json | null,"source_page"?: number | null,"source_quote"?: string | null,"stem"?: string,"style"?: string | null,"subject_id"?: string,"topic_id"?: string | null,"type"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -467,20 +473,20 @@ isOneToOne: false
                   ]
                 },"teacher_profiles": {
                   Row: {
-                    "created_at": string,"id": string,"likely_topics_json": NonNullable<Json>,"style_json": NonNullable<Json>,"subject_id": string,"user_id": string
+                    "created_at": string,"exams_count": number,"id": string,"likely_topics_json": NonNullable<Json>,"style_json": NonNullable<Json>,"subject_id": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"likely_topics_json"?: NonNullable<Json>,"style_json"?: NonNullable<Json>,"subject_id": string,"user_id"?: string
+                    "created_at"?: string,"exams_count"?: number,"id"?: string,"likely_topics_json"?: NonNullable<Json>,"style_json"?: NonNullable<Json>,"subject_id": string,"updated_at"?: string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"likely_topics_json"?: NonNullable<Json>,"style_json"?: NonNullable<Json>,"subject_id"?: string,"user_id"?: string
+                    "created_at"?: string,"exams_count"?: number,"id"?: string,"likely_topics_json"?: NonNullable<Json>,"style_json"?: NonNullable<Json>,"subject_id"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     {
       foreignKeyName: "teacher_profiles_subject_id_fkey"
       columns: ["subject_id"]
-isOneToOne: false
+isOneToOne: true
       referencedRelation: "subjects"
       referencedColumns: ["id"]
     }

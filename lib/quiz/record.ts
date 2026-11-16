@@ -5,11 +5,16 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { enqueueJob } from "@/lib/jobs/queue";
 import { gradeFromAttempt } from "@/lib/srs/fsrs";
 import { gradeItem } from "@/lib/srs/service";
-import type { Database } from "@/lib/supabase/database.types";
+import { generateJSON } from "@/lib/ai/provider";
+import { gradeOpenPrompt, type OpenGrade } from "@/lib/ai/prompts/open";
+import type { Database, Json } from "@/lib/supabase/database.types";
 
 import { isCorrect } from "./options";
+import { PASSING_SCORE, rubricScore } from "./rubric";
 
 type DB = SupabaseClient<Database>;
+
+export type OpenFeedback = OpenGrade & { score: number };
 
 export type AttemptResult = {
   attempt_id: string;
@@ -20,6 +25,9 @@ export type AttemptResult = {
   chunk_id: string | null;
   source_page: number | null;
   notebook_id: string | null;
+  /** discursivas (D10): nota 0–10 e correção por critério */
+  score?: number;
+  feedback?: OpenFeedback;
 };
 
 export type AttemptInput = {
@@ -102,3 +110,60 @@ export async function recordAttempt(db: DB, userId: string, q: QuestionRow, inpu
 }
 
 export const QUESTION_FIELDS = "id, subject_id, answer, explanation, chunk_id, source_page" as const;
+export const OPEN_FIELDS = "id, subject_id, answer, explanation, chunk_id, source_page, type, stem, rubric_json" as const;
+
+/**
+ * D10 — resposta discursiva: a IA corrige com a rubrica (conteúdo, clareza, termos) e a nota vai para a tentativa.
+ * Nota >= 6 conta como acerto (domínio por tópico). Discursivas não entram no caderno de erros nem na revisão.
+ */
+export async function recordOpenAttempt(
+  db: DB,
+  userId: string,
+  q: QuestionRow & { stem: string; rubric_json: unknown },
+  input: AttemptInput,
+) {
+  const rubric = (q.rubric_json ?? { key_points: [], key_terms: [] }) as { key_points: string[]; key_terms: string[] };
+  const { data: chunk } = q.chunk_id ? await db.from("chunks").select("content").eq("id", q.chunk_id).maybeSingle() : { data: null };
+  const { data: grade } = await generateJSON(
+    gradeOpenPrompt({
+      stem: q.stem,
+      expected: q.answer,
+      keyPoints: rubric.key_points,
+      keyTerms: rubric.key_terms,
+      source: chunk?.content ?? null,
+      answer: input.answer,
+    }),
+  );
+  const score = rubricScore(grade.criteria);
+  const feedback: OpenFeedback = { ...grade, score };
+  const correct = score >= PASSING_SCORE;
+  const { data: attempt, error } = await db
+    .from("attempts")
+    .insert({
+      user_id: userId,
+      question_id: q.id,
+      quiz_id: input.quizId ?? null,
+      answer: input.answer,
+      correct,
+      confidence: input.confidence,
+      time_ms: input.timeMs ?? null,
+      score,
+      feedback_json: feedback as unknown as NonNullable<Json>,
+    })
+    .select("id")
+    .single();
+  if (error || !attempt) throw error ?? new Error("Falha ao salvar a resposta");
+  const result: AttemptResult = {
+    attempt_id: attempt.id,
+    question_id: q.id,
+    correct,
+    answer: q.answer,
+    explanation: q.explanation,
+    chunk_id: q.chunk_id,
+    source_page: q.source_page,
+    notebook_id: null,
+    score,
+    feedback,
+  };
+  return { result, queuedJobs: false };
+}
