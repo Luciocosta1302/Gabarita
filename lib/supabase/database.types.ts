@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "ai_usage": {
+            "achievements_seen": {
+                  Row: {
+                    "badge_id": string,"seen_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "badge_id": string,"seen_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "badge_id"?: string,"seen_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"ai_usage": {
                   Row: {
                     "calls": number,"day": string,"input_tokens": number,"output_tokens": number,"user_id": string
                   }

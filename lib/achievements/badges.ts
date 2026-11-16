@@ -13,6 +13,7 @@ export type AchievementCounts = {
   journal: number;
   rooms: number;
   flashcardReviews: number;
+  community: number;
 };
 
 export type Badge = {
@@ -70,9 +71,13 @@ export const BADGES: Badge[] = [
   ]),
   ...tiers("turma", "👥", "rooms", [[1, "Em grupo", "Entre ou crie uma turma"]]),
   ...tiers("revisao", "🔁", "flashcardReviews", [[50, "Memória de elefante", "Revise 50 itens da revisão espaçada"]]),
+  ...tiers("comunidade", "💬", "community", [
+    [1, "Na comunidade", "Publique ou responda na comunidade"],
+    [20, "Ajuda a turma toda", "Faça 20 posts ou respostas na comunidade"],
+  ]),
 ];
 
-export const XP = { answered: 2, correct: 3, focusMinutes: 1, materials: 20, errorsResolved: 10, simulados: 30, stepsDone: 25, feynman: 20, journal: 10 } as const;
+export const XP = { answered: 2, correct: 3, focusMinutes: 1, materials: 20, errorsResolved: 10, simulados: 30, stepsDone: 25, feynman: 20, journal: 10, community: 5 } as const;
 
 export function xpOf(c: AchievementCounts) {
   return (Object.keys(XP) as (keyof typeof XP)[]).reduce((s, k) => s + XP[k] * c[k], 0) + c.flashcardReviews;

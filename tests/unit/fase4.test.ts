@@ -110,7 +110,7 @@ describe("desempenho", () => {
 
 describe("conquistas", async () => {
   const { evaluate, levelOf, xpOf } = await import("@/lib/achievements/badges");
-  const zero = { answered: 0, correct: 0, streak: 0, focusMinutes: 0, materials: 0, errorsResolved: 0, simulados: 0, stepsDone: 0, feynman: 0, journal: 0, rooms: 0, flashcardReviews: 0 };
+  const zero = { answered: 0, correct: 0, streak: 0, focusMinutes: 0, materials: 0, errorsResolved: 0, simulados: 0, stepsDone: 0, feynman: 0, journal: 0, rooms: 0, flashcardReviews: 0, community: 0 };
   it("níveis: 100, 300, 600 XP", () => {
     expect(levelOf(0).level).toBe(1);
     expect(levelOf(99).level).toBe(1);

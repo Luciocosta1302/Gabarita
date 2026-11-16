@@ -105,6 +105,10 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
 
   // Editar a matéria: data da prova gera o plano; apagar leva de volta ao início
   await page.getByRole("link", { name: "Início" }).click();
+  // conquistas ganhas depois da última visita a /conquistas são anunciadas uma vez no Início
+  await expect(page.getByTestId("new-achievements")).toContainText("Na comunidade");
+  await page.reload();
+  await expect(page.getByTestId("new-achievements")).toHaveCount(0);
   await page.getByTestId("subject-list").getByText("Biologia").click();
   await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
   await page.getByTestId("edit-subject").locator("summary").click();

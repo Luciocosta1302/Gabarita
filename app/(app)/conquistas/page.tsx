@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { type AchievementCounts, evaluate, levelOf, xpOf } from "@/lib/achievements/badges";
-import { focusStats } from "@/lib/focus/stats";
+import { evaluate, levelOf, xpOf } from "@/lib/achievements/badges";
+import { loadAchievementCounts, markSeen } from "@/lib/achievements/load";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -8,37 +8,10 @@ export const metadata = { title: "Conquistas — Gabarita" };
 
 export default async function AchievementsPage() {
   const supabase = await createClient();
-  const count = (q: PromiseLike<{ count: number | null }>) => Promise.resolve(q).then((r) => r.count ?? 0);
-  const head = { count: "exact" as const, head: true };
-  const [answered, correct, focus, materials, errorsResolved, simulados, stepsDone, feynman, journal, rooms, flashcardReviews] = await Promise.all([
-    count(supabase.from("attempts").select("id", head)),
-    count(supabase.from("attempts").select("id", head).eq("correct", true)),
-    focusStats(supabase),
-    count(supabase.from("materials").select("id", head).neq("type", "past_exam")),
-    count(supabase.from("error_notebook").select("id", head).not("resolved_at", "is", null)),
-    count(supabase.from("quizzes").select("id", head).eq("mode", "simulado").not("finished_at", "is", null)),
-    count(supabase.from("path_steps").select("id", head).eq("status", "done")),
-    count(supabase.from("feynman_sessions").select("id", head)),
-    count(supabase.from("journal_entries").select("id", head)),
-    count(supabase.from("room_members").select("room_id", head)),
-    count(supabase.from("reviews").select("id", head).not("last_reviewed_at", "is", null)),
-  ]);
-  const c: AchievementCounts = {
-    answered,
-    correct,
-    streak: focus.streak,
-    focusMinutes: focus.totalMinutes,
-    materials,
-    errorsResolved,
-    simulados,
-    stepsDone,
-    feynman,
-    journal,
-    rooms,
-    flashcardReviews,
-  };
+  const c = await loadAchievementCounts(supabase);
   const lvl = levelOf(xpOf(c));
   const badges = evaluate(c);
+  await markSeen(supabase, badges.filter((b) => b.unlocked).map((b) => b.id));
   const unlocked = badges.filter((b) => b.unlocked).length;
 
   return (

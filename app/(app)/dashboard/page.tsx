@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { CreateSubjectForm } from "@/components/subjects/create-subject-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { markSeen, newAchievements } from "@/lib/achievements/load";
 import { createClient } from "@/lib/supabase/server";
 import { todayBR } from "@/lib/dates";
 import { EXAM_STYLE_LABELS } from "@/lib/exam-styles";
@@ -22,6 +23,9 @@ export default async function DashboardPage() {
       subject: d.study_plans.subjects?.name ?? "",
     })),
   );
+  // conquistas novas: anuncia uma vez e marca como vistas
+  const fresh = await newAchievements(supabase);
+  await markSeen(supabase, fresh.map((b) => b.id));
   const { data: subjects } = await supabase
     .from("subjects")
     .select("id, name, exam_date, exam_style")
@@ -36,6 +40,18 @@ export default async function DashboardPage() {
           Mande seu material, gere questões com fonte e descubra o que você ainda não sabe.
         </p>
       </section>
+
+      {fresh.length > 0 && (
+        <Link href="/conquistas" role="status" data-testid="new-achievements" className="bg-pastel-mint animate-rise flex flex-wrap items-center gap-3 rounded-2xl px-5 py-4 shadow-sm">
+          <span className="text-3xl" aria-hidden>
+            {fresh[0].icon}
+          </span>
+          <span className="text-sm">
+            <strong>{fresh.length === 1 ? "Nova conquista" : `${fresh.length} conquistas novas`}:</strong> {fresh.slice(0, 3).map((b) => b.name).join(", ")}
+            {fresh.length > 3 ? ` e mais ${fresh.length - 3}` : ""} 🎉 <span className="underline">Ver conquistas</span>
+          </span>
+        </Link>
+      )}
 
       <div className="grid gap-4 md:grid-cols-[2fr_1fr]">
         <Card>
