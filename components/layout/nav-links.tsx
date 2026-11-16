@@ -19,7 +19,6 @@ const LINKS = [
   { href: "/errors", label: "Caderno de erros", icon: "✎" },
   { href: "/salas", label: "Turmas", icon: "👥" },
   { href: "/comunidade", label: "Comunidade", icon: "💬" },
-  { href: "/planos", label: "Planos", icon: "✨" },
   { href: "/perfil", label: "Perfil", icon: "☺" },
 ];
 

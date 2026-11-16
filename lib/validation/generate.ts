@@ -143,12 +143,6 @@ export const roomActionSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
-export const whatsappSettingsSchema = z.object({
-  phone: z.string().trim().max(30).optional(),
-  opt_in: z.boolean(),
-  hour: z.coerce.number().int().min(0).max(23),
-});
-
 export const profileSchema = z.object({ name: z.string().trim().min(1).max(80) });
 
 export const MOODS = ["otimo", "bem", "ok", "cansado", "frustrado"] as const;

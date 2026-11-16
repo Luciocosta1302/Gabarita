@@ -1,7 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { enqueueJob, runJobs } from "@/lib/jobs/queue";
-import { PlanLimitError } from "@/lib/billing/limits";
 import { answerStep, askTutor, continueStep, createPath, openQuestionId, startStep } from "@/lib/paths/service";
 import { focusStats } from "@/lib/focus/stats";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -113,7 +112,7 @@ describe("trilhas + tutor", () => {
     ]);
   });
 
-  it("dúvida no meio não fecha a questão; cota estourada pausa a etapa e 'Próxima questão' retoma", async () => {
+  it("dúvida no meio não fecha a questão; sem questão aberta, 'Próxima questão' cria outra", async () => {
     const { data: s2 } = await ana.client.from("path_steps").select("id").eq("path_id", pathId).eq("position", 2).single();
     const stepId = s2!.id;
     await startStep(ana.client, ana.user.id, stepId); // começa mesmo já tendo uma dúvida antes
@@ -122,14 +121,17 @@ describe("trilhas + tutor", () => {
     await askTutor(ana.client, ana.user.id, stepId, "Pode dar um exemplo?");
     expect(await openQuestionId(ana.client, stepId)).toBe(qid);
     const { data: q } = await admin.from("questions").select("id, answer").eq("id", qid!).single();
-    const limit = async () => {
-      throw new PlanLimitError("Você usou as 30 questões grátis de hoje.");
-    };
-    const r = await answerStep(ana.client, ana.user.id, stepId, { questionId: q!.id, answer: q!.answer, confidence: "acho" }, limit);
+    const r = await answerStep(ana.client, ana.user.id, stepId, { questionId: q!.id, answer: q!.answer, confidence: "acho" });
     expect(r.result.correct).toBe(true);
+    const next = await openQuestionId(ana.client, stepId);
+    expect(next).not.toBeNull();
+    expect(next).not.toBe(qid);
+    // questão aberta: "Próxima questão" não cria outra
+    await continueStep(ana.client, ana.user.id, stepId);
+    expect(await openQuestionId(ana.client, stepId)).toBe(next);
+    // se a criação da questão falhou (sem questão aberta), "Próxima questão" cria
+    await admin.from("tutor_messages").delete().eq("step_id", stepId).eq("question_id", next!);
     expect(await openQuestionId(ana.client, stepId)).toBeNull();
-    const { data: last } = await ana.client.from("tutor_messages").select("kind, content_json").eq("step_id", stepId).order("created_at", { ascending: false }).limit(1).single();
-    expect(JSON.stringify(last!.content_json)).toContain("Próxima questão");
     await continueStep(ana.client, ana.user.id, stepId);
     expect(await openQuestionId(ana.client, stepId)).not.toBeNull();
   });

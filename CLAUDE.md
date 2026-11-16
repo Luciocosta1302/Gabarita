@@ -64,7 +64,7 @@
 | D12 | **Aula gravada vira material** | Sobe áudio da aula (ou link do YouTube, fase 3) → transcreve → vira material normal | Ninguém revisa áudio de 1h |
 | D13 | **Resumo em áudio** | Resumo lido em voz (Web Speech API, grátis) para ouvir no ônibus | Estudo em tempo morto |
 | D14 | **Sala da turma** | Cria sala, compartilha link. A turma junta materiais, faz simulado junto e tem ranking semanal | Crescimento viral: 1 aluno traz a sala |
-| D15 | **5 questões por dia no WhatsApp** | Questões do plano chegam no WhatsApp, responde lá mesmo (WhatsApp Cloud API) | Brasileiro vive no WhatsApp; mantém o hábito |
+| ~~D15~~ | ~~**5 questões por dia no WhatsApp**~~ (removido por decisão do usuário) | Questões do plano chegam no WhatsApp, responde lá mesmo (WhatsApp Cloud API) | Brasileiro vive no WhatsApp; mantém o hábito |
 | D16 | **Simulado cronometrado** | Simulado com tempo real da prova e relatório no final (tempo por questão, tópicos fracos) | Treina ritmo de prova |
 
 ---
@@ -150,7 +150,7 @@ tests/
 ### Fase 4 — Crescimento e dinheiro
 - **Salas da turma (D14)** com ranking semanal
 - **WhatsApp diário (D15)**
-- **Planos e limites**: Grátis (2 materiais/mês, 30 questões/dia) / Pro (~R$ 19,90/mês, ilimitado + D4, D9, D15). Mercado Pago com Pix
+- ~~**Planos e limites**: Grátis / Pro com Mercado Pago~~ (removido por decisão do usuário: tudo liberado para todos)
 - Controle de custo: contar tokens por usuário em `profiles`, cache de embeddings, Haiku para tarefas simples
 
 ---
@@ -218,7 +218,8 @@ tests/
   - D15 (`lib/whatsapp/`): convite diário por template aprovado (exigência da Meta para mensagem iniciada pela empresa) → aluno responde COMEÇAR (abre a janela de 24 h) → 5 questões objetivas, uma por vez, resposta pela letra, correção na hora, resumo no fim; PARAR desativa. Questões: revisão espaçada vencida primeiro, depois as que ainda não acertou (7 dias). Respostas passam por `recordAttempt` (caderno, FSRS, domínio). Cron `/api/whatsapp/daily` de hora em hora usa o horário escolhido pelo aluno. Webhook valida `X-Hub-Signature-256`; sem chaves, `WHATSAPP_SIMULATION=true` registra a conversa em `whatsapp_messages` (aparece no Perfil).
   - Controle de custo: `lib/ai/usage.ts` (AsyncLocalStorage) soma tokens de toda chamada de IA dentro de cada rota de API e de cada job e grava por usuário/dia em `ai_usage` (aparece no Perfil). Embeddings passam por `lib/ai/embed-cache.ts` (chave = sha256 de fornecedor + finalidade + texto, sem guardar o texto). Tarefas simples já usavam o modelo barato ("fast").
   - `/perfil`: nome, WhatsApp (número, horário, ativar, mandar agora), conversa recente, uso de IA. `/planos`: comparação, uso de hoje, assinar/renovar, histórico.
-- Pendências conhecidas: páginas de DOCX/texto/áudio são aproximadas; IA real sem teste automatizado (precisa de chave); YouTube (D12) não feito; Mercado Pago e WhatsApp nunca rodaram contra as APIs reais (precisam das contas/chaves e do template aprovado).
+- **Removido depois (decisão do usuário: "não precisa de whatsapp nem assinatura"):** planos Grátis/Pro, Mercado Pago, limites de uso (materiais/mês, questões/dia) e WhatsApp diário (D15). Migration `20261121100000_remove_planos_whatsapp.sql` apaga `payments`, `whatsapp_sessions`, `whatsapp_messages` e as colunas `profiles.plan/daily_quota_used/whatsapp_*/pro_until`. Tudo (Prova do Professor, Feynman...) fica liberado para todos. Limite único de 100 páginas por material (`MAX_PAGES`) e 20 MB por arquivo. O controle de uso de IA (`ai_usage`, cache de embeddings) continua. As decisões da Fase 4 sobre planos/WhatsApp abaixo ficam só como histórico.
+- Pendências conhecidas: páginas de DOCX/texto/áudio são aproximadas; IA real sem teste automatizado (precisa de chave); YouTube (D12) não feito.
 
 ## 9. Proposta de design e páginas novas (do usuário, ainda não priorizada)
 
@@ -245,12 +246,12 @@ Ordem sugerida pelo usuário: Trilhas + Tutor → Espaço de estudos → Revisã
 - **Diário de aprendizagem** (`/diario`, `lib/journal/`): registro (aprendi, dificuldade, humor, matéria, minutos de foco — vem do Espaço de estudos pelo link `?foco=`). "Acompanhamento da semana": a IA (modelo barato, prompt `journal.ts`) lê os registros dos últimos 7 dias + números e devolve avanços, dificuldades repetidas, humor e próximos passos; precisa de 2 registros; fica salvo em `journal_reflections`.
 - **Conquistas** (`/conquistas`, `lib/achievements/badges.ts`): sem tabela — tudo calculado do que já existe. 26 medalhas em níveis (questões, acertos, sequência, foco, materiais, erros resolvidos, simulados, etapas de trilha, Feynman, diário, turma, revisão, comunidade). XP: questão 2, acerto +3, minuto de foco 1, material 20, erro resolvido 10, simulado 30, etapa 25, Feynman 20, registro 10, post/resposta 5, item revisado 1. Nível n a partir de 100·n·(n−1)/2 XP.
 - **Biblioteca** (`/biblioteca`): matérias = pastas; busca por título e dentro do texto (ILIKE nos trechos, sem gastar IA, com o trecho destacado e link para a página); "Conversar com este documento" = `/chat/<matéria>?material=<id>` (o `/api/chat` aceita `material_id` e usa `match_material_chunks`).
-- **Anotações** (`/anotacoes`, `lib/notes/`): notas por matéria (ou sem matéria), salvamento automático (1,2 s), prévia em markdown simples renderizado sem HTML cru (títulos, listas, negrito, itálico, código, citação). "Transformar em material" manda o texto para `/api/upload` (vira material normal; conta no limite do grátis).
+- **Anotações** (`/anotacoes`, `lib/notes/`): notas por matéria (ou sem matéria), salvamento automático (1,2 s), prévia em markdown simples renderizado sem HTML cru (títulos, listas, negrito, itálico, código, citação). "Transformar em material" manda o texto para `/api/upload` (vira material normal).
 - **Comunidade** (`/comunidade`): posts por categoria (dúvida, dica, material, grupo de estudo), respostas e curtidas; todo aluno logado lê, cada um apaga o seu; o nome do autor vem do perfil por gatilho (não dá para se passar por outro). Sem moderação/denúncia ainda.
 - Acompanhamento do Diário conferido à mão com o Gemini real (cita as dificuldades repetidas e sugere pausa quando há frustração).
 
 **Feito depois (pedido do usuário: "pode continuar até ficar tudo pronto") — pendências resolvidas:**
-- Tutor: dúvida ou "explicar de outro jeito" no meio não fecha mais a questão aberta (`openQuestionId` = última pergunta sem correção depois). Cota do grátis: a resposta sempre é aceita; só a PRÓXIMA questão é barrada — o tutor avisa na conversa e o botão "Próxima questão" (`action: "continue"`) retoma depois. `startStep` só considera começada a etapa que já tem explicação.
+- Tutor: dúvida ou "explicar de outro jeito" no meio não fecha mais a questão aberta (`openQuestionId` = última pergunta sem correção depois). Sem questão aberta (ex.: a criação falhou), o botão "Próxima questão" (`action: "continue"`) cria outra. `startStep` só considera começada a etapa que já tem explicação.
 - Chat: histórico salvo em `chat_messages` (migration `20261120100000`), por matéria ou por documento; o servidor monta o contexto com as últimas 10 mensagens do banco (o cliente não manda mais histórico); "Apagar conversa" (`/api/chat/clear`).
 - Matéria: "⚙️ Editar matéria" na própria página (`/api/subjects`): nome, data da prova, horas/dia, banca. Mudou data/horas → `refreshPlan` (mantém o passado); sem data → apaga o plano. "Apagar matéria" remove também os arquivos do Storage (o resto vai em cascata).
 - Comunidade: denúncia de post/resposta (`community_reports`, migration `20261120200000`, motivos fixos, 1 por aluno por item, não denuncia o próprio). Com 3 denúncias o item ganha `hidden` (gatilho security definer) e some para os outros; o autor vê o aviso. Só o servidor desfaz. Lista com 20 por página.

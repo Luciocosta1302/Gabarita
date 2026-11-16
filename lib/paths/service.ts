@@ -7,7 +7,6 @@ import { chatPrompt } from "@/lib/ai/prompts/chat";
 import { pathPrompt, type Level } from "@/lib/ai/prompts/path";
 import { sourceAt } from "@/lib/ai/prompts/sources";
 import { tutorDiagnosePrompt, tutorExplainPrompt } from "@/lib/ai/prompts/tutor";
-import { PlanLimitError } from "@/lib/billing/limits";
 import { UserFacingError } from "@/lib/errors";
 import { createQuestions, type GenChunk } from "@/lib/generate/questions";
 import { letterToIndex } from "@/lib/quiz/options";
@@ -160,8 +159,6 @@ export async function answerStep(
   userId: string,
   stepId: string,
   input: { questionId: string; answer: string; confidence: string },
-  /** chamado antes de criar a próxima questão (cota do plano grátis) */
-  beforeQuestion?: () => Promise<void>,
 ) {
   const step = await loadStep(db, stepId);
   if (step.status === "done") throw new UserFacingError("Esta etapa já foi concluída.");
@@ -223,8 +220,8 @@ export async function answerStep(
     const { data: own } = q.chunk_id && !failed.length
       ? await db.from("chunks").select("id, page, content, topic_id").eq("id", q.chunk_id).maybeSingle()
       : { data: null };
-    if (await allowed(db, userId, stepId, beforeQuestion)) await askQuestion(db, userId, fresh, false, failed.length ? failed : own ? [own] : chunks);
-  } else if (await allowed(db, userId, stepId, beforeQuestion)) {
+    await askQuestion(db, userId, fresh, false, failed.length ? failed : own ? [own] : chunks);
+  } else {
     await askQuestion(db, userId, fresh, true);
   }
   return { result, queuedJobs, passed: false };
@@ -244,20 +241,7 @@ export async function openQuestionId(db: DB, stepId: string): Promise<string | n
   return data?.kind === "question" ? data.question_id : null;
 }
 
-/** Cota estourada: o tutor avisa na conversa em vez de criar a questão (o aluno continua amanhã ou no Pro). */
-async function allowed(db: DB, userId: string, stepId: string, check?: () => Promise<void>) {
-  if (!check) return true;
-  try {
-    await check();
-    return true;
-  } catch (e) {
-    if (!(e instanceof PlanLimitError)) throw e;
-    await addMessage(db, userId, stepId, "tutor", "chat", { text: `${e.message} Quando puder, clique em "Próxima questão" para continuar.` });
-    return false;
-  }
-}
-
-/** Sem questão aberta (ex.: parou pela cota): o tutor passa a próxima. */
+/** Sem questão aberta (ex.: a criação da questão falhou): o tutor passa a próxima. */
 export async function continueStep(db: DB, userId: string, stepId: string) {
   const step = await loadStep(db, stepId);
   if (step.status === "done" || step.status === "locked") throw new UserFacingError("Esta etapa não está aberta.");

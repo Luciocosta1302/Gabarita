@@ -2,7 +2,6 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-import { assertCanAddMaterial, assertQuestionQuota } from "@/lib/billing/limits";
 import { UserFacingError } from "@/lib/errors";
 import { simuladoStyle, STYLE_SPECS } from "@/lib/exam-styles";
 import { createQuestions, pickSources } from "@/lib/generate/questions";
@@ -58,7 +57,6 @@ export async function importMaterial(db: DB, userId: string, input: { roomMateri
   if (!shared) throw new UserFacingError("Material não encontrado na sala.");
   const { data: subject } = await db.from("subjects").select("id").eq("id", input.subjectId).maybeSingle();
   if (!subject) throw new UserFacingError("Matéria não encontrada.");
-  await assertCanAddMaterial(db, userId);
 
   const admin = createAdminClient();
   const { data: src } = await admin.from("materials").select("type, title, page_count").eq("id", shared.material_id).single();
@@ -92,7 +90,6 @@ export async function importMaterial(db: DB, userId: string, input: { roomMateri
  */
 export async function createRoomQuiz(db: DB, userId: string, input: { roomId: string; subjectId: string; count: number; style?: string }) {
   await assertMember(db, input.roomId);
-  await assertQuestionQuota(db, userId, input.count);
   const style = simuladoStyle(input.style);
   const sources = await pickSources(db, { subjectId: input.subjectId, count: input.count });
   const inserted = await createQuestions(db, userId, { subjectId: input.subjectId, sources, count: input.count, difficulty: "misturada", style, origin: "quiz" });

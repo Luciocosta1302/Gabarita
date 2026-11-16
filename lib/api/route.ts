@@ -37,9 +37,6 @@ export function apiRoute<S extends z.ZodType>(schema: S, handler: (input: z.infe
     try {
       return await withUsage(ctx.user.id, () => handler(parsed.data, ctx as Ctx));
     } catch (e) {
-      if (e instanceof Error && (e as { upgrade?: boolean }).upgrade) {
-        return NextResponse.json({ error: e.message, upgrade: true }, { status: 402 });
-      }
       if (isUserFacing(e)) return jsonError(e.message, 422);
       if (e instanceof Error && (e as { rateLimited?: boolean }).rateLimited) return jsonError(e.message, 429);
       console.error("[api]", e);

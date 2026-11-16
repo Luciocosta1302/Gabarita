@@ -5,9 +5,7 @@ import { z } from "zod";
 import { MaterialList } from "@/components/materials/material-list";
 import { UploadForm } from "@/components/materials/upload-form";
 import { TeacherQuizButton } from "@/components/teacher/teacher-quiz-button";
-import { ProGate } from "@/components/billing/pro-gate";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { loadPlan } from "@/lib/billing/limits";
 import type { TeacherProfile } from "@/lib/ai/prompts/teacher";
 import { createClient } from "@/lib/supabase/server";
 import type { LikelyTopic } from "@/lib/teacher/logic";
@@ -33,8 +31,6 @@ export default async function TeacherPage({
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
   const supabase = await createClient();
-  const { data: auth } = await supabase.auth.getUser();
-  const pro = (await loadPlan(supabase, auth.user!.id)).pro;
   const { data: subject } = await supabase
     .from("subjects")
     .select("id, name")
@@ -75,23 +71,15 @@ export default async function TeacherPage({
         </p>
       </div>
 
-      {!pro && (
-        <ProGate feature="professor">
-          Mande as provas antigas do seu professor e gere questões iguais às
-          dele, com os tópicos que mais caem.
-        </ProGate>
-      )}
-      {pro && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Provas antigas</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-6">
-            <UploadForm subjectId={id} purpose="past_exam" />
-            <MaterialList materials={exams ?? []} />
-          </CardContent>
-        </Card>
-      )}
+      <Card>
+        <CardHeader>
+          <CardTitle>Provas antigas</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <UploadForm subjectId={id} purpose="past_exam" />
+          <MaterialList materials={exams ?? []} />
+        </CardContent>
+      </Card>
 
       {profile ? (
         <>

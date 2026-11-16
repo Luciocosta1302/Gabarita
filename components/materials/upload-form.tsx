@@ -105,7 +105,7 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
           </Label>
           <Input id="material-file" ref={fileRef} type="file" accept={ACCEPT} multiple className="h-auto py-2" />
           <p className="text-muted-foreground text-xs">
-            Até 20 MB por arquivo e 100 páginas no plano grátis.{purpose === "study" && " Áudio de aula: MP3 ou WAV."}
+            Até 20 MB por arquivo e 100 páginas por material.{purpose === "study" && " Áudio de aula: MP3 ou WAV."}
           </p>
         </div>
       ) : (

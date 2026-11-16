@@ -23,15 +23,8 @@ beforeAll(async () => {
 
 describe("profiles", () => {
   it("é criado no cadastro com o nome", async () => {
-    const { data } = await ana.client.from("profiles").select("name, plan").single();
-    expect(data).toEqual({ name: "ana", plan: "free" });
-  });
-
-  it("o usuário não consegue se dar plano Pro", async () => {
-    const { error } = await ana.client.from("profiles").update({ plan: "pro" }).eq("id", ana.user.id);
-    expect(error).not.toBeNull();
-    const { data } = await ana.client.from("profiles").select("plan").single();
-    expect(data?.plan).toBe("free");
+    const { data } = await ana.client.from("profiles").select("name").single();
+    expect(data).toEqual({ name: "ana" });
   });
 });
 

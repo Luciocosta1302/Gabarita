@@ -2,7 +2,6 @@ import sharp from "sharp";
 import { expect, test } from "@playwright/test";
 
 import { makePdf, studyPages } from "../fixtures/make-pdf";
-import { becomePro } from "./helpers";
 
 // Fase 3 (com IA de teste): Prova do Professor, discursiva com rubrica, Feynman, foto da questão,
 // áudio de aula vira material e resumo em áudio.
@@ -14,8 +13,6 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  // Prova do Professor e Feynman são do Pro
-  await becomePro(page);
   await page.goto("/dashboard");
   await page.getByLabel("Matéria / prova").fill("Biologia");
   await page.getByRole("button", { name: "Criar matéria" }).click();

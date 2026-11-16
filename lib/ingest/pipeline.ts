@@ -1,7 +1,7 @@
 import "server-only";
 
 import { UserFacingError } from "@/lib/errors";
-import { maxPagesFor, type Plan } from "@/lib/limits";
+import { MAX_PAGES } from "@/lib/limits";
 import type { AdminClient } from "@/lib/supabase/admin";
 
 import { chunkPages } from "./chunk";
@@ -29,11 +29,9 @@ export async function ingestMaterial(admin: AdminClient, materialId: string) {
 
   await admin.from("materials").update({ status: "processing", error: null }).eq("id", materialId);
 
-  const { data: profile } = await admin.from("profiles").select("plan").eq("id", material.user_id).single();
-  const maxPages = maxPagesFor((profile?.plan ?? "free") as Plan);
 
   const files = await downloadFolder(admin, material.storage_path);
-  const { pages, pageCount } = await extractMaterial(material.type as MaterialType, files, { maxPages });
+  const { pages, pageCount } = await extractMaterial(material.type as MaterialType, files, { maxPages: MAX_PAGES });
 
   const chunks = chunkPages(pages);
   if (chunks.length === 0) throw new UserFacingError("Não encontramos texto neste material.");

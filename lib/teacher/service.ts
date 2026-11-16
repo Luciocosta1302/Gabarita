@@ -5,7 +5,7 @@ import { teacherProfilePrompt } from "@/lib/ai/prompts/teacher";
 import { UserFacingError } from "@/lib/errors";
 import { extractMaterial, type MaterialType } from "@/lib/ingest/extract";
 import { downloadFolder } from "@/lib/ingest/pipeline";
-import { maxPagesFor, type Plan } from "@/lib/limits";
+import { MAX_PAGES } from "@/lib/limits";
 import type { AdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 
@@ -25,10 +25,9 @@ export async function analyzePastExam(admin: AdminClient, materialId: string) {
   if (!m || m.type !== "past_exam" || !m.storage_path) throw new UserFacingError("Prova não encontrada.");
   await admin.from("materials").update({ status: "processing", error: null }).eq("id", materialId);
 
-  const { data: profile } = await admin.from("profiles").select("plan").eq("id", m.user_id).single();
   const files = await downloadFolder(admin, m.storage_path);
   if (!files.length) throw new UserFacingError("Nenhum arquivo encontrado para esta prova.");
-  const { pages, pageCount } = await extractMaterial(formatOf(files[0].name), files, { maxPages: maxPagesFor((profile?.plan ?? "free") as Plan) });
+  const { pages, pageCount } = await extractMaterial(formatOf(files[0].name), files, { maxPages: MAX_PAGES });
   const text = pages.map((p) => p.text).join("\n\n").trim();
   if (text.length < 50) throw new UserFacingError("Não encontramos texto nesta prova.");
 

@@ -435,20 +435,6 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"payments": {
-                  Row: {
-                    "amount_cents": number,"checkout_url": string | null,"created_at": string,"id": string,"paid_at": string | null,"period_days": number,"provider": string,"provider_payment_id": string | null,"status": string,"user_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "amount_cents": number,"checkout_url"?: string | null,"created_at"?: string,"id"?: string,"paid_at"?: string | null,"period_days"?: number,"provider"?: string,"provider_payment_id"?: string | null,"status"?: string,"user_id"?: string
-                  }
-                  Update: {
-                    "amount_cents"?: number,"checkout_url"?: string | null,"created_at"?: string,"id"?: string,"paid_at"?: string | null,"period_days"?: number,"provider"?: string,"provider_payment_id"?: string | null,"status"?: string,"user_id"?: string
-                  }
-                  Relationships: [
-                    
-                  ]
                 },"plan_days": {
                   Row: {
                     "date": string,"done": boolean,"id": string,"plan_id": string,"status": string,"tasks_json": NonNullable<Json>,"user_id": string
@@ -471,14 +457,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"daily_quota_used": number,"id": string,"name": string | null,"plan": string,"pro_until": string | null,"whatsapp_hour": number,"whatsapp_opt_in": boolean,"whatsapp_phone": string | null
+                    "created_at": string,"id": string,"name": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"daily_quota_used"?: number,"id": string,"name"?: string | null,"plan"?: string,"pro_until"?: string | null,"whatsapp_hour"?: number,"whatsapp_opt_in"?: boolean,"whatsapp_phone"?: string | null
+                    "created_at"?: string,"id": string,"name"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"daily_quota_used"?: number,"id"?: string,"name"?: string | null,"plan"?: string,"pro_until"?: string | null,"whatsapp_hour"?: number,"whatsapp_opt_in"?: boolean,"whatsapp_phone"?: string | null
+                    "created_at"?: string,"id"?: string,"name"?: string | null
                   }
                   Relationships: [
                     
@@ -844,34 +830,6 @@ isOneToOne: false
       referencedRelation: "path_steps"
       referencedColumns: ["id"]
     }
-                  ]
-                },"whatsapp_messages": {
-                  Row: {
-                    "body": string,"created_at": string,"direction": string,"id": string,"phone": string,"provider_id": string | null,"user_id": string | null
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "body": string,"created_at"?: string,"direction": string,"id"?: string,"phone": string,"provider_id"?: string | null,"user_id"?: string | null
-                  }
-                  Update: {
-                    "body"?: string,"created_at"?: string,"direction"?: string,"id"?: string,"phone"?: string,"provider_id"?: string | null,"user_id"?: string | null
-                  }
-                  Relationships: [
-                    
-                  ]
-                },"whatsapp_sessions": {
-                  Row: {
-                    "correct": number,"current": number,"day": string,"id": string,"question_ids": (string)[],"status": string,"updated_at": string,"user_id": string
-                  }
-                  ComputedFields: never
-                  Insert: {
-                    "correct"?: number,"current"?: number,"day": string,"id"?: string,"question_ids": (string)[],"status"?: string,"updated_at"?: string,"user_id": string
-                  }
-                  Update: {
-                    "correct"?: number,"current"?: number,"day"?: string,"id"?: string,"question_ids"?: (string)[],"status"?: string,"updated_at"?: string,"user_id"?: string
-                  }
-                  Relationships: [
-                    
                   ]
                 }
           }
