@@ -31,3 +31,13 @@ describe("pickSentence", () => {
     expect(s).toBe("Outra frase longa o bastante aqui.");
   });
 });
+
+import { CITATION_SPLIT, citationNumbers } from "@/lib/text/citations";
+
+describe("marcadores de citação", () => {
+  it("aceita [1], [1, 2], [T2] e [T1, T3]", () => {
+    expect("A [1] B [T2] C [T1, T3] D [1,2]".split(CITATION_SPLIT).map(citationNumbers).filter(Boolean)).toEqual([[1], [2], [1, 3], [1, 2]]);
+    expect(citationNumbers("[a]")).toBeNull();
+    expect(citationNumbers("texto")).toBeNull();
+  });
+});

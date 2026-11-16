@@ -7,6 +7,7 @@ import type { ChatResponse, Citation } from "@/app/api/chat/route";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { postJSON } from "@/lib/api/client";
+import { CITATION_SPLIT, citationNumbers } from "@/lib/text/citations";
 import { cn } from "@/lib/utils";
 
 type Message = { role: "user" | "assistant"; content: string; citations?: Citation[]; noBasis?: boolean };
@@ -14,14 +15,20 @@ type Message = { role: "user" | "assistant"; content: string; citations?: Citati
 /** Troca os marcadores [n] da resposta por links para o trecho citado. */
 function withCitationLinks(text: string, citations: Citation[] = []) {
   const byN = new Map(citations.map((c) => [c.n, c]));
-  return text.split(/(\[\d+\])/g).map((part, i) => {
-    const m = part.match(/^\[(\d+)\]$/);
-    const c = m ? byN.get(Number(m[1])) : undefined;
-    if (!c) return <span key={i}>{part}</span>;
+  return text.split(CITATION_SPLIT).map((part, i) => {
+    const nums = citationNumbers(part);
+    if (!nums) return <span key={i}>{part}</span>;
     return (
-      <Link key={i} href={`/chunks/${c.chunk_id}`} className="text-primary font-medium underline" target="_blank">
-        [{c.page != null ? `p. ${c.page}` : m![1]}]
-      </Link>
+      <span key={i}>
+        {nums.map((n, j) => {
+          const c = byN.get(n);
+          return c ? (
+            <Link key={j} href={`/chunks/${c.chunk_id}`} className="text-primary font-medium underline" target="_blank">
+              [{c.page != null ? `p. ${c.page}` : n}]
+            </Link>
+          ) : null;
+        })}
+      </span>
     );
   });
 }

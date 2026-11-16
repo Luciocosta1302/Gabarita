@@ -9,6 +9,7 @@ import { QuestionCard, type PublicQuestion } from "@/components/quiz/question-ca
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { postJSON } from "@/lib/api/client";
+import { CITATION_SPLIT, citationNumbers } from "@/lib/text/citations";
 import { cn } from "@/lib/utils";
 
 type Citation = { n: number; chunk_id: string; page: number | null };
@@ -24,16 +25,16 @@ function WithCitations({ text, citations = [] }: { text: string; citations?: Cit
   const byN = new Map(citations.map((c) => [c.n, c]));
   return (
     <>
-      {text.split(/(\[\d+(?:,\s*\d+)*\])/g).map((part, i) => {
-        const m = part.match(/^\[([\d,\s]+)\]$/);
-        if (!m) return <span key={i}>{part}</span>;
+      {text.split(CITATION_SPLIT).map((part, i) => {
+        const nums = citationNumbers(part);
+        if (!nums) return <span key={i}>{part}</span>;
         return (
           <span key={i}>
-            {m[1].split(",").map((n, j) => {
-              const c = byN.get(Number(n.trim()));
+            {nums.map((n, j) => {
+              const c = byN.get(n);
               return c ? (
                 <Link key={j} href={`/chunks/${c.chunk_id}`} target="_blank" className="text-primary font-medium underline">
-                  [{c.page != null ? `p. ${c.page}` : n.trim()}]
+                  [{c.page != null ? `p. ${c.page}` : n}]
                 </Link>
               ) : null;
             })}

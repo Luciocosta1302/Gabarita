@@ -215,7 +215,12 @@ export async function answerStep(db: DB, userId: string, stepId: string, input: 
     );
     await addMessage(db, userId, stepId, "tutor", "diagnosis", { difficulty: diag.difficulty, text: diag.message });
     const chunks = await explain(db, userId, fresh, diag.difficulty);
-    await askQuestion(db, userId, fresh, false, chunks);
+    // a próxima questão é sobre o MESMO ponto em que errou (o trecho da questão), para ver se entendeu
+    const failed = q.chunk_id ? chunks.filter((c) => c.id === q.chunk_id) : [];
+    const { data: own } = q.chunk_id && !failed.length
+      ? await db.from("chunks").select("id, page, content, topic_id").eq("id", q.chunk_id).maybeSingle()
+      : { data: null };
+    await askQuestion(db, userId, fresh, false, failed.length ? failed : own ? [own] : chunks);
   } else {
     await askQuestion(db, userId, fresh, true);
   }
