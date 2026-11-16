@@ -274,6 +274,11 @@ export function StudySpace({
             {toast}
           </p>
         )}
+        {completedFocus > 0 && stats.todayMinutes > 0 && (
+          <a href={`/diario?foco=${stats.todayMinutes}`} className="text-primary text-sm underline" data-testid="space-journal">
+            📓 Registrar no diário o que você aprendeu hoje
+          </a>
+        )}
 
         <div className="grid gap-3 sm:grid-cols-3">
           <Stat label="Foco hoje" value={`${stats.todayMinutes} min`} />

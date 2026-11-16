@@ -149,3 +149,17 @@ export const whatsappSettingsSchema = z.object({
 });
 
 export const profileSchema = z.object({ name: z.string().trim().min(1).max(80) });
+
+export const MOODS = ["otimo", "bem", "ok", "cansado", "frustrado"] as const;
+
+export const journalActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("add"),
+    learned: z.string().trim().min(3, "Conte o que você aprendeu").max(3000),
+    difficulties: z.preprocess((v) => (v === "" ? undefined : v), z.string().trim().max(3000).optional()),
+    mood: z.enum(MOODS),
+    subject_id: optionalUuid,
+    focus_minutes: z.coerce.number().int().min(0).max(1440).optional(),
+  }),
+  z.object({ action: z.literal("reflect") }),
+]);
