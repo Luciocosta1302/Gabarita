@@ -37,6 +37,7 @@ export function apiRoute<S extends z.ZodType>(schema: S, handler: (input: z.infe
       return await handler(parsed.data, ctx as Ctx);
     } catch (e) {
       if (isUserFacing(e)) return jsonError(e.message, 422);
+      if (e instanceof Error && (e as { rateLimited?: boolean }).rateLimited) return jsonError(e.message, 429);
       console.error("[api]", e);
       return jsonError("Algo deu errado. Tente de novo.", 500);
     }
