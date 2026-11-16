@@ -141,3 +141,11 @@ export const roomActionSchema = z.discriminatedUnion("action", [
     time_ms: z.number().int().min(0).max(6 * 3_600_000),
   }),
 ]);
+
+export const whatsappSettingsSchema = z.object({
+  phone: z.string().trim().max(30).optional(),
+  opt_in: z.boolean(),
+  hour: z.coerce.number().int().min(0).max(23),
+});
+
+export const profileSchema = z.object({ name: z.string().trim().min(1).max(80) });
