@@ -18,9 +18,9 @@ export function paymentsConfigured() {
   return !!token();
 }
 
-/** Simulação só fora de produção e sem chave do MP (para dev e testes). */
+/** Simulação só sem chave do MP e com PAYMENTS_SIMULATION=true (dev e testes; nunca em produção). */
 export function simulationAllowed() {
-  return !paymentsConfigured() && process.env.NODE_ENV !== "production";
+  return !paymentsConfigured() && process.env.PAYMENTS_SIMULATION === "true";
 }
 
 export async function createCheckout(input: { paymentId: string; baseUrl: string }) {

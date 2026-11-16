@@ -27,7 +27,8 @@ export async function POST(req: Request) {
   const secret = process.env.WHATSAPP_APP_SECRET;
   if (secret) {
     if (!verifyMetaSignature(raw, req.headers.get("x-hub-signature-256"), secret)) return NextResponse.json({ error: "Assinatura inválida." }, { status: 401 });
-  } else if (process.env.NODE_ENV === "production") {
+  } else if (process.env.WHATSAPP_SIMULATION !== "true") {
+    // sem App Secret, só aceita mensagens no modo de teste (dev/E2E)
     return NextResponse.json({ error: "WHATSAPP_APP_SECRET não configurado." }, { status: 503 });
   }
 

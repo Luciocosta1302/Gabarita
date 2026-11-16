@@ -68,3 +68,34 @@ Eles começam logo depois da requisição (`after()` do Next) e, se algo travar,
 2. Preencha `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` e `_SECRET` no ambiente, mude `enabled = true` em
    `[auth.external.google]` no `supabase/config.toml` e reinicie o Supabase.
 3. Ponha `NEXT_PUBLIC_GOOGLE_AUTH_ENABLED=true` no `.env.local` para mostrar o botão.
+
+## Pagamentos (Mercado Pago)
+
+O Pro é um pagamento avulso de R$ 19,90 por 30 dias (Pix ou cartão), feito pelo Checkout Pro.
+
+1. No painel do Mercado Pago, crie uma aplicação e copie o **Access Token** de produção para `MERCADOPAGO_ACCESS_TOKEN`.
+2. Em *Webhooks*, cadastre `<APP_URL>/api/payments/webhook` com o evento **Pagamentos** e copie a
+   **assinatura secreta** para `MERCADOPAGO_WEBHOOK_SECRET`.
+3. Configure `APP_URL` com o endereço público do app.
+
+O webhook confere a assinatura e consulta o pagamento na API do Mercado Pago antes de liberar o Pro.
+Sem chave, com `PAYMENTS_SIMULATION=true` (só dev/testes), o botão de assinar abre uma tela que simula o Pix.
+
+## WhatsApp (5 questões por dia)
+
+1. Crie um app na Meta com o produto WhatsApp e copie `WHATSAPP_TOKEN` e `WHATSAPP_PHONE_NUMBER_ID`.
+2. Webhook: `<APP_URL>/api/whatsapp/webhook`, com o token de verificação em `WHATSAPP_VERIFY_TOKEN`
+   e o App Secret em `WHATSAPP_APP_SECRET`; assine o campo `messages`.
+3. Aprove um template de mensagem (categoria utilidade, 1 parâmetro = primeiro nome), por exemplo
+   "Bom dia, {{1}}! Suas 5 questões do Gabarita chegaram. Responda COMEÇAR." e coloque o nome em `WHATSAPP_TEMPLATE_DAILY`.
+
+Sem as chaves, com `WHATSAPP_SIMULATION=true`, as mensagens aparecem na tela de Perfil.
+
+## Agendadores (cron)
+
+Configure chamadas com `Authorization: Bearer $JOBS_SECRET`:
+
+| Rota | Frequência | Para quê |
+|---|---|---|
+| `/api/jobs/process` | a cada minuto | fila de processamento (upload, tópicos, provas antigas, caderno de erros) |
+| `/api/whatsapp/daily` | a cada hora | convites das 5 questões do dia (na hora escolhida por cada aluno) |

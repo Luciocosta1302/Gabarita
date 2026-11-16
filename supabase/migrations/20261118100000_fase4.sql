@@ -39,6 +39,11 @@ $$;
 revoke execute on function public.join_room(text) from public, anon;
 grant execute on function public.join_room(text) to authenticated;
 
+-- O dono sempre vê a própria sala (no insert ... returning ele ainda não virou membro pelo gatilho).
+drop policy "rooms: membros veem" on public.rooms;
+create policy "rooms: membros veem" on public.rooms
+  for select to authenticated using (owner_id = (select auth.uid()) or public.is_room_member(id));
+
 -- Dono entra como membro ao criar a sala.
 create or replace function public.add_room_owner()
 returns trigger
