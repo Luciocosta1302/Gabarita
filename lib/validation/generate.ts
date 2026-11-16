@@ -97,3 +97,10 @@ export const tutorActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("again"), step_id: z.uuid() }),
   z.object({ action: z.literal("ask"), step_id: z.uuid(), question: z.string().trim().min(2).max(1000) }),
 ]);
+
+export const sessionSchema = z.object({
+  focus_minutes: z.number().int().min(1).max(180),
+  subject_id: optionalUuid,
+  scene: z.enum(["quarto", "kyoto", "toquio", "cafe"]).optional(),
+  goals: z.array(z.object({ title: z.string().trim().min(1).max(200), done: z.boolean() })).max(20).default([]),
+});

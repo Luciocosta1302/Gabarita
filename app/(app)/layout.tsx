@@ -32,7 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           </form>
         </div>
       </aside>
-      <main className="mx-auto w-full max-w-4xl flex-1 p-4 md:p-8">{children}</main>
+      <main className="mx-auto w-full max-w-5xl flex-1 p-4 md:p-8">{children}</main>
     </div>
   );
 }

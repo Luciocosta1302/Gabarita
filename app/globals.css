@@ -97,3 +97,36 @@
     animation: none;
   }
 }
+
+/* --- Espaço de estudos: animações leves do cenário --- */
+@keyframes scene-steam {
+  0% { opacity: 0; transform: translateY(6px); }
+  40% { opacity: 0.7; }
+  100% { opacity: 0; transform: translateY(-14px); }
+}
+@keyframes scene-rain {
+  from { transform: translate(0, -60px); }
+  to { transform: translate(-20px, 60px); }
+}
+@keyframes scene-twinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes scene-glow {
+  0%, 100% { opacity: 0.85; }
+  50% { opacity: 1; }
+}
+@keyframes scene-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03, 1.05); }
+}
+@layer utilities {
+  .scene-steam { animation: scene-steam 3.5s ease-in-out infinite; }
+  .scene-rain { animation: scene-rain 0.8s linear infinite; }
+  .scene-twinkle { animation: scene-twinkle 3s ease-in-out infinite; }
+  .scene-glow { animation: scene-glow 4s ease-in-out infinite; }
+  .scene-breathe { animation: scene-breathe 4s ease-in-out infinite; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scene-steam, .scene-rain, .scene-twinkle, .scene-glow, .scene-breathe { animation: none; }
+}
