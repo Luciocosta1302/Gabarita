@@ -121,3 +121,23 @@ export const solvePhotoSchema = z.object({
   mime: z.enum(["image/jpeg", "image/png", "image/webp"]),
   subject_id: optionalUuid,
 });
+
+export const roomActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("create"), name: z.string().trim().min(1, "Dê um nome à sala").max(80), subject_id: optionalUuid }),
+  z.object({ action: z.literal("join"), code: z.string().trim().min(4).max(40) }),
+  z.object({ action: z.literal("share"), room_id: z.uuid(), material_id: z.uuid() }),
+  z.object({ action: z.literal("import"), room_material_id: z.uuid(), subject_id: z.uuid() }),
+  z.object({
+    action: z.literal("quiz"),
+    room_id: z.uuid(),
+    subject_id: z.uuid(),
+    count: z.coerce.number().int().min(3).max(30),
+    style: z.string().max(20).optional(),
+  }),
+  z.object({
+    action: z.literal("submit"),
+    room_quiz_id: z.uuid(),
+    answers: z.record(z.string(), z.enum(["A", "B", "C", "D", "E"]).nullable()),
+    time_ms: z.number().int().min(0).max(6 * 3_600_000),
+  }),
+]);

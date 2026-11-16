@@ -156,6 +156,56 @@ export async function generateQuiz(supabase: DB, userId: string, input: Generate
     likelyTopicIds = new Set(((tp.likely_topics_json ?? []) as unknown as LikelyTopic[]).filter((t) => t.weight >= 3).map((t) => t.topicId));
   }
 
+  const sources = await pickSources(supabase, {
+    subjectId: input.subjectId,
+    materialId: input.materialId,
+    topicId: input.topicId,
+    count: input.count,
+    likelyTopicIds,
+  });
+
+  const inserted = await createQuestions(supabase, userId, {
+    subjectId: input.subjectId,
+    sources,
+    count: input.count,
+    difficulty: input.difficulty,
+    style,
+    origin: "quiz",
+    teacher,
+  });
+
+  const n = inserted.length;
+  const label = professor ? "Prova do professor" : style !== "livre" ? EXAM_STYLE_LABELS[style] : "";
+  const { data: quiz, error: quizError } = await supabase
+    .from("quizzes")
+    .insert({
+      user_id: userId,
+      subject_id: input.subjectId,
+      material_id: input.materialId ?? null,
+      topic_id: input.topicId ?? null,
+      title: `${simulado ? "Simulado" : subject.name} — ${n} ${spec.format === "true_false" ? "itens" : "questões"}${label ? ` (${label})` : ""}`,
+      difficulty: input.difficulty,
+      style: professor ? "professor" : style,
+      mode: simulado ? "simulado" : "pratica",
+      time_limit_s: simulado ? Math.round(n * spec.minutesPerQuestion * 60) : null,
+      question_ids: inserted.map((r) => r.id),
+    })
+    .select("id")
+    .single();
+  if (quizError || !quiz) throw quizError ?? new Error("Falha ao criar o quiz");
+
+  return { quizId: quiz.id, count: n, requested: input.count };
+}
+
+/**
+ * Escolhe os trechos para gerar questões: espalhados pelo material, preferindo os que ainda não viraram
+ * questão e (no estilo do professor) os tópicos com mais chance de cair.
+ */
+export async function pickSources(
+  supabase: DB,
+  input: { subjectId: string; materialId?: string; topicId?: string; count: number; likelyTopicIds?: Set<string> | null },
+): Promise<GenChunk[]> {
+  const likelyTopicIds = input.likelyTopicIds ?? null;
   let q = supabase
     .from("chunks")
     .select("id, material_id, chunk_index, topic_id")
@@ -191,39 +241,8 @@ export async function generateQuiz(supabase: DB, userId: string, input: Generate
       picked.map((c) => c.id),
     );
   const byId = new Map((contents ?? []).map((c) => [c.id, c]));
-  const sources: GenChunk[] = picked.map((c) => byId.get(c.id)).filter((c): c is NonNullable<typeof c> => !!c);
+  return picked.map((c) => byId.get(c.id)).filter((c): c is NonNullable<typeof c> => !!c);
 
-  const inserted = await createQuestions(supabase, userId, {
-    subjectId: input.subjectId,
-    sources,
-    count: input.count,
-    difficulty: input.difficulty,
-    style,
-    origin: "quiz",
-    teacher,
-  });
-
-  const n = inserted.length;
-  const label = professor ? "Prova do professor" : style !== "livre" ? EXAM_STYLE_LABELS[style] : "";
-  const { data: quiz, error: quizError } = await supabase
-    .from("quizzes")
-    .insert({
-      user_id: userId,
-      subject_id: input.subjectId,
-      material_id: input.materialId ?? null,
-      topic_id: input.topicId ?? null,
-      title: `${simulado ? "Simulado" : subject.name} — ${n} ${spec.format === "true_false" ? "itens" : "questões"}${label ? ` (${label})` : ""}`,
-      difficulty: input.difficulty,
-      style: professor ? "professor" : style,
-      mode: simulado ? "simulado" : "pratica",
-      time_limit_s: simulado ? Math.round(n * spec.minutesPerQuestion * 60) : null,
-      question_ids: inserted.map((r) => r.id),
-    })
-    .select("id")
-    .single();
-  if (quizError || !quiz) throw quizError ?? new Error("Falha ao criar o quiz");
-
-  return { quizId: quiz.id, count: n, requested: input.count };
 }
 
 /**

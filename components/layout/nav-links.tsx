@@ -12,6 +12,9 @@ const LINKS = [
   { href: "/review", label: "Revisar hoje", icon: "↻" },
   { href: "/resolver", label: "Foto da questão", icon: "📷" },
   { href: "/errors", label: "Caderno de erros", icon: "✎" },
+  { href: "/salas", label: "Turmas", icon: "👥" },
+  { href: "/planos", label: "Planos", icon: "✨" },
+  { href: "/perfil", label: "Perfil", icon: "☺" },
 ];
 
 export function NavLinks({ className }: { className?: string }) {
@@ -20,7 +23,10 @@ export function NavLinks({ className }: { className?: string }) {
     <nav className={cn("flex gap-1", className)}>
       {LINKS.map((l) => {
         const active =
-          path === l.href || path.startsWith(`${l.href}/`) || (l.href === "/dashboard" && path.startsWith("/subjects"));
+          path === l.href ||
+          path.startsWith(`${l.href}/`) ||
+          (l.href === "/dashboard" && path.startsWith("/subjects")) ||
+          (l.href === "/salas" && path.startsWith("/rooms"));
         return (
           <Link
             key={l.href}

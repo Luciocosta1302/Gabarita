@@ -28,11 +28,14 @@ export function SimuladoRunner({
   questions,
   startedAt: initialStartedAt,
   timeLimitS,
+  room = false,
 }: {
   quizId: string;
   questions: PublicQuestion[];
   startedAt: string | null;
   timeLimitS: number;
+  /** simulado da turma (D14): cronômetro local e entrega em /api/rooms */
+  room?: boolean;
 }) {
   const router = useRouter();
   const storageKey = `simulado:${quizId}`;
@@ -50,10 +53,12 @@ export function SimuladoRunner({
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) setAnswers(JSON.parse(saved));
+      const roomStart = room ? localStorage.getItem(`${storageKey}:inicio`) : null;
+      if (roomStart) setStartedAt(roomStart);
     } catch {
       /* sem armazenamento: segue sem recuperar */
     }
-  }, [storageKey]);
+  }, [room, storageKey]);
   useEffect(() => {
     try {
       localStorage.setItem(storageKey, JSON.stringify(answers));
@@ -89,13 +94,22 @@ export function SimuladoRunner({
       setBusy(true);
       setError(null);
       try {
-        await postJSON("/api/simulado/finish", {
-          quiz_id: quizId,
-          answers: questions.map((q) => {
-            const a = final[q.id] ?? { answer: null, confidence: null, time_ms: 0 };
-            return { question_id: q.id, answer: a.answer, confidence: a.confidence, time_ms: Math.round(a.time_ms) };
-          }),
-        });
+        if (room) {
+          await postJSON("/api/rooms", {
+            action: "submit",
+            room_quiz_id: quizId,
+            answers: Object.fromEntries(questions.map((q) => [q.id, final[q.id]?.answer ?? null])),
+            time_ms: Math.round(questions.reduce((s, q) => s + (final[q.id]?.time_ms ?? 0), 0)),
+          });
+        } else {
+          await postJSON("/api/simulado/finish", {
+            quiz_id: quizId,
+            answers: questions.map((q) => {
+              const a = final[q.id] ?? { answer: null, confidence: null, time_ms: 0 };
+              return { question_id: q.id, answer: a.answer, confidence: a.confidence, time_ms: Math.round(a.time_ms) };
+            }),
+          });
+        }
         try {
           localStorage.removeItem(storageKey);
         } catch {
@@ -108,7 +122,7 @@ export function SimuladoRunner({
         setBusy(false);
       }
     },
-    [questions, quizId, router, storageKey],
+    [questions, quizId, room, router, storageKey],
   );
 
   const remaining = startedAt ? Date.parse(startedAt) + timeLimitS * 1000 - now : timeLimitS * 1000;
@@ -133,10 +147,19 @@ export function SimuladoRunner({
           onClick={async () => {
             setBusy(true);
             try {
-              const r = await postJSON<{ started_at: string }>("/api/simulado/start", { quiz_id: quizId });
+              const started = room
+                ? new Date().toISOString()
+                : (await postJSON<{ started_at: string }>("/api/simulado/start", { quiz_id: quizId })).started_at;
+              if (room) {
+                try {
+                  localStorage.setItem(`${storageKey}:inicio`, started);
+                } catch {
+                  /* sem armazenamento */
+                }
+              }
               shownAt.current = Date.now();
               setNow(Date.now());
-              setStartedAt(r.started_at);
+              setStartedAt(started);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Falha ao começar.");
             } finally {
