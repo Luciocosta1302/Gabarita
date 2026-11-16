@@ -79,3 +79,21 @@ export const planActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("task"), subject_id: z.uuid(), date: isoDate, task_id: z.string().min(1).max(100), done: z.boolean() }),
   z.object({ action: z.literal("refresh"), subject_id: z.uuid() }),
 ]);
+
+export const createPathSchema = z.object({
+  subject_id: z.uuid(),
+  goal: z.string().trim().min(3, "Descreva seu objetivo").max(300),
+});
+
+export const tutorActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("start"), step_id: z.uuid() }),
+  z.object({
+    action: z.literal("answer"),
+    step_id: z.uuid(),
+    question_id: z.uuid(),
+    answer: answerLetter,
+    confidence: z.enum(CONFIDENCE_LEVELS, "Marque sua confiança antes de responder"),
+  }),
+  z.object({ action: z.literal("again"), step_id: z.uuid() }),
+  z.object({ action: z.literal("ask"), step_id: z.uuid(), question: z.string().trim().min(2).max(1000) }),
+]);

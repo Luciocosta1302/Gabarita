@@ -22,11 +22,14 @@ export function QuestionCard({
   quizId,
   header,
   onAnswered,
+  submit,
 }: {
   question: PublicQuestion;
   quizId?: string;
   header?: React.ReactNode;
   onAnswered?: (r: AttemptResult) => void;
+  /** envio próprio (ex.: tutor da trilha); padrão = /api/attempts */
+  submit?: (body: { question_id: string; answer: string; confidence: Confidence; time_ms: number }) => Promise<AttemptResult>;
 }) {
   const [chosen, setChosen] = useState<number | null>(null);
   const [confidence, setConfidence] = useState<Confidence | null>(null);
@@ -40,13 +43,8 @@ export function QuestionCard({
     setBusy(true);
     setError(null);
     try {
-      const r = await postJSON<AttemptResult>("/api/attempts", {
-        question_id: question.id,
-        quiz_id: quizId,
-        answer: indexToLetter(chosen),
-        confidence,
-        time_ms: Date.now() - started.current,
-      });
+      const body = { question_id: question.id, answer: indexToLetter(chosen), confidence, time_ms: Date.now() - started.current };
+      const r = submit ? await submit(body) : await postJSON<AttemptResult>("/api/attempts", { ...body, quiz_id: quizId });
       setResult(r);
       onAnswered?.(r);
     } catch (e) {

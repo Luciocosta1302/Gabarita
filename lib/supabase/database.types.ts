@@ -167,6 +167,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"learning_paths": {
+                  Row: {
+                    "created_at": string,"goal": string,"id": string,"subject_id": string,"title": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"goal": string,"id"?: string,"subject_id": string,"title": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"goal"?: string,"id"?: string,"subject_id"?: string,"title"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "learning_paths_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"materials": {
                   Row: {
                     "created_at": string,"error": string | null,"id": string,"page_count": number | null,"status": string,"storage_path": string | null,"subject_id": string,"title": string,"type": string,"user_id": string
@@ -184,6 +204,26 @@ isOneToOne: false
       columns: ["subject_id"]
 isOneToOne: false
       referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"path_steps": {
+                  Row: {
+                    "attempts_count": number,"completed_at": string | null,"correct_streak": number,"id": string,"level": string,"objective": string,"path_id": string,"position": number,"prerequisites": (number)[],"status": string,"title": string,"topic_ids": (string)[],"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "attempts_count"?: number,"completed_at"?: string | null,"correct_streak"?: number,"id"?: string,"level"?: string,"objective": string,"path_id": string,"position": number,"prerequisites"?: (number)[],"status"?: string,"title": string,"topic_ids"?: (string)[],"user_id"?: string
+                  }
+                  Update: {
+                    "attempts_count"?: number,"completed_at"?: string | null,"correct_streak"?: number,"id"?: string,"level"?: string,"objective"?: string,"path_id"?: string,"position"?: number,"prerequisites"?: (number)[],"status"?: string,"title"?: string,"topic_ids"?: (string)[],"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "path_steps_path_id_fkey"
+      columns: ["path_id"]
+isOneToOne: false
+      referencedRelation: "learning_paths"
       referencedColumns: ["id"]
     }
                   ]
@@ -365,6 +405,26 @@ isOneToOne: true
       referencedColumns: ["id"]
     }
                   ]
+                },"study_sessions": {
+                  Row: {
+                    "ended_at": string,"focus_minutes": number,"goals_json": NonNullable<Json>,"id": string,"scene": string | null,"subject_id": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "ended_at"?: string,"focus_minutes": number,"goals_json"?: NonNullable<Json>,"id"?: string,"scene"?: string | null,"subject_id"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "ended_at"?: string,"focus_minutes"?: number,"goals_json"?: NonNullable<Json>,"id"?: string,"scene"?: string | null,"subject_id"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "study_sessions_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"subjects": {
                   Row: {
                     "created_at": string,"exam_date": string | null,"exam_style": string,"hours_per_day": number | null,"id": string,"name": string,"user_id": string
@@ -442,6 +502,32 @@ isOneToOne: false
       columns: ["subject_id"]
 isOneToOne: false
       referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"tutor_messages": {
+                  Row: {
+                    "content_json": NonNullable<Json>,"created_at": string,"id": string,"kind": string,"question_id": string | null,"role": string,"step_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_json"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"kind": string,"question_id"?: string | null,"role": string,"step_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "content_json"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"kind"?: string,"question_id"?: string | null,"role"?: string,"step_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tutor_messages_question_id_fkey"
+      columns: ["question_id"]
+isOneToOne: false
+      referencedRelation: "questions"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "tutor_messages_step_id_fkey"
+      columns: ["step_id"]
+isOneToOne: false
+      referencedRelation: "path_steps"
       referencedColumns: ["id"]
     }
                   ]

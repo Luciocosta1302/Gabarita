@@ -147,47 +147,14 @@ export async function generateQuiz(supabase: DB, userId: string, input: Generate
   const byId = new Map((contents ?? []).map((c) => [c.id, c]));
   const sources: GenChunk[] = picked.map((c) => byId.get(c.id)).filter((c): c is NonNullable<typeof c> => !!c);
 
-  // Lotes de até 10 questões em paralelo, cada um com a sua parte dos trechos.
-  const counts = splitCounts(input.count, QUESTIONS_PER_CALL);
-  const batches = counts.map((n, b) => {
-    const share = sources.length > input.count ? sources : sources.filter((_, i) => i % counts.length === b);
-    return { n, chunks: share.length ? share : sources };
+  const inserted = await createQuestions(supabase, userId, {
+    subjectId: input.subjectId,
+    sources,
+    count: input.count,
+    difficulty: input.difficulty,
+    style,
+    origin: "quiz",
   });
-  const results = await Promise.all(
-    batches.map(async ({ n, chunks }) => {
-      if (spec.format === "true_false") {
-        const { data } = await generateJSON(trueFalsePrompt({ chunks, count: n, difficulty: input.difficulty }));
-        return validateTrueFalse(data, chunks);
-      }
-      const { data } = await generateJSON(questionsPrompt({ chunks, count: n, difficulty: input.difficulty, style }));
-      return validateQuestions(data, chunks);
-    }),
-  );
-  const valid = results.flat().slice(0, input.count);
-  if (valid.length === 0) throw new UserFacingError("Não foi possível gerar questões com base no material. Tente de novo.");
-
-  const rows: QuestionInsert[] = valid.map((v) => {
-    // Certo/Errado mantém a ordem; múltipla escolha é embaralhada.
-    const shuffled = v.type === "true_false" ? { options: v.options, answerIndex: v.answerIndex } : shuffleOptions(v.options, v.answerIndex);
-    return {
-      user_id: userId,
-      subject_id: input.subjectId,
-      chunk_id: v.chunk.id,
-      topic_id: v.chunk.topic_id ?? null,
-      type: v.type,
-      stem: v.stem,
-      options_json: shuffled.options,
-      answer: indexToLetter(shuffled.answerIndex),
-      explanation: v.explanation,
-      difficulty: v.difficulty,
-      style,
-      source_page: v.chunk.page,
-      source_quote: v.quote,
-      origin: "quiz",
-    };
-  });
-  const { data: inserted, error } = await supabase.from("questions").insert(rows).select("id");
-  if (error || !inserted) throw error ?? new Error("Falha ao salvar questões");
 
   const simulado = input.mode === "simulado";
   const n = inserted.length;
@@ -210,4 +177,66 @@ export async function generateQuiz(supabase: DB, userId: string, input: Generate
   if (quizError || !quiz) throw quizError ?? new Error("Falha ao criar o quiz");
 
   return { quizId: quiz.id, count: n, requested: input.count };
+}
+
+/**
+ * Gera `count` questões a partir dos trechos dados (lotes de até 10 em paralelo), confere a fonte (D1)
+ * e salva. Usado pelo quiz/simulado e pelo tutor das trilhas.
+ */
+export async function createQuestions(
+  supabase: DB,
+  userId: string,
+  input: {
+    subjectId: string;
+    sources: GenChunk[];
+    count: number;
+    difficulty: Difficulty | "misturada";
+    style: ExamStyle;
+    origin: "quiz" | "tutor";
+  },
+) {
+  const { sources, style } = input;
+  const spec = STYLE_SPECS[style];
+  const counts = splitCounts(input.count, QUESTIONS_PER_CALL);
+  const batches = counts.map((n, b) => {
+    const share = sources.length > input.count ? sources : sources.filter((_, i) => i % counts.length === b);
+    return { n, chunks: share.length ? share : sources };
+  });
+  const results = await Promise.all(
+    batches.map(async ({ n, chunks }) => {
+      if (spec.format === "true_false") {
+        const { data } = await generateJSON(trueFalsePrompt({ chunks, count: n, difficulty: input.difficulty }));
+        return validateTrueFalse(data, chunks);
+      }
+      const { data } = await generateJSON(questionsPrompt({ chunks, count: n, difficulty: input.difficulty, style }));
+      return validateQuestions(data, chunks);
+    }),
+  );
+  const valid = results.flat().slice(0, input.count);
+  if (valid.length === 0) throw new UserFacingError("Não foi possível gerar questões com base no material. Tente de novo.");
+
+  const rows: QuestionInsert[] = valid.map((v) => {
+    // Certo/Errado mantém a ordem; múltipla escolha é embaralhada.
+    const shuffled =
+      v.type === "true_false" ? { options: v.options, answerIndex: v.answerIndex } : shuffleOptions(v.options, v.answerIndex);
+    return {
+      user_id: userId,
+      subject_id: input.subjectId,
+      chunk_id: v.chunk.id,
+      topic_id: v.chunk.topic_id ?? null,
+      type: v.type,
+      stem: v.stem,
+      options_json: shuffled.options,
+      answer: indexToLetter(shuffled.answerIndex),
+      explanation: v.explanation,
+      difficulty: v.difficulty,
+      style,
+      source_page: v.chunk.page,
+      source_quote: v.quote,
+      origin: input.origin,
+    };
+  });
+  const { data: inserted, error } = await supabase.from("questions").insert(rows).select("id");
+  if (error || !inserted) throw error ?? new Error("Falha ao salvar questões");
+  return inserted;
 }
