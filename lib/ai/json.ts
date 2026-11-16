@@ -61,7 +61,7 @@ export async function generateJSONWith<T>(
   const usage: Usage = { inputTokens: 0, outputTokens: 0 };
   const outputs: string[] = [];
 
-  const first = await provider.generateText({ ...rest, system });
+  const first = await provider.generateText({ ...rest, system, json: true });
   add(usage, first.usage);
   outputs.push(first.text);
   const parsed = parseWith(schema, first.text);
@@ -70,6 +70,7 @@ export async function generateJSONWith<T>(
   const retry = await provider.generateText({
     ...rest,
     system,
+    json: true,
     prompt: `${rest.prompt}\n\nSua resposta anterior não passou na validação:\n${parsed.error}\n\nResposta anterior:\n${first.text}\n\nDevolva o JSON corrigido.`,
   });
   add(usage, retry.usage);

@@ -31,7 +31,20 @@ npm run dev                   # http://localhost:3000
 ## IA real
 
 Por padrão `AI_PROVIDER=mock`: tudo funciona de ponta a ponta com respostas falsas e sem custo
-(cada prompt em `lib/ai/prompts/` tem a sua resposta de teste). Para usar IA de verdade, no `.env.local`:
+(cada prompt em `lib/ai/prompts/` tem a sua resposta de teste).
+
+**Grátis (Google Gemini):** crie a chave em https://aistudio.google.com → *Get API key* (só precisa de conta
+Google, sem cartão) e no `.env.local`:
+
+```
+AI_PROVIDER=gemini
+GEMINI_API_KEY=...
+```
+
+Na cota grátis há limite de pedidos por minuto/dia e o Google pode usar o conteúdo enviado para melhorar
+os produtos dele. Para produção com alunos de verdade, prefira um plano pago.
+
+**Pago (Claude + OpenAI):** no `.env.local`:
 
 ```
 AI_PROVIDER=anthropic

@@ -191,6 +191,7 @@ tests/
   - D7: confiança obrigatória antes de responder; medidor por matéria e por quiz (por tópico entra com os tópicos, Fase 2).
   - IA real: `AnthropicProvider` (Sonnet 5.5 com fallback no servidor para recusas; Haiku 5.5 para OCR/flashcards/resumo parcial) + `OpenAIEmbeddings` (REST, sem SDK). `AI_PROVIDER=mock` usa a função `mock()` de cada prompt.
   - Tema visual inicial (pedido do usuário): paleta lo-fi japonesa (creme, ameixa, rosé, cartões pastel) em `app/globals.css`, menu lateral ameixa. Sem ilustrações ainda.
+- Depois da Fase 1 (decisão do usuário: não quer pagar API agora): fornecedor `AI_PROVIDER=gemini` (`lib/ai/providers/gemini.ts`, SDK `@google/genai` 2.32.0) faz tudo na cota grátis — geração (`gemini-flash-latest` / `gemini-flash-lite-latest`), OCR, transcrição e embeddings (`gemini-embedding-001` com 1536 dim, `taskType` documento/pergunta). `embed()` ganhou `{ purpose: "document" | "query" }`. Claude/OpenAI continuam disponíveis com `AI_PROVIDER=anthropic`.
 - Pendências conhecidas: chat não guarda histórico no banco; páginas de DOCX/texto são aproximadas; IA real sem teste automatizado (precisa de chave); contagem de tokens por usuário fica para a Fase 4.
 
 ## 9. Proposta de design e páginas novas (do usuário, ainda não priorizada)

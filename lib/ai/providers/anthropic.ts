@@ -1,6 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 
-import type { AIProvider, TextRequest, TextResult, TranscribeInput } from "../types";
+import type { AIProvider, EmbedOptions, TextRequest, TextResult, TranscribeInput } from "../types";
 
 export class AIRefusalError extends Error {
   constructor(readonly category: string | null) {
@@ -76,8 +76,8 @@ export class AnthropicProvider implements AIProvider {
     };
   }
 
-  embed(texts: string[]) {
-    return this.delegate.embed(texts);
+  embed(texts: string[], opts?: EmbedOptions) {
+    return this.delegate.embed(texts, opts);
   }
 
   transcribe(input: TranscribeInput) {

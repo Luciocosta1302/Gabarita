@@ -21,7 +21,7 @@ export async function searchChunks(
   query: string,
   k = 8,
 ): Promise<FoundChunk[]> {
-  const [vector] = await embed([query]);
+  const [vector] = await embed([query], { purpose: "query" });
   const { data, error } = await supabase.rpc("match_chunks", {
     query_embedding: toPgVector(vector),
     p_subject_id: subjectId,

@@ -17,6 +17,8 @@ export type TextRequest = {
   maxTokens?: number;
   /** Imagens para tarefas com visão (OCR de foto). */
   images?: ImageInput[];
+  /** A resposta deve ser JSON (generateJSON liga isso; fornecedores que suportam forçam o formato). */
+  json?: boolean;
   /** PDFs inteiros (OCR de PDF escaneado). */
   documents?: DocumentInput[];
   /**
@@ -30,13 +32,19 @@ export type Usage = { inputTokens: number; outputTokens: number };
 
 export type TextResult = { text: string; usage: Usage };
 
+export type EmbedOptions = { purpose?: "document" | "query" };
+
 export type TranscribeInput = { data: Uint8Array; filename: string; mimeType: string; language?: string };
 
 export interface AIProvider {
   readonly name: string;
   generateText(req: TextRequest): Promise<TextResult>;
-  /** Um vetor de 1536 dimensões por texto, na mesma ordem. */
-  embed(texts: string[]): Promise<number[][]>;
+  /**
+   * Um vetor de 1536 dimensões por texto, na mesma ordem.
+   * `purpose`: "document" para trechos do material, "query" para a pergunta da busca
+   * (alguns fornecedores usam isso para melhorar a busca).
+   */
+  embed(texts: string[], opts?: EmbedOptions): Promise<number[][]>;
   transcribe(input: TranscribeInput): Promise<{ text: string }>;
 }
 
