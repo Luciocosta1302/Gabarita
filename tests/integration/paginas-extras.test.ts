@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import { enqueueJob, runJobs } from "@/lib/jobs/queue";
 import { reflectWeek } from "@/lib/journal/service";
-import { searchMaterialChunks } from "@/lib/rag/search";
+import { searchMaterialChunks, searchUserChunks } from "@/lib/rag/search";
 
 import { makePdf, studyPages } from "../fixtures/make-pdf";
 
@@ -49,6 +49,11 @@ describe("biblioteca: chat por documento", () => {
     expect(found.length).toBeGreaterThan(0);
     expect(found.every((c) => c.material_id === ids[1])).toBe(true);
     expect(await searchMaterialChunks(beto.client, ids[1], "célula", 50)).toHaveLength(0);
+    // busca por sentido em todos os materiais: só os do próprio aluno
+    const all = await searchUserChunks(ana.client, "célula", 30);
+    expect(all.length).toBeGreaterThan(0);
+    expect(new Set(all.map((c) => c.material_id)).size).toBeGreaterThanOrEqual(1);
+    expect(await searchUserChunks(beto.client, "célula", 30)).toHaveLength(0);
   });
 });
 

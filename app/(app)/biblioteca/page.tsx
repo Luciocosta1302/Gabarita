@@ -4,6 +4,8 @@ import { z } from "zod";
 import { Highlighted } from "@/components/materials/highlighted";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { withUsage } from "@/lib/ai/usage";
+import { searchUserChunks } from "@/lib/rag/search";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -16,10 +18,11 @@ const STATUS_LABEL: Record<string, string> = { pending: "na fila", processing: "
 const likeTerm = (q: string) => `%${q.replace(/[\\%_]/g, (c) => `\\${c}`)}%`;
 
 /** Biblioteca pessoal: matérias como pastas, busca por título e dentro do texto, chat por documento. */
-export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ q?: string; pasta?: string }> }) {
+export default async function LibraryPage({ searchParams }: { searchParams: Promise<{ q?: string; pasta?: string; modo?: string }> }) {
   const sp = await searchParams;
   const q = (sp.q ?? "").trim().slice(0, 100);
   const folder = z.uuid().safeParse(sp.pasta).success ? sp.pasta! : null;
+  const semantic = sp.modo === "sentido";
   const supabase = await createClient();
 
   let mq = supabase.from("materials").select("id, subject_id, title, type, status, page_count, created_at").order("created_at", { ascending: false }).limit(500);
@@ -28,11 +31,31 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   let cq = supabase.from("chunks").select("id, material_id, page, content, materials!inner(title, subject_id, type)").limit(20);
   if (folder) cq = cq.eq("materials.subject_id", folder);
 
-  const [{ data: subjects }, { data: materials }, { data: hits }] = await Promise.all([
+  const [{ data: subjects }, { data: materials }, { data: textHits }] = await Promise.all([
     supabase.from("subjects").select("id, name").order("name"),
     mq,
-    q.length >= 3 ? cq.ilike("content", likeTerm(q)) : Promise.resolve({ data: null }),
+    q.length >= 3 && !semantic ? cq.ilike("content", likeTerm(q)) : Promise.resolve({ data: null }),
   ]);
+  type Hit = { id: string; material_id: string; page: number | null; content: string; materials: { title: string; subject_id: string; type: string }; similarity?: number };
+  let hits: Hit[] | null = textHits;
+  let searchError: string | null = null;
+  if (semantic && q.length >= 3) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    try {
+      const found = await withUsage(user!.id, () => searchUserChunks(supabase, q, 20));
+      const scoped = found.filter((c) => !folder || c.subject_id === folder).slice(0, 10);
+      const ids = [...new Set(scoped.map((c) => c.material_id))];
+      const { data: mats } = ids.length ? await supabase.from("materials").select("id, title, subject_id, type").in("id", ids) : { data: [] };
+      const byId = new Map((mats ?? []).map((m) => [m.id, m]));
+      hits = scoped.filter((c) => byId.has(c.material_id)).map((c) => ({ ...c, materials: byId.get(c.material_id)! }));
+    } catch (e) {
+      if (!(e instanceof Error && (e as { rateLimited?: boolean }).rateLimited)) console.error("[biblioteca]", e);
+      searchError = e instanceof Error && (e as { rateLimited?: boolean }).rateLimited ? e.message : "Não foi possível fazer a busca por sentido agora.";
+      hits = [];
+    }
+  }
   const names = new Map((subjects ?? []).map((s) => [s.id, s.name]));
   const groups = (subjects ?? [])
     .map((s) => ({ ...s, items: (materials ?? []).filter((m) => m.subject_id === s.id) }))
@@ -40,6 +63,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
   const href = (p: { q?: string; pasta?: string | null }) => {
     const u = new URLSearchParams();
     if (p.q) u.set("q", p.q);
+    if (semantic) u.set("modo", "sentido");
     if (p.pasta) u.set("pasta", p.pasta);
     return `/biblioteca${u.size ? `?${u}` : ""}`;
   };
@@ -55,6 +79,9 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
         {folder && <input type="hidden" name="pasta" value={folder} />}
         <Input name="q" defaultValue={q} placeholder="Buscar nos materiais..." aria-label="Buscar nos materiais" maxLength={100} />
         <Button type="submit">Buscar</Button>
+        <label className="text-muted-foreground flex shrink-0 items-center gap-1.5 text-xs" title="Usa IA para achar trechos com o mesmo assunto, mesmo sem as palavras exatas">
+          <input type="checkbox" name="modo" value="sentido" defaultChecked={semantic} /> por sentido
+        </label>
       </form>
 
       <nav aria-label="Pastas" className="flex flex-wrap gap-2">
@@ -70,18 +97,22 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
 
       {hits && (
         <section className="grid gap-3" data-testid="library-hits">
-          <h2 className="font-semibold">Dentro do texto ({hits.length}{hits.length === 20 ? "+" : ""})</h2>
-          {hits.length === 0 && <p className="text-muted-foreground text-sm">Nenhum trecho com “{q}”.</p>}
+          <h2 className="font-semibold">
+            {semantic ? `Trechos sobre “${q}” (por sentido)` : `Dentro do texto (${hits.length}${hits.length === 20 ? "+" : ""})`}
+          </h2>
+          {searchError && <p className="text-destructive text-sm">{searchError}</p>}
+          {hits.length === 0 && !searchError && <p className="text-muted-foreground text-sm">Nenhum trecho {semantic ? "parecido" : `com “${q}”`}.</p>}
           {hits.map((h) => {
             const i = h.content.toLowerCase().indexOf(q.toLowerCase());
             const start = Math.max(0, i - 120);
-            const snippet = `${start > 0 ? "…" : ""}${h.content.slice(start, Math.max(i, 0) + q.length + 160)}…`;
+            const snippet = i < 0 ? `${h.content.slice(0, 280)}…` : `${start > 0 ? "…" : ""}${h.content.slice(start, i + q.length + 160)}…`;
             const paged = h.materials.type === "pdf" || h.materials.type === "image";
             return (
               <Link key={h.id} href={`/materials/${h.material_id}?chunk=${h.id}#trecho`} className="bg-card hover:bg-accent grid gap-1 rounded-2xl border p-3 text-sm shadow-sm">
                 <span className="text-muted-foreground text-xs">
                   {h.materials.title} · {names.get(h.materials.subject_id)}
                   {h.page != null ? ` · ${paged ? "p." : "parte"} ${h.page}` : ""}
+                  {h.similarity != null ? ` · ${Math.round(h.similarity * 100)}% parecido` : ""}
                 </span>
                 <Highlighted text={snippet} quote={q} />
               </Link>

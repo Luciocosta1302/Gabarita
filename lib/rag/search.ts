@@ -38,3 +38,13 @@ export async function searchMaterialChunks(supabase: SupabaseClient<Database>, m
   if (error) throw error;
   return (data ?? []) as FoundChunk[];
 }
+
+export type FoundUserChunk = FoundChunk & { subject_id: string };
+
+/** Busca por sentido em todos os materiais do aluno (Biblioteca). */
+export async function searchUserChunks(supabase: SupabaseClient<Database>, query: string, k = 10): Promise<FoundUserChunk[]> {
+  const [vector] = await cachedEmbed([query], { purpose: "query" });
+  const { data, error } = await supabase.rpc("match_user_chunks", { query_embedding: toPgVector(vector), k });
+  if (error) throw error;
+  return (data ?? []) as FoundUserChunk[];
+}

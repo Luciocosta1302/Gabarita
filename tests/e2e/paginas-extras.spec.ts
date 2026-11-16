@@ -24,6 +24,10 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   await page.getByLabel("Buscar nos materiais").fill("parágrafo 3");
   await page.getByRole("button", { name: "Buscar" }).click();
   await expect(page.getByTestId("library-hits").getByTestId("source-quote").first()).toHaveText("parágrafo 3");
+  await page.getByLabel("por sentido").check();
+  await page.getByRole("button", { name: "Buscar" }).click();
+  await expect(page.getByTestId("library-hits")).toContainText("parecido");
+  await page.getByLabel("por sentido").uncheck();
   await page.getByLabel("Buscar nos materiais").fill("");
   await page.getByRole("button", { name: "Buscar" }).click();
   await page.getByRole("link", { name: /Conversar com este documento/ }).click();

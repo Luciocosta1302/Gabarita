@@ -902,6 +902,11 @@ isOneToOne: false
               "content": string,"id": string,"material_id": string,"page": number,"similarity": number
             }[]
                            },
+"match_user_chunks":
+{ Args: { "k"?: number,"query_embedding": string }; Returns: {
+              "content": string,"id": string,"material_id": string,"page": number,"similarity": number,"subject_id": string
+            }[]
+                           },
 "owns_subject":
 { Args: { "p_subject_id": string }; Returns: boolean
                            },
