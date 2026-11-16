@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "attempts": {
+            "ai_usage": {
+                  Row: {
+                    "calls": number,"day": string,"input_tokens": number,"output_tokens": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "calls"?: number,"day": string,"input_tokens"?: number,"output_tokens"?: number,"user_id": string
+                  }
+                  Update: {
+                    "calls"?: number,"day"?: string,"input_tokens"?: number,"output_tokens"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"attempts": {
                   Row: {
                     "answer": string,"confidence": string | null,"correct": boolean,"created_at": string,"feedback_json": Json | null,"id": string,"question_id": string,"quiz_id": string | null,"score": number | null,"time_ms": number | null,"user_id": string
                   }
@@ -80,6 +94,20 @@ isOneToOne: false
       referencedRelation: "topics"
       referencedColumns: ["id"]
     }
+                  ]
+                },"embedding_cache": {
+                  Row: {
+                    "created_at": string,"embedding": string,"key": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"embedding": string,"key": string
+                  }
+                  Update: {
+                    "created_at"?: string,"embedding"?: string,"key"?: string
+                  }
+                  Relationships: [
+                    
                   ]
                 },"error_notebook": {
                   Row: {
@@ -233,6 +261,20 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"payments": {
+                  Row: {
+                    "amount_cents": number,"checkout_url": string | null,"created_at": string,"id": string,"paid_at": string | null,"period_days": number,"provider": string,"provider_payment_id": string | null,"status": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_cents": number,"checkout_url"?: string | null,"created_at"?: string,"id"?: string,"paid_at"?: string | null,"period_days"?: number,"provider"?: string,"provider_payment_id"?: string | null,"status"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "amount_cents"?: number,"checkout_url"?: string | null,"created_at"?: string,"id"?: string,"paid_at"?: string | null,"period_days"?: number,"provider"?: string,"provider_payment_id"?: string | null,"status"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"plan_days": {
                   Row: {
                     "date": string,"done": boolean,"id": string,"plan_id": string,"status": string,"tasks_json": NonNullable<Json>,"user_id": string
@@ -255,14 +297,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"daily_quota_used": number,"id": string,"name": string | null,"plan": string,"whatsapp_phone": string | null
+                    "created_at": string,"daily_quota_used": number,"id": string,"name": string | null,"plan": string,"pro_until": string | null,"whatsapp_hour": number,"whatsapp_opt_in": boolean,"whatsapp_phone": string | null
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"daily_quota_used"?: number,"id": string,"name"?: string | null,"plan"?: string,"whatsapp_phone"?: string | null
+                    "created_at"?: string,"daily_quota_used"?: number,"id": string,"name"?: string | null,"plan"?: string,"pro_until"?: string | null,"whatsapp_hour"?: number,"whatsapp_opt_in"?: boolean,"whatsapp_phone"?: string | null
                   }
                   Update: {
-                    "created_at"?: string,"daily_quota_used"?: number,"id"?: string,"name"?: string | null,"plan"?: string,"whatsapp_phone"?: string | null
+                    "created_at"?: string,"daily_quota_used"?: number,"id"?: string,"name"?: string | null,"plan"?: string,"pro_until"?: string | null,"whatsapp_hour"?: number,"whatsapp_opt_in"?: boolean,"whatsapp_phone"?: string | null
                   }
                   Relationships: [
                     
@@ -351,6 +393,58 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"room_attempts": {
+                  Row: {
+                    "answers_json": NonNullable<Json>,"correct": number,"created_at": string,"id": string,"room_id": string,"room_quiz_id": string,"time_ms": number | null,"total": number,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "answers_json"?: NonNullable<Json>,"correct": number,"created_at"?: string,"id"?: string,"room_id": string,"room_quiz_id": string,"time_ms"?: number | null,"total": number,"user_id"?: string
+                  }
+                  Update: {
+                    "answers_json"?: NonNullable<Json>,"correct"?: number,"created_at"?: string,"id"?: string,"room_id"?: string,"room_quiz_id"?: string,"time_ms"?: number | null,"total"?: number,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "room_attempts_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "rooms"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "room_attempts_room_quiz_id_fkey"
+      columns: ["room_quiz_id"]
+isOneToOne: false
+      referencedRelation: "room_quizzes"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"room_materials": {
+                  Row: {
+                    "created_at": string,"id": string,"material_id": string,"room_id": string,"shared_by": string,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"material_id": string,"room_id": string,"shared_by"?: string,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"material_id"?: string,"room_id"?: string,"shared_by"?: string,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "room_materials_material_id_fkey"
+      columns: ["material_id"]
+isOneToOne: false
+      referencedRelation: "materials"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "room_materials_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "rooms"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"room_members": {
                   Row: {
                     "joined_at": string,"room_id": string,"user_id": string
@@ -371,16 +465,56 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
-                },"rooms": {
+                },"room_quiz_keys": {
                   Row: {
-                    "created_at": string,"id": string,"invite_code": string,"owner_id": string,"subject_id": string | null
+                    "answers_json": NonNullable<Json>,"room_quiz_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id"?: string,"invite_code"?: string,"owner_id"?: string,"subject_id"?: string | null
+                    "answers_json": NonNullable<Json>,"room_quiz_id": string
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"invite_code"?: string,"owner_id"?: string,"subject_id"?: string | null
+                    "answers_json"?: NonNullable<Json>,"room_quiz_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "room_quiz_keys_room_quiz_id_fkey"
+      columns: ["room_quiz_id"]
+isOneToOne: true
+      referencedRelation: "room_quizzes"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"room_quizzes": {
+                  Row: {
+                    "created_at": string,"created_by": string,"id": string,"questions_json": NonNullable<Json>,"room_id": string,"time_limit_s": number,"title": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"questions_json": NonNullable<Json>,"room_id": string,"time_limit_s": number,"title": string
+                  }
+                  Update: {
+                    "created_at"?: string,"created_by"?: string,"id"?: string,"questions_json"?: NonNullable<Json>,"room_id"?: string,"time_limit_s"?: number,"title"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "room_quizzes_room_id_fkey"
+      columns: ["room_id"]
+isOneToOne: false
+      referencedRelation: "rooms"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"rooms": {
+                  Row: {
+                    "created_at": string,"id": string,"invite_code": string,"name": string,"owner_id": string,"subject_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"id"?: string,"invite_code"?: string,"name"?: string,"owner_id"?: string,"subject_id"?: string | null
+                  }
+                  Update: {
+                    "created_at"?: string,"id"?: string,"invite_code"?: string,"name"?: string,"owner_id"?: string,"subject_id"?: string | null
                   }
                   Relationships: [
                     {
@@ -537,13 +671,44 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"whatsapp_messages": {
+                  Row: {
+                    "body": string,"created_at": string,"direction": string,"id": string,"phone": string,"provider_id": string | null,"user_id": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "body": string,"created_at"?: string,"direction": string,"id"?: string,"phone": string,"provider_id"?: string | null,"user_id"?: string | null
+                  }
+                  Update: {
+                    "body"?: string,"created_at"?: string,"direction"?: string,"id"?: string,"phone"?: string,"provider_id"?: string | null,"user_id"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"whatsapp_sessions": {
+                  Row: {
+                    "correct": number,"current": number,"day": string,"id": string,"question_ids": (string)[],"status": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "correct"?: number,"current"?: number,"day": string,"id"?: string,"question_ids": (string)[],"status"?: string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "correct"?: number,"current"?: number,"day"?: string,"id"?: string,"question_ids"?: (string)[],"status"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 }
           }
           Views: {
             [_ in never]: never
           }
           Functions: {
-            "claim_jobs":
+            "add_ai_usage":
+{ Args: { "p_calls": number,"p_day": string,"p_in": number,"p_out": number,"p_user": string }; Returns: undefined
+                           },
+"claim_jobs":
 { Args: { "n"?: number,"p_user_id"?: string }; Returns: {
               "attempts": number,
 "created_at": string,
@@ -564,6 +729,9 @@ isOneToOne: false
 "is_room_member":
 { Args: { "p_room_id": string }; Returns: boolean
                            },
+"join_room":
+{ Args: { "p_code": string }; Returns: string
+                           },
 "match_chunks":
 { Args: { "k"?: number,"p_subject_id": string,"query_embedding": string }; Returns: {
               "content": string,"id": string,"material_id": string,"page": number,"similarity": number
@@ -571,6 +739,16 @@ isOneToOne: false
                            },
 "owns_subject":
 { Args: { "p_subject_id": string }; Returns: boolean
+                           },
+"room_member_names":
+{ Args: { "p_room_id": string }; Returns: {
+              "joined_at": string,"name": string,"user_id": string
+            }[]
+                           },
+"room_weekly_ranking":
+{ Args: { "p_room_id": string }; Returns: {
+              "name": string,"own_correct": number,"points": number,"room_correct": number,"user_id": string
+            }[]
                            }
           }
           Enums: {
