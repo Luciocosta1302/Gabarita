@@ -78,3 +78,32 @@ describe("WhatsApp", () => {
     expect(verifyMetaSignature(body, null, "app")).toBe(false);
   });
 });
+
+import { recommendations, weeklySeries, weekStartOf } from "@/lib/performance/stats";
+
+describe("desempenho", () => {
+  it("semana começa na segunda", () => {
+    expect(weekStartOf("2026-11-19")).toBe("2026-11-16"); // quinta → segunda
+    expect(weekStartOf("2026-11-16")).toBe("2026-11-16");
+    expect(weekStartOf("2026-11-22")).toBe("2026-11-16"); // domingo
+  });
+  it("série das últimas semanas com aproveitamento", () => {
+    const s = weeklySeries(
+      [
+        { correct: true, created_at: "2026-11-18T15:00:00Z", confidence: null },
+        { correct: false, created_at: "2026-11-17T15:00:00Z", confidence: null },
+        { correct: true, created_at: "2026-11-10T15:00:00Z", confidence: null },
+        { correct: true, created_at: "2025-01-01T15:00:00Z", confidence: null },
+      ],
+      "2026-11-19",
+      3,
+    );
+    expect(s.map((w) => w.weekStart)).toEqual(["2026-11-02", "2026-11-09", "2026-11-16"]);
+    expect(s.map((w) => [w.answered, w.accuracy])).toEqual([[0, null], [1, 1], [2, 0.5]]);
+  });
+  it("recomendações priorizam revisão, plano e tópicos fracos", () => {
+    const r = recommendations({ weakTopics: [{ name: "Mitose", subjectId: "s", mastery: 0.2 }], dueReviews: 3, pendingToday: 2, sureWrongRate: 0.4, sureTotal: 10, answered: 50 });
+    expect(r.map((x) => x.kind)).toEqual(["review", "plan", "weak", "certainty"]);
+    expect(recommendations({ weakTopics: [], dueReviews: 0, pendingToday: 0, sureWrongRate: null, sureTotal: 0, answered: 0 })[0].kind).toBe("start");
+  });
+});

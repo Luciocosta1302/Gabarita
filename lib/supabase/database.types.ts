@@ -95,6 +95,60 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"community_comments": {
+                  Row: {
+                    "author_name": string,"body": string,"created_at": string,"id": string,"post_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_name": string,"body": string,"created_at"?: string,"id"?: string,"post_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "author_name"?: string,"body"?: string,"created_at"?: string,"id"?: string,"post_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "community_comments_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "community_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"community_likes": {
+                  Row: {
+                    "created_at": string,"post_id": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"post_id": string,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"post_id"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "community_likes_post_id_fkey"
+      columns: ["post_id"]
+isOneToOne: false
+      referencedRelation: "community_posts"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"community_posts": {
+                  Row: {
+                    "author_name": string,"body": string,"category": string,"created_at": string,"id": string,"title": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "author_name": string,"body": string,"category": string,"created_at"?: string,"id"?: string,"title": string,"user_id"?: string
+                  }
+                  Update: {
+                    "author_name"?: string,"body"?: string,"category"?: string,"created_at"?: string,"id"?: string,"title"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"embedding_cache": {
                   Row: {
                     "created_at": string,"embedding": string,"key": string
@@ -201,6 +255,40 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"journal_entries": {
+                  Row: {
+                    "created_at": string,"difficulties": string | null,"focus_minutes": number | null,"id": string,"learned": string,"mood": string,"subject_id": string | null,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"difficulties"?: string | null,"focus_minutes"?: number | null,"id"?: string,"learned": string,"mood": string,"subject_id"?: string | null,"user_id"?: string
+                  }
+                  Update: {
+                    "created_at"?: string,"difficulties"?: string | null,"focus_minutes"?: number | null,"id"?: string,"learned"?: string,"mood"?: string,"subject_id"?: string | null,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "journal_entries_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"journal_reflections": {
+                  Row: {
+                    "content_json": NonNullable<Json>,"created_at": string,"id": string,"period_end": string,"period_start": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content_json": NonNullable<Json>,"created_at"?: string,"id"?: string,"period_end": string,"period_start": string,"user_id"?: string
+                  }
+                  Update: {
+                    "content_json"?: NonNullable<Json>,"created_at"?: string,"id"?: string,"period_end"?: string,"period_start"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"learning_paths": {
                   Row: {
                     "created_at": string,"goal": string,"id": string,"subject_id": string,"title": string,"user_id": string
@@ -235,6 +323,26 @@ isOneToOne: false
                   Relationships: [
                     {
       foreignKeyName: "materials_subject_id_fkey"
+      columns: ["subject_id"]
+isOneToOne: false
+      referencedRelation: "subjects"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"notes": {
+                  Row: {
+                    "content": string,"created_at": string,"id": string,"subject_id": string | null,"title": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "content"?: string,"created_at"?: string,"id"?: string,"subject_id"?: string | null,"title"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "content"?: string,"created_at"?: string,"id"?: string,"subject_id"?: string | null,"title"?: string,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "notes_subject_id_fkey"
       columns: ["subject_id"]
 isOneToOne: false
       referencedRelation: "subjects"
@@ -734,6 +842,11 @@ isOneToOne: false
                            },
 "match_chunks":
 { Args: { "k"?: number,"p_subject_id": string,"query_embedding": string }; Returns: {
+              "content": string,"id": string,"material_id": string,"page": number,"similarity": number
+            }[]
+                           },
+"match_material_chunks":
+{ Args: { "k"?: number,"p_material_id": string,"query_embedding": string }; Returns: {
               "content": string,"id": string,"material_id": string,"page": number,"similarity": number
             }[]
                            },

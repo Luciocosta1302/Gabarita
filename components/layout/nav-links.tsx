@@ -10,6 +10,7 @@ const LINKS = [
   { href: "/espaco", label: "Espaço de estudos", icon: "☕" },
   { href: "/trilhas", label: "Trilhas", icon: "⛩" },
   { href: "/review", label: "Revisar hoje", icon: "↻" },
+  { href: "/desempenho", label: "Desempenho", icon: "📈" },
   { href: "/resolver", label: "Foto da questão", icon: "📷" },
   { href: "/errors", label: "Caderno de erros", icon: "✎" },
   { href: "/salas", label: "Turmas", icon: "👥" },
