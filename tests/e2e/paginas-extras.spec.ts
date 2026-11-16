@@ -95,4 +95,21 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   await page.reload();
   await expect(page.getByTestId("comments")).toContainText("Valeu, ajudou!");
   await expect(page.getByTestId("like")).toHaveText("♥ 1");
+
+  // Editar a matéria: data da prova gera o plano; apagar leva de volta ao início
+  await page.getByRole("link", { name: "Início" }).click();
+  await page.getByTestId("subject-list").getByText("Biologia").click();
+  await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
+  await page.getByTestId("edit-subject").locator("summary").click();
+  await page.getByLabel("Nome").fill("Biologia celular");
+  const inTen = new Date(Date.now() + 10 * 86_400_000).toISOString().slice(0, 10);
+  await page.getByLabel("Data da prova").fill(inTen);
+  await page.getByLabel("Horas por dia").fill("2");
+  await page.getByRole("button", { name: "Salvar", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Biologia celular" })).toBeVisible();
+  await expect(page.getByTestId("plan-card")).toContainText("Faltam");
+  page.once("dialog", (d) => d.accept());
+  await page.getByRole("button", { name: "Apagar matéria" }).click();
+  await expect(page).toHaveURL(/\/dashboard/);
+  await expect(page.getByText("Biologia celular")).toHaveCount(0);
 });

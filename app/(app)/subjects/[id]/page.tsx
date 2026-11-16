@@ -5,6 +5,7 @@ import { z } from "zod";
 import { AutoRefresh } from "@/components/layout/auto-refresh";
 import { MaterialList } from "@/components/materials/material-list";
 import { UploadForm } from "@/components/materials/upload-form";
+import { EditSubject } from "@/components/subjects/edit-subject";
 import { ConfidenceMeter } from "@/components/quiz/confidence-meter";
 import { GenerateQuizForm } from "@/components/quiz/generate-quiz-form";
 import { SimuladoForm } from "@/components/quiz/simulado-form";
@@ -92,6 +93,8 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
           {subject.exam_date && ` · prova em ${subject.exam_date.split("-").reverse().join("/")}`}
         </p>
       </div>
+
+      <EditSubject subject={subject} />
 
       <AutoRefresh active={waitingTopics} every={4000} />
 

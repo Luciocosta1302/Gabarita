@@ -50,7 +50,7 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase, user }
     })),
   };
   const { error } = await supabase.from("chat_messages").insert([
-    { user_id: user.id, subject_id: input.subject_id, material_id: input.material_id ?? null, role: "user", content: input.message },
+    { user_id: user.id, subject_id: input.subject_id, material_id: input.material_id ?? null, role: "user", content: input.message, citations_json: [], has_basis: true },
     {
       user_id: user.id,
       subject_id: input.subject_id,

@@ -18,3 +18,15 @@ export const createSubjectSchema = z.object({
 });
 
 export type CreateSubjectInput = z.infer<typeof createSubjectSchema>;
+
+export const subjectActionSchema = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("update"),
+    subject_id: z.uuid(),
+    name: z.string().trim().min(1, "Informe o nome da matéria").max(120, "Nome muito longo"),
+    exam_date: z.preprocess((v) => (v === "" ? null : v), z.iso.date("Data inválida").nullable()),
+    hours_per_day: z.preprocess(emptyToUndefined, z.coerce.number("Horas inválidas").min(0.5, "Mínimo 0,5 h").max(24, "Máximo 24 h").optional()),
+    exam_style: z.enum(EXAM_STYLES),
+  }),
+  z.object({ action: z.literal("delete"), subject_id: z.uuid() }),
+]);
