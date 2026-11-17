@@ -26,6 +26,8 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   await expect(page.getByTestId("topic-tile").first()).toBeVisible({ timeout: 60_000 });
+  // com arquivos na pasta, o envio fica recolhido em "Adicionar arquivo nesta pasta"
+  await page.getByText("Adicionar arquivo nesta pasta").click();
   await page.getByLabel("Escolher arquivo").setInputFiles({ name: "aula.mp3", mimeType: "audio/mpeg", buffer: Buffer.alloc(2000) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   const audioRow = page.getByTestId("material-list").locator("li").filter({ hasText: "Áudio da aula" });

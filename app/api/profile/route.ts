@@ -22,6 +22,7 @@ export const POST = apiRoute(profileSchema, async (input, { supabase, user }) =>
       ...(input.username !== undefined && { username: input.username }),
       ...(input.bio !== undefined && { bio: input.bio || null }),
       ...(input.avatar !== undefined && { avatar_json: input.avatar }),
+      ...(input.study_goal !== undefined && { study_goal: input.study_goal }),
     })
     .eq("id", user.id);
   if (error?.code === "23505") return jsonError(`O @${input.username} já é de outra pessoa. Tente outro (ex.: com um número no fim).`, 409);

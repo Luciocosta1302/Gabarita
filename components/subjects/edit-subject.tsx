@@ -9,10 +9,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { postJSON, selectClass } from "@/lib/api/client";
 import { EXAM_STYLE_LABELS, EXAM_STYLES } from "@/lib/exam-styles";
+import { FOLDER_COLORS } from "@/lib/folders/colors";
 
-type Subject = { id: string; name: string; exam_date: string | null; hours_per_day: number | null; exam_style: string };
+type Subject = { id: string; name: string; exam_date: string | null; hours_per_day: number | null; exam_style: string; color?: string | null };
 
-/** Editar a matéria (refaz o plano se a data/horas mudarem) ou apagá-la. */
+/** Editar a pasta: nome, cor da capa, prova (refaz o plano se a data/horas mudarem) ou apagá-la. */
 export function EditSubject({ subject }: { subject: Subject }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -21,7 +22,7 @@ export function EditSubject({ subject }: { subject: Subject }) {
   return (
     <details className="bg-card rounded-2xl border p-4 text-sm" data-testid="edit-subject">
       <summary className="flex cursor-pointer items-center gap-2 font-bold">
-        <Settings2 aria-hidden className="size-4" /> Editar matéria
+        <Settings2 aria-hidden className="size-4" /> Editar pasta
       </summary>
       <form
         className="mt-4 grid gap-4 sm:grid-cols-2"
@@ -45,6 +46,20 @@ export function EditSubject({ subject }: { subject: Subject }) {
           <Label htmlFor="edit-name">Nome</Label>
           <Input id="edit-name" name="name" required maxLength={120} defaultValue={subject.name} />
         </div>
+        <fieldset className="grid gap-1.5 sm:col-span-2">
+          <legend className="mb-1.5 text-sm font-medium">Cor da capa</legend>
+          <div className="flex flex-wrap gap-2">
+            <label className="has-checked:ring-ink grid size-10 cursor-pointer place-items-center rounded-full border-2 border-dashed border-ink/40 text-[10px] font-bold ring-offset-2 has-checked:ring-2" title="Automática">
+              <input type="radio" name="color" value="" defaultChecked={!subject.color} className="sr-only" aria-label="Cor automática" />
+              auto
+            </label>
+            {FOLDER_COLORS.map((c) => (
+              <label key={c.id} className="has-checked:ring-ink size-10 cursor-pointer rounded-full border-2 border-ink ring-offset-2 has-checked:ring-2" style={{ background: c.hex }} title={c.label}>
+                <input type="radio" name="color" value={c.id} defaultChecked={subject.color === c.id} className="sr-only" aria-label={`Cor ${c.label}`} />
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="grid gap-1.5">
           <Label htmlFor="edit-date">Data da prova</Label>
           <Input id="edit-date" name="exam_date" type="date" defaultValue={subject.exam_date ?? ""} />
@@ -74,7 +89,7 @@ export function EditSubject({ subject }: { subject: Subject }) {
             className="text-destructive"
             disabled={busy}
             onClick={async () => {
-              if (!window.confirm(`Apagar "${subject.name}" com todos os materiais, questões, plano e histórico? Não dá para desfazer.`)) return;
+              if (!window.confirm(`Apagar a pasta "${subject.name}" com todos os arquivos, conversas, questões, plano e histórico? Não dá para desfazer.`)) return;
               setBusy(true);
               try {
                 await postJSON("/api/subjects", { action: "delete", subject_id: subject.id });
@@ -86,7 +101,7 @@ export function EditSubject({ subject }: { subject: Subject }) {
               }
             }}
           >
-            Apagar matéria
+            Apagar pasta
           </Button>
           {msg && <span className={msg.includes("✓") ? "text-muted-foreground" : "text-destructive"}>{msg}</span>}
         </div>

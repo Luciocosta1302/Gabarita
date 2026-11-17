@@ -395,6 +395,48 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"news_feeds": {
+                  Row: {
+                    "error": string | null,"feed_key": string,"fetched_at": string | null,"item_count": number,"ok": boolean | null,"url": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "error"?: string | null,"feed_key": string,"fetched_at"?: string | null,"item_count"?: number,"ok"?: boolean | null,"url": string
+                  }
+                  Update: {
+                    "error"?: string | null,"feed_key"?: string,"fetched_at"?: string | null,"item_count"?: number,"ok"?: boolean | null,"url"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"news_items": {
+                  Row: {
+                    "created_at": string,"feed_key": string,"id": string,"published_at": string,"snippet": string | null,"source_name": string,"summarized_at": string | null,"summary_json": Json | null,"tags": (string)[],"title": string,"url": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"feed_key": string,"id"?: string,"published_at": string,"snippet"?: string | null,"source_name": string,"summarized_at"?: string | null,"summary_json"?: Json | null,"tags"?: (string)[],"title": string,"url": string
+                  }
+                  Update: {
+                    "created_at"?: string,"feed_key"?: string,"id"?: string,"published_at"?: string,"snippet"?: string | null,"source_name"?: string,"summarized_at"?: string | null,"summary_json"?: Json | null,"tags"?: (string)[],"title"?: string,"url"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"news_prefs": {
+                  Row: {
+                    "city": string | null,"custom_feeds": (string)[],"sources": (string)[],"state": string | null,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "city"?: string | null,"custom_feeds"?: (string)[],"sources"?: (string)[],"state"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Update: {
+                    "city"?: string | null,"custom_feeds"?: (string)[],"sources"?: (string)[],"state"?: string | null,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"notes": {
                   Row: {
                     "content": string,"created_at": string,"id": string,"subject_id": string | null,"title": string,"updated_at": string,"user_id": string
@@ -457,14 +499,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "avatar_json": Json | null,"bio": string | null,"created_at": string,"id": string,"name": string | null,"tutorials_seen": (string)[],"username": string | null,"xp_cached": number
+                    "avatar_json": Json | null,"bio": string | null,"created_at": string,"id": string,"name": string | null,"study_goal": string | null,"tutorials_seen": (string)[],"username": string | null,"xp_cached": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "avatar_json"?: Json | null,"bio"?: string | null,"created_at"?: string,"id": string,"name"?: string | null,"tutorials_seen"?: (string)[],"username"?: string | null,"xp_cached"?: number
+                    "avatar_json"?: Json | null,"bio"?: string | null,"created_at"?: string,"id": string,"name"?: string | null,"study_goal"?: string | null,"tutorials_seen"?: (string)[],"username"?: string | null,"xp_cached"?: number
                   }
                   Update: {
-                    "avatar_json"?: Json | null,"bio"?: string | null,"created_at"?: string,"id"?: string,"name"?: string | null,"tutorials_seen"?: (string)[],"username"?: string | null,"xp_cached"?: number
+                    "avatar_json"?: Json | null,"bio"?: string | null,"created_at"?: string,"id"?: string,"name"?: string | null,"study_goal"?: string | null,"tutorials_seen"?: (string)[],"username"?: string | null,"xp_cached"?: number
                   }
                   Relationships: [
                     
@@ -741,14 +783,14 @@ isOneToOne: false
                   ]
                 },"subjects": {
                   Row: {
-                    "created_at": string,"exam_date": string | null,"exam_style": string,"hours_per_day": number | null,"id": string,"inbox": boolean,"name": string,"user_id": string
+                    "color": string | null,"created_at": string,"exam_date": string | null,"exam_style": string,"hours_per_day": number | null,"id": string,"inbox": boolean,"name": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"inbox"?: boolean,"name": string,"user_id"?: string
+                    "color"?: string | null,"created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"inbox"?: boolean,"name": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"inbox"?: boolean,"name"?: string,"user_id"?: string
+                    "color"?: string | null,"created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"inbox"?: boolean,"name"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

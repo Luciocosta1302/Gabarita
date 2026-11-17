@@ -31,7 +31,7 @@ export const POST = apiRoute(subjectActionSchema, async (input, { supabase, user
   const { error } = await supabase
     .from("subjects")
     // renomear a "Sem pasta" a transforma numa pasta normal (a próxima "Sem pasta" nasce quando precisar)
-    .update({ name: input.name, exam_date: input.exam_date, hours_per_day: hours, exam_style: input.exam_style, inbox: subject.inbox && input.name === INBOX_NAME })
+    .update({ name: input.name, exam_date: input.exam_date, hours_per_day: hours, exam_style: input.exam_style, inbox: subject.inbox && input.name === INBOX_NAME, ...(input.color !== undefined && { color: input.color }) })
     .eq("id", input.subject_id);
   if (error) throw error;
 

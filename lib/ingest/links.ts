@@ -70,15 +70,19 @@ async function readLimited(res: Response) {
   return out;
 }
 
-export async function fetchLink(raw: string): Promise<FetchedLink> {
+/**
+ * Busca segura (SSRF): segue até 5 redirecionamentos conferindo cada endereço; erro do site vira
+ * mensagem para o aluno. Usada pelos links como material e pelas notícias (RSS).
+ */
+export async function safeFetch(raw: string, { accept, timeoutMs = TIMEOUT_MS }: { accept: string; timeoutMs?: number }) {
   let url = await assertPublicUrl(raw);
   let res: Response | null = null;
   for (let i = 0; i <= MAX_REDIRECTS; i++) {
     try {
       res = await fetch(url, {
         redirect: "manual",
-        headers: { "User-Agent": USER_AGENT, Accept: "text/html,application/xhtml+xml,application/pdf,text/plain;q=0.9,*/*;q=0.5" },
-        signal: AbortSignal.timeout(TIMEOUT_MS),
+        headers: { "User-Agent": USER_AGENT, Accept: accept },
+        signal: AbortSignal.timeout(timeoutMs),
       });
     } catch {
       throw new UserFacingError("Não conseguimos abrir esse link (o site não respondeu).");
@@ -96,6 +100,23 @@ export async function fetchLink(raw: string): Promise<FetchedLink> {
       s === 401 || s === 403 ? "Esse site exige login ou bloqueia leitura automática. Copie o texto e cole como material." : `O site respondeu com erro (${s ?? "sem resposta"}).`,
     );
   }
+  return { res, url };
+}
+
+/** Lê o corpo como texto respeitando o charset (limite de 20 MB). */
+export async function readText(res: Response) {
+  const type = (res.headers.get("content-type") ?? "").toLowerCase();
+  const data = await readLimited(res);
+  const charset = type.match(/charset=([\w-]+)/)?.[1];
+  try {
+    return new TextDecoder(charset ?? "utf-8").decode(data);
+  } catch {
+    return new TextDecoder().decode(data);
+  }
+}
+
+export async function fetchLink(raw: string): Promise<FetchedLink> {
+  const { res, url } = await safeFetch(raw, { accept: "text/html,application/xhtml+xml,application/pdf,text/plain;q=0.9,*/*;q=0.5" });
   const type = (res.headers.get("content-type") ?? "").toLowerCase();
   const data = await readLimited(res);
   const finalUrl = url.toString();

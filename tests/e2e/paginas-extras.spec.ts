@@ -120,7 +120,7 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   await expect(page.getByRole("heading", { name: "Biologia celular" })).toBeVisible();
   await expect(page.getByTestId("plan-card")).toContainText("Faltam");
   page.once("dialog", (d) => d.accept());
-  await page.getByRole("button", { name: "Apagar matéria" }).click();
+  await page.getByRole("button", { name: "Apagar pasta" }).click();
   await expect(page).toHaveURL(/\/dashboard/);
   await expect(page.getByText("Biologia celular")).toHaveCount(0);
 });

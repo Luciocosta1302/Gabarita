@@ -11,6 +11,7 @@ import {
   LibraryBig,
   type LucideIcon,
   MessagesSquare,
+  Newspaper,
   NotebookPen,
   RotateCcw,
   Route,
@@ -50,6 +51,7 @@ export const NAV_GROUPS: { title: string; jp: string; jpMeaning: string; items: 
       { href: "/biblioteca", label: "Biblioteca", icon: LibraryBig },
       { href: "/anotacoes", label: "Anotações", icon: NotebookPen },
       { href: "/diario", label: "Diário", icon: BookHeart },
+      { href: "/noticias", label: "Notícias", icon: Newspaper },
     ],
   },
   {

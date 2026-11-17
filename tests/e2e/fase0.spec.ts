@@ -29,9 +29,13 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByTestId("convo-empty")).toBeVisible();
 
-  // tour de boas-vindas (só na primeira vez): 5 passos com a turma, termina em "Adicionar material"
+  // tour de boas-vindas (só na primeira vez): 6 passos com a turma (inclui o objetivo de estudo), termina em "Adicionar material"
   const tour = page.getByTestId("welcome-tour");
   await expect(tour.getByRole("heading", { name: "Bem-vindo ao Gabarita!" })).toBeVisible();
+  await tour.getByRole("button", { name: "Próximo" }).click();
+  // pergunta o objetivo de estudo (usado nas notícias e dicas)
+  await expect(tour.getByRole("heading", { name: "Você estuda para quê?" })).toBeVisible();
+  await tour.getByRole("radio", { name: "Vestibular / ENEM" }).click();
   for (let i = 0; i < 4; i++) await tour.getByRole("button", { name: "Próximo" }).click();
   await expect(tour.getByRole("heading", { name: "4. Volte todo dia" })).toBeVisible();
   await tour.getByRole("link", { name: "Começar" }).click();

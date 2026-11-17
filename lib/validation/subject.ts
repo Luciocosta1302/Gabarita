@@ -27,6 +27,7 @@ export const subjectActionSchema = z.discriminatedUnion("action", [
     exam_date: z.preprocess((v) => (v === "" ? null : v), z.iso.date("Data inválida").nullable()),
     hours_per_day: z.preprocess(emptyToUndefined, z.coerce.number("Horas inválidas").min(0.5, "Mínimo 0,5 h").max(24, "Máximo 24 h").optional()),
     exam_style: z.enum(EXAM_STYLES),
+    color: z.preprocess((v) => (v === "" ? null : v), z.enum(["ai", "shu", "matcha", "kin", "sumi", "sakura"]).nullable().optional()),
   }),
   z.object({ action: z.literal("delete"), subject_id: z.uuid() }),
 ]);

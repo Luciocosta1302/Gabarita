@@ -7,6 +7,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { Character, CharacterAvatar, CHARACTERS, type CharacterPose } from "@/components/brand/character";
 import { Button } from "@/components/ui/button";
 import { postJSON } from "@/lib/api/client";
+import { play } from "@/lib/feedback/sound";
+import { STUDY_GOALS } from "@/lib/news/catalog";
 import { GUIDES, type GuideId, type GuideWho, WELCOME_KEY, WELCOME_STEPS } from "@/lib/tutorials/guides";
 import { cn } from "@/lib/utils";
 
@@ -115,6 +117,7 @@ export function ToolGuide({ id, className }: { id: GuideId; className?: string }
 export function WelcomeTour() {
   const ctx = useTutorials();
   const [step, setStep] = useState(0);
+  const [goal, setGoal] = useState<string | null>(null);
   const [closed, setClosed] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const show = !!ctx && !ctx.seen.has(WELCOME_KEY) && !closed;
@@ -168,6 +171,30 @@ export function WelcomeTour() {
             {s.title}
           </h2>
           <p className="leading-relaxed">{s.text}</p>
+          {s.ask === "goal" && (
+            <div role="radiogroup" aria-label="Objetivo de estudo" className="mt-1 grid grid-cols-2 gap-2" data-testid="tour-goal">
+              {STUDY_GOALS.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  role="radio"
+                  aria-checked={goal === g.id}
+                  onClick={() => {
+                    setGoal(g.id);
+                    play("tap");
+                    // keepalive: grava mesmo se o aluno fechar o tour logo em seguida
+                    fetch("/api/profile", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ study_goal: g.id }), keepalive: true }).catch(() => {});
+                  }}
+                  className={cn(
+                    "tap-spring rounded-xl border-2 px-3 py-2 text-left text-sm font-bold",
+                    goal === g.id ? "border-ink bg-primary text-primary-foreground shadow-[0_2px_0_var(--ink)]" : "bg-card border-ink/20",
+                  )}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-1.5" aria-label={`Passo ${step + 1} de ${WELCOME_STEPS.length}`} role="img">
           {WELCOME_STEPS.map((_, i) => (

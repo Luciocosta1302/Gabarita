@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { avatarSchema, usernameSchema } from "@/lib/avatar/avatar";
+import { studyGoalSchema } from "@/lib/news/schema";
 import { DIFFICULTIES } from "@/lib/ai/prompts/questions";
 import { SELECTABLE_STYLES } from "@/lib/exam-styles";
 import { CONFIDENCE_LEVELS } from "@/lib/quiz/confidence";
@@ -150,6 +151,7 @@ export const profileSchema = z
     username: usernameSchema.optional(),
     bio: z.string().trim().max(160, "A bio tem no máximo 160 caracteres").optional(),
     avatar: avatarSchema.optional(),
+    study_goal: studyGoalSchema.optional(),
   })
   .refine((v) => Object.values(v).some((x) => x !== undefined), "Nada para salvar.");
 

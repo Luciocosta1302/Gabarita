@@ -27,6 +27,8 @@ test("página da web e vídeo do YouTube viram material", async ({ page }) => {
     await page.getByRole("button", { name: "Enviar material" }).click();
     await expect(page.getByText("Fotossíntese explicada").first()).toBeVisible({ timeout: 60_000 });
 
+    // com arquivo na pasta, o envio fica recolhido
+    await page.getByText("Adicionar arquivo nesta pasta").click();
     await page.getByRole("tab", { name: "Link ou YouTube" }).click();
     await page.getByLabel("Link da página, do PDF ou do vídeo").fill("https://youtu.be/jNQXAC9IVRw");
     await page.getByRole("button", { name: "Enviar material" }).click();

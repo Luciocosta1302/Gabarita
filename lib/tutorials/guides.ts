@@ -10,11 +10,17 @@ export type Guide = { title: string; who: GuideWho; intro: string; steps: string
 export const WELCOME_KEY = "boas-vindas";
 
 /** Passos do tour de boas-vindas (modal, só no primeiro acesso). */
-export const WELCOME_STEPS: { who: GuideWho; title: string; text: string }[] = [
+export const WELCOME_STEPS: { who: GuideWho; title: string; text: string; ask?: "goal" }[] = [
   {
     who: "mochi",
     title: "Bem-vindo ao Gabarita!",
     text: "Eu sou a Mochi. Em quatro passos eu te mostro como o Gabarita funciona. Dá para pular quando quiser.",
+  },
+  {
+    who: "daru",
+    title: "Você estuda para quê?",
+    text: "Assim eu ajusto as dicas e as notícias para você. Dá para mudar depois.",
+    ask: "goal",
   },
   {
     who: "mochi",
@@ -233,6 +239,16 @@ export const GUIDES = {
       "Envie uma ou mais provas antigas (PDF, slides, Word ou fotos).",
       "Veja o perfil: tipos de questão, pegadinhas e tópicos prováveis.",
       "Gere questões no estilo “Prova do professor” na página da matéria.",
+    ],
+  },
+  noticias: {
+    title: "Notícias",
+    who: "fuku",
+    intro: "As notícias de educação, vestibulares e concursos das fontes que você escolheu, num lugar só.",
+    steps: [
+      "Filtre por Hoje, Semana ou Mês, por #etiqueta (ex.: #enem, #edital) ou buscando uma palavra.",
+      "Toque no título para ler no site original.",
+      "“Resumo da Fuku” explica em poucas linhas, com datas e prazos.",
     ],
   },
   perfil: {

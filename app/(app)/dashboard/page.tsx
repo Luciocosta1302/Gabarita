@@ -1,4 +1,5 @@
 import { ArrowRight, BookX, Camera, Circle, FilePlus2, LibraryBig, MessagesSquare, Plus, RotateCcw, Route, ScanLine, Search } from "lucide-react";
+import { folderCover } from "@/lib/folders/colors";
 import Link from "next/link";
 
 import { Hanko } from "@/components/brand/hanko";
@@ -21,13 +22,6 @@ function greeting(hour: number) {
 }
 
 /** Capas dos cadernos (cores tradicionais) — cada matéria é um caderno de selos. */
-const COVERS = [
-  { bg: "bg-ai", text: "text-washi" },
-  { bg: "bg-shu", text: "text-washi" },
-  { bg: "bg-matcha", text: "text-washi" },
-  { bg: "bg-[#3b2f2a]", text: "text-washi" },
-];
-
 const WEEKDAY = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 const SHORTCUTS = [
@@ -52,7 +46,7 @@ export default async function DashboardPage() {
     focusStats(supabase, today),
     supabase.from("attempts").select("created_at").gte("created_at", `${addDays(today, -60)}T00:00:00-03:00`).order("created_at", { ascending: false }).limit(3000),
     supabase.from("study_sessions").select("ended_at").gte("ended_at", `${addDays(today, -60)}T00:00:00-03:00`).limit(3000),
-    supabase.from("subjects").select("id, name, exam_date, exam_style, inbox").order("created_at", { ascending: false }),
+    supabase.from("subjects").select("id, name, exam_date, exam_style, inbox, color").order("created_at", { ascending: false }),
   ]);
   // conversas = arquivos (cada arquivo é uma conversa), as mais recentes primeiro
   const { data: convos } = await supabase
@@ -279,7 +273,7 @@ export default async function DashboardPage() {
         ) : (
           <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] md:mx-0 md:flex-wrap md:gap-4 md:overflow-visible md:px-0" data-testid="subject-list">
             {folders.map((s, i) => {
-              const cover = COVERS[i % COVERS.length];
+              const cover = folderCover(s.color, i);
               const left = s.exam_date ? daysBetween(today, s.exam_date) : null;
               return (
                 <li key={s.id} className="w-40 shrink-0 snap-start md:w-44">

@@ -1,5 +1,6 @@
 "use client";
 
+import { MessagesSquare } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -26,7 +27,7 @@ const STATUS: Record<string, { label: string; className: string }> = {
 const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", pptx: "Slides", text: "Texto", audio: "Áudio da aula", web: "Página da web", youtube: "Vídeo do YouTube", past_exam: "Prova antiga" };
 
 /** Lista de materiais. Enquanto algum está processando, atualiza a tela sozinha. */
-export function MaterialList({ materials }: { materials: MaterialRow[] }) {
+export function MaterialList({ materials, subjectId }: { materials: MaterialRow[]; /** com a pasta, cada arquivo ganha o botão "Conversar" */ subjectId?: string }) {
   const router = useRouter();
   const busy = materials.some((m) => m.status === "pending" || m.status === "processing");
 
@@ -70,6 +71,15 @@ export function MaterialList({ materials }: { materials: MaterialRow[] }) {
                 </div>
               )}
             </div>
+            {subjectId && m.type !== "past_exam" && m.status !== "error" && (
+              <Link
+                href={`/chat/${subjectId}?material=${m.id}`}
+                className="tap-spring bg-pastel-lilac inline-flex shrink-0 items-center gap-1 rounded-full border-2 border-ink px-2.5 py-1 text-xs font-bold"
+                data-testid="material-chat"
+              >
+                <MessagesSquare aria-hidden className="size-3.5" /> Conversar
+              </Link>
+            )}
             <span
               data-testid="material-status"
               className={cn("shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium", s.className)}

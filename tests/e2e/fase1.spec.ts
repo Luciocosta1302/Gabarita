@@ -102,7 +102,7 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
   // --- chat, resumo e flashcards ----------------------------------------------------
   await page.goto(quizUrl);
   await page.getByRole("link", { name: "← Voltar para a matéria" }).click();
-  await page.getByRole("link", { name: /Conversar com o material/ }).click();
+  await page.getByTestId("folder-cover").getByRole("link", { name: /Conversar com a pasta/ }).click();
   await page.getByLabel("Sua pergunta").fill("Onde ocorre a fotossíntese?");
   await page.getByRole("button", { name: "Enviar" }).click();
   await expect(page.getByTestId("chat-citations")).toContainText("biologia, p.");
