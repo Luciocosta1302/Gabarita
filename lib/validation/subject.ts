@@ -8,7 +8,7 @@ export { EXAM_STYLE_LABELS, EXAM_STYLES } from "@/lib/exam-styles";
 const emptyToUndefined = (v: unknown) => (typeof v === "string" && v.trim() === "" ? undefined : v);
 
 export const createSubjectSchema = z.object({
-  name: z.string().trim().min(1, "Informe o nome da matéria").max(120, "Nome muito longo"),
+  name: z.string().trim().min(1, "Escreva o nome da pasta").max(120, "Nome muito longo"),
   exam_date: z.preprocess(emptyToUndefined, z.iso.date("Data inválida").optional()),
   hours_per_day: z.preprocess(
     emptyToUndefined,
@@ -23,7 +23,7 @@ export const subjectActionSchema = z.discriminatedUnion("action", [
   z.object({
     action: z.literal("update"),
     subject_id: z.uuid(),
-    name: z.string().trim().min(1, "Informe o nome da matéria").max(120, "Nome muito longo"),
+    name: z.string().trim().min(1, "Escreva o nome da pasta").max(120, "Nome muito longo"),
     exam_date: z.preprocess((v) => (v === "" ? null : v), z.iso.date("Data inválida").nullable()),
     hours_per_day: z.preprocess(emptyToUndefined, z.coerce.number("Horas inválidas").min(0.5, "Mínimo 0,5 h").max(24, "Máximo 24 h").optional()),
     exam_style: z.enum(EXAM_STYLES),

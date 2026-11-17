@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { INBOX_NAME } from "@/lib/folders/folders";
 import { apiRoute, jsonError } from "@/lib/api/route";
 import { todayBR } from "@/lib/dates";
 import { MATERIALS_BUCKET } from "@/lib/ingest/pipeline";
@@ -8,8 +9,8 @@ import { subjectActionSchema } from "@/lib/validation/subject";
 
 /** Editar a matéria (nome, data da prova, horas/dia, banca) ou apagá-la com tudo o que tem dentro. */
 export const POST = apiRoute(subjectActionSchema, async (input, { supabase, user }) => {
-  const { data: subject } = await supabase.from("subjects").select("id, exam_date, hours_per_day").eq("id", input.subject_id).maybeSingle();
-  if (!subject) return jsonError("Matéria não encontrada.", 404);
+  const { data: subject } = await supabase.from("subjects").select("id, exam_date, hours_per_day, inbox").eq("id", input.subject_id).maybeSingle();
+  if (!subject) return jsonError("Pasta não encontrada. Recarregue a página.", 404);
   const today = todayBR();
 
   if (input.action === "delete") {
@@ -29,7 +30,8 @@ export const POST = apiRoute(subjectActionSchema, async (input, { supabase, user
   const hours = input.hours_per_day ?? subject.hours_per_day;
   const { error } = await supabase
     .from("subjects")
-    .update({ name: input.name, exam_date: input.exam_date, hours_per_day: hours, exam_style: input.exam_style })
+    // renomear a "Sem pasta" a transforma numa pasta normal (a próxima "Sem pasta" nasce quando precisar)
+    .update({ name: input.name, exam_date: input.exam_date, hours_per_day: hours, exam_style: input.exam_style, inbox: subject.inbox && input.name === INBOX_NAME })
     .eq("id", input.subject_id);
   if (error) throw error;
 

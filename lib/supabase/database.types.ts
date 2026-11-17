@@ -741,14 +741,14 @@ isOneToOne: false
                   ]
                 },"subjects": {
                   Row: {
-                    "created_at": string,"exam_date": string | null,"exam_style": string,"hours_per_day": number | null,"id": string,"name": string,"user_id": string
+                    "created_at": string,"exam_date": string | null,"exam_style": string,"hours_per_day": number | null,"id": string,"inbox": boolean,"name": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"name": string,"user_id"?: string
+                    "created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"inbox"?: boolean,"name": string,"user_id"?: string
                   }
                   Update: {
-                    "created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"name"?: string,"user_id"?: string
+                    "created_at"?: string,"exam_date"?: string | null,"exam_style"?: string,"hours_per_day"?: number | null,"id"?: string,"inbox"?: boolean,"name"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

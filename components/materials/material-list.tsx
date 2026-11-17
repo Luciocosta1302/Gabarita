@@ -83,7 +83,7 @@ export function MaterialList({ materials }: { materials: MaterialRow[] }) {
   );
 }
 
-function RetryButton({ materialId }: { materialId: string }) {
+export function RetryButton({ materialId }: { materialId: string }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

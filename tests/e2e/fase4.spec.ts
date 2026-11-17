@@ -11,8 +11,8 @@ test("sala da turma", async ({ browser }) => {
 
   // matéria com material (para o simulado da turma)
   await ana.goto("/dashboard");
-  await ana.getByLabel("Matéria / prova").fill("Biologia");
-  await ana.getByRole("button", { name: "Criar matéria" }).click();
+  await ana.getByLabel("Nome da pasta").fill("Biologia");
+  await ana.getByRole("button", { name: "Criar pasta" }).click();
   await ana.getByTestId("subject-list").getByText("Biologia").click();
   await expect(ana).toHaveURL(/\/subjects\/[^/]+$/);
   await ana.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(8)) });

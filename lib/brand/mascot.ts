@@ -27,7 +27,7 @@ export function mascotLine(i: MascotInput): MascotLine {
     return {
       who: "mochi",
       mood: "animada",
-      text: "Oi! Eu sou a Mochi. Crie sua primeira matéria com a data da prova e mande o material — a gente monta o caminho junto.",
+      text: "Oi! Eu sou a Mochi. Mande seu primeiro arquivo no botão “Material”: ele vira uma conversa, e a gente estuda junto.",
     };
   }
   if (i.tasksTotal > 0 && i.tasksDone >= i.tasksTotal) {

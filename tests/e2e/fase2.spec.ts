@@ -18,11 +18,12 @@ test("plano de 14 dias se reorganiza; tópicos, simulado e revisão", async ({ p
   await expect(page).toHaveURL(/\/dashboard$/);
   await skipTour(page);
 
-  await page.getByLabel("Matéria / prova").fill("Biologia — ENEM");
+  await page.getByLabel("Nome da pasta").fill("Biologia — ENEM");
+  await page.getByText("Tem prova marcada?").click();
   await page.getByLabel("Data da prova").fill(addDays(today, 14));
   await page.getByLabel("Horas por dia").fill("2");
   await page.getByLabel("Estilo da prova").selectOption("enem");
-  await page.getByRole("button", { name: "Criar matéria" }).click();
+  await page.getByRole("button", { name: "Criar pasta" }).click();
   await expect(page.getByTestId("today-tasks")).toContainText("Enviar o material da prova");
   await page.getByTestId("subject-list").getByText("Biologia — ENEM").click();
 

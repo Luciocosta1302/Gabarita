@@ -17,8 +17,8 @@ test("página da web e vídeo do YouTube viram material", async ({ page }) => {
 
   try {
     await signup(page, "Ana Links", "e2e7");
-    await page.getByLabel("Matéria / prova").fill("Biologia");
-    await page.getByRole("button", { name: "Criar matéria" }).click();
+    await page.getByLabel("Nome da pasta").fill("Biologia");
+    await page.getByRole("button", { name: "Criar pasta" }).click();
     await page.getByTestId("subject-list").getByText("Biologia").click();
     await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
 

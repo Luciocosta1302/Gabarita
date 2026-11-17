@@ -27,7 +27,7 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await page.getByLabel("Senha").fill(password);
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByText("Crie sua primeira matéria e mande o material da prova.")).toBeVisible();
+  await expect(page.getByTestId("convo-empty")).toBeVisible();
 
   // tour de boas-vindas (só na primeira vez): 5 passos com a turma, termina em "Adicionar material"
   const tour = page.getByTestId("welcome-tour");
@@ -38,16 +38,9 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await expect(page).toHaveURL(/\/adicionar$/);
   await expect(tour).toBeHidden();
 
-  // sem matéria: cria aqui mesmo; o guia da ferramenta aparece na primeira visita
+  // sem pasta nenhuma: manda o arquivo direto (pasta é opcional) e cai na conversa dele
   await expect(page.getByTestId("guide-adicionar")).toBeVisible();
-  await page.getByLabel("Matéria / prova").fill("Cálculo I — P1");
-  await page.getByLabel("Data da prova").fill("2026-12-10");
-  await page.getByLabel("Horas por dia").fill("2");
-  await page.getByLabel("Estilo da prova").selectOption("fgv");
-  await page.getByRole("button", { name: "Criar matéria" }).click();
-
-  // slides (PPTX) viram material; depois de enviar, abre a matéria
-  await expect(page.getByLabel("Matéria", { exact: true })).toHaveValue(/.+/);
+  await expect(page.getByLabel("Pasta (opcional)")).toHaveValue("");
   await page.getByLabel("Escolher arquivo").setInputFiles({
     name: "aula-limites.pptx",
     mimeType: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
@@ -55,10 +48,23 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   });
   await expect(page.getByTestId("picked-files")).toContainText("aula-limites.pptx");
   await page.getByRole("button", { name: "Enviar material" }).click();
-  await expect(page).toHaveURL(/\/subjects\/[^/#]+#materiais$/);
+  await expect(page).toHaveURL(/\/chat\/[^/?]+\?material=/);
+  await expect(page.getByTestId("chat-folder")).toHaveText("Sem pasta");
+  await expect(page.getByTestId("chat-welcome")).toContainText("aula-limites", { timeout: 60_000 });
+  await expect(page.getByTestId("chat-suggestions").getByRole("button")).toHaveCount(4);
+
+  // colocar numa pasta nova: a conversa vai junto
+  await page.getByTestId("move-folder").click();
+  await page.getByLabel("Nome da nova pasta").fill("Cálculo I — P1");
+  await page.getByRole("button", { name: "Mover" }).click();
+  await expect(page.getByTestId("chat-folder")).toHaveText("Cálculo I — P1");
+  await expect(page.getByTestId("chat-welcome")).toBeVisible();
+
+  // a pasta tem o arquivo (slides) pronto
+  await page.getByTestId("chat-folder").click();
   await expect(page.getByTestId("material-list")).toContainText("aula-limites");
   await expect(page.getByTestId("material-list")).toContainText("Slides");
-  await expect(page.getByTestId("material-status")).toHaveText("Pronto", { timeout: 60_000 });
+  await expect(page.getByTestId("material-status")).toHaveText("Pronto");
 
   // guia da matéria: "Entendi" fecha para sempre; depois fica o botão "Como usar"
   await page.getByTestId("guide-materia").getByRole("button", { name: "Entendi" }).click();
@@ -72,10 +78,20 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await page.getByRole("link", { name: "Início", exact: true }).first().click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByTestId("welcome-tour")).toBeHidden(); // o tour não volta
+  await expect(page.getByTestId("convo-list")).toContainText("aula-limites");
+
+  // nova pasta: só o nome; a prova é opcional (recolhida)
+  await page.getByLabel("Nome da pasta").fill("Física — P2");
+  await page.getByText("Tem prova marcada?").click();
+  await page.getByLabel("Data da prova").fill("2026-12-10");
+  await page.getByLabel("Horas por dia").fill("2");
+  await page.getByLabel("Estilo da prova").selectOption("fgv");
+  await page.getByRole("button", { name: "Criar pasta" }).click();
+  await expect(page.getByTestId("subject-list").getByText("Física — P2")).toBeVisible();
 
   const list = page.getByTestId("subject-list");
   await expect(list.getByText("Cálculo I — P1")).toBeVisible();
-  await expect(list.getByText("FGV", { exact: true })).toBeVisible();
+  await expect(list.getByText("FGV", { exact: true })).toBeVisible(); // da pasta Física
   await expect(list.getByText("dias p/ prova")).toBeVisible(); // contagem até a prova
 
   await list.getByText("Cálculo I — P1").click();

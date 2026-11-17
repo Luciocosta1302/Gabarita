@@ -25,8 +25,8 @@ async function answerTutor(page: Page, wrong: boolean) {
 test("trilha: tutor explica, diagnostica o erro e só libera a próxima etapa com 2 acertos", async ({ page }) => {
   test.setTimeout(180_000);
   await signup(page, "Aluno Trilha");
-  await page.getByLabel("Matéria / prova").fill("Biologia");
-  await page.getByRole("button", { name: "Criar matéria" }).click();
+  await page.getByLabel("Nome da pasta").fill("Biologia");
+  await page.getByRole("button", { name: "Criar pasta" }).click();
   await page.getByTestId("subject-list").getByText("Biologia").click();
   await expect(page).toHaveURL(/\/subjects\//);
   await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });

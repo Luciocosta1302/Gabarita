@@ -32,8 +32,8 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
   await expect(page.getByRole("heading", { name: /Aluno\./ })).toBeVisible();
   await skipTour(page);
 
-  await page.getByLabel("Matéria / prova").fill("Biologia — P2");
-  await page.getByRole("button", { name: "Criar matéria" }).click();
+  await page.getByLabel("Nome da pasta").fill("Biologia — P2");
+  await page.getByRole("button", { name: "Criar pasta" }).click();
   await page.getByTestId("subject-list").getByText("Biologia — P2").click();
   await expect(page.getByRole("heading", { name: "Biologia — P2" })).toBeVisible();
 

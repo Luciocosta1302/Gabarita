@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Abas com uma "pílula" que desliza até a aba ativa (ideia do Fluid Tabs do Animata, MIT; sem bibliotecas).
- * Setas do teclado trocam de aba. Em telas estreitas a linha rola de lado sem empurrar a página.
+ * Setas do teclado trocam de aba. No celular as abas dividem a largura (sem rolar de lado).
  */
 export function FluidTabs<T extends string>({
   items,
@@ -42,11 +42,11 @@ export function FluidTabs<T extends string>({
   };
 
   return (
-    <div className={cn("max-w-full overflow-x-auto [scrollbar-width:none]", className)}>
+    <div className={cn("w-full max-w-full", className)}>
       <div
         role="tablist"
         aria-label={label}
-        className="bg-muted relative inline-flex rounded-full border-[1.5px] border-ink/70 p-1"
+        className="bg-muted relative flex w-full rounded-full border-[1.5px] border-ink/70 p-1 sm:inline-flex sm:w-auto"
         onKeyDown={(e) => {
           if (e.key === "ArrowRight") move(1);
           if (e.key === "ArrowLeft") move(-1);
@@ -73,7 +73,7 @@ export function FluidTabs<T extends string>({
               tabIndex={active ? 0 : -1}
               onClick={() => onChange(it.value)}
               className={cn(
-                "relative z-10 rounded-full px-4 py-1.5 text-sm font-bold whitespace-nowrap transition-colors",
+                "relative z-10 min-w-0 flex-auto rounded-full px-2 py-1.5 text-[12.5px] font-bold whitespace-nowrap transition-colors sm:flex-none sm:px-4 sm:text-sm",
                 active ? "text-primary-foreground" : "text-ink/70 hover:text-ink",
                 !pill && active && "bg-primary",
               )}

@@ -1,4 +1,4 @@
-import { ArrowRight, BookX, Camera, Circle, FilePlus2, LibraryBig, Plus, RotateCcw, Route, ScanLine, Search } from "lucide-react";
+import { ArrowRight, BookX, Camera, Circle, FilePlus2, LibraryBig, MessagesSquare, Plus, RotateCcw, Route, ScanLine, Search } from "lucide-react";
 import Link from "next/link";
 
 import { Hanko } from "@/components/brand/hanko";
@@ -52,8 +52,19 @@ export default async function DashboardPage() {
     focusStats(supabase, today),
     supabase.from("attempts").select("created_at").gte("created_at", `${addDays(today, -60)}T00:00:00-03:00`).order("created_at", { ascending: false }).limit(3000),
     supabase.from("study_sessions").select("ended_at").gte("ended_at", `${addDays(today, -60)}T00:00:00-03:00`).limit(3000),
-    supabase.from("subjects").select("id, name, exam_date, exam_style").order("created_at", { ascending: false }),
+    supabase.from("subjects").select("id, name, exam_date, exam_style, inbox").order("created_at", { ascending: false }),
   ]);
+  // conversas = arquivos (cada arquivo é uma conversa), as mais recentes primeiro
+  const { data: convos } = await supabase
+    .from("materials")
+    .select("id, title, type, status, subject_id, subjects(name, inbox)")
+    .neq("type", "past_exam")
+    .order("created_at", { ascending: false })
+    .limit(6);
+  // a "Sem pasta" vai por último, e só aparece se tiver algum arquivo
+  const inbox = (subjects ?? []).find((x) => x.inbox);
+  const { count: inboxFiles } = inbox ? await supabase.from("materials").select("id", { count: "exact", head: true }).eq("subject_id", inbox.id) : { count: 0 };
+  const folders = [...(subjects ?? [])].filter((x) => !x.inbox || (inboxFiles ?? 0) > 0).sort((a, b) => Number(a.inbox) - Number(b.inbox));
   const todayTasks = (planDays ?? []).flatMap((d) =>
     ((d.tasks_json ?? []) as { id: string; title: string; done?: boolean }[]).map((t) => ({
       ...t,
@@ -205,6 +216,51 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      {/* conversas: cada arquivo enviado é uma conversa */}
+      <section className="grid gap-3" aria-labelledby="conversas">
+        <div className="flex items-baseline justify-between">
+          <h2 id="conversas" className="text-xl">
+            <span className="font-display text-shu mr-2 text-base" lang="ja" title="hanashi, conversa">
+              話
+            </span>
+            Conversas
+          </h2>
+          <Link href="/adicionar" className="text-shu flex items-center gap-1 text-sm font-bold hover:underline">
+            <Plus aria-hidden className="size-4" /> Nova conversa
+          </Link>
+        </div>
+        {!convos?.length ? (
+          <Link href="/adicionar" className="stamp-press bg-card flex items-center gap-3 rounded-2xl p-4" data-testid="convo-empty">
+            <FilePlus2 aria-hidden className="text-shu size-6 shrink-0" />
+            <span>
+              <span className="block font-bold">Mande seu primeiro arquivo</span>
+              <span className="text-muted-foreground block text-sm">Ele vira uma conversa: pergunte, peça resumo ou questões.</span>
+            </span>
+          </Link>
+        ) : (
+          <ul className="grid gap-2 sm:grid-cols-2" data-testid="convo-list">
+            {convos.map((c) => (
+              <li key={c.id}>
+                <Link href={`/chat/${c.subject_id}?material=${c.id}`} className="tap-spring bg-card flex items-center gap-3 rounded-2xl border-2 border-ink/20 p-3 hover:border-ink">
+                  <span className="bg-pastel-lilac grid size-10 shrink-0 place-items-center rounded-xl border-2 border-ink">
+                    <MessagesSquare aria-hidden className="size-5" />
+                  </span>
+                  <span className="grid min-w-0 flex-1">
+                    <span className="truncate font-bold">{c.title}</span>
+                    <span className="text-muted-foreground truncate text-xs">{c.subjects?.inbox ? "Sem pasta" : (c.subjects?.name ?? "")}</span>
+                  </span>
+                  {c.status !== "ready" && (
+                    <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[11px] font-bold", c.status === "error" ? "bg-destructive/15 text-destructive" : "bg-pastel-peach")}>
+                      {c.status === "error" ? "erro" : "lendo..."}
+                    </span>
+                  )}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
       {/* cadernos: cada matéria é um caderno de selos */}
       <section className="grid gap-3">
         <div className="flex items-baseline justify-between">
@@ -212,17 +268,17 @@ export default async function DashboardPage() {
             <span className="font-display text-shu mr-2 text-base" lang="ja" title="chō, caderno">
               帳
             </span>
-            Seus cadernos
+            Suas pastas
           </h2>
           <a href="#nova-materia" className="text-shu flex items-center gap-1 text-sm font-bold hover:underline">
-            <Plus aria-hidden className="size-4" /> Nova matéria
+            <Plus aria-hidden className="size-4" /> Nova pasta
           </a>
         </div>
-        {!subjects?.length ? (
-          <p className="text-muted-foreground text-sm">Crie sua primeira matéria e mande o material da prova.</p>
+        {!folders.length ? (
+          <p className="text-muted-foreground text-sm">Pastas são opcionais: mande um arquivo e organize depois, ou crie uma pasta por matéria.</p>
         ) : (
           <ul className="-mx-4 flex snap-x scroll-px-4 gap-3 overflow-x-auto px-4 pt-1 pb-3 [scrollbar-width:none] md:mx-0 md:flex-wrap md:gap-4 md:overflow-visible md:px-0" data-testid="subject-list">
-            {subjects.map((s, i) => {
+            {folders.map((s, i) => {
               const cover = COVERS[i % COVERS.length];
               const left = s.exam_date ? daysBetween(today, s.exam_date) : null;
               return (
@@ -241,7 +297,7 @@ export default async function DashboardPage() {
                     <span className="bg-washi text-ink relative ml-2 grid gap-0.5 rounded-sm border-[1.5px] border-ink px-2.5 py-2 shadow-[0_2px_0_rgb(0_0_0/0.25)]">
                       <span className="font-display line-clamp-3 text-[15px] leading-tight font-extrabold [overflow-wrap:anywhere] hyphens-auto">{s.name}</span>
                       <span className="text-[10px] font-bold tracking-wider text-ink/60 uppercase">
-                        {EXAM_STYLE_LABELS[s.exam_style as keyof typeof EXAM_STYLE_LABELS] ?? s.exam_style}
+                        {s.inbox ? "arquivos soltos" : (EXAM_STYLE_LABELS[s.exam_style as keyof typeof EXAM_STYLE_LABELS] ?? s.exam_style)}
                       </span>
                     </span>
                     <span className="relative ml-2 flex items-end justify-between">
@@ -251,7 +307,7 @@ export default async function DashboardPage() {
                           <span className="text-[11px] font-bold tracking-wider uppercase opacity-85">{left === 1 ? "dia p/ prova" : "dias p/ prova"}</span>
                         </span>
                       ) : (
-                        <span className="text-xs opacity-80">sem data de prova</span>
+                        <span className="text-xs opacity-80">{s.inbox ? "organize depois" : "sem data de prova"}</span>
                       )}
                       <Hanko className="size-9 drop-shadow" rotate={8} />
                     </span>
@@ -317,8 +373,8 @@ export default async function DashboardPage() {
 
       <Card id="nova-materia" className="scroll-mt-20">
         <CardHeader>
-          <CardTitle>Nova matéria</CardTitle>
-          <p className="text-muted-foreground text-sm">Com a data da prova, você ganha um plano de estudo diário.</p>
+          <CardTitle>Nova pasta</CardTitle>
+          <p className="text-muted-foreground text-sm">Uma pasta por matéria ou prova. É só dar um nome.</p>
         </CardHeader>
         <CardContent>
           <CreateSubjectForm />

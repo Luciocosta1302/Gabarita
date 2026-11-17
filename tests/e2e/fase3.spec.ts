@@ -16,8 +16,8 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await expect(page).toHaveURL(/\/dashboard$/);
   await skipTour(page);
   await page.goto("/dashboard");
-  await page.getByLabel("Matéria / prova").fill("Biologia");
-  await page.getByRole("button", { name: "Criar matéria" }).click();
+  await page.getByLabel("Nome da pasta").fill("Biologia");
+  await page.getByRole("button", { name: "Criar pasta" }).click();
   await page.getByTestId("subject-list").getByText("Biologia").click();
   await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
   const subjectUrl = page.url();

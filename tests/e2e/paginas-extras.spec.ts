@@ -10,8 +10,8 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   const page = await (await browser.newContext()).newPage();
   await signup(page, "Ana Extra", "e2e6a");
 
-  await page.getByLabel("Matéria / prova").fill("Biologia");
-  await page.getByRole("button", { name: "Criar matéria" }).click();
+  await page.getByLabel("Nome da pasta").fill("Biologia");
+  await page.getByRole("button", { name: "Criar pasta" }).click();
   await page.getByTestId("subject-list").getByText("Biologia").click();
   await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
   await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(6)) });

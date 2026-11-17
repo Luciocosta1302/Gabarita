@@ -17,14 +17,14 @@ export const WELCOME_STEPS: { who: GuideWho; title: string; text: string }[] = [
     text: "Eu sou a Mochi. Em quatro passos eu te mostro como o Gabarita funciona. Dá para pular quando quiser.",
   },
   {
-    who: "daru",
-    title: "1. Crie uma matéria",
-    text: "Cada prova é uma matéria (um caderno). Coloque a data da prova e quantas horas por dia você tem: com isso eu monto o seu plano até o dia.",
+    who: "mochi",
+    title: "1. Mande um arquivo",
+    text: "PDF, slides, Word, fotos do caderno, áudio da aula, link ou YouTube. Cada arquivo vira uma conversa. O botão vermelho “Adicionar material” fica sempre no alto da tela.",
   },
   {
-    who: "mochi",
-    title: "2. Adicione o material",
-    text: "PDF, slides, Word, fotos do caderno, áudio da aula, link de página ou vídeo do YouTube. O botão vermelho “Adicionar material” fica sempre no alto da tela.",
+    who: "daru",
+    title: "2. Pastas, se quiser",
+    text: "Organize por matéria criando pastas — é só dar um nome. Com a data da prova, eu monto o seu plano até o dia. Sem pasta também funciona.",
   },
   {
     who: "fuku",
@@ -41,12 +41,12 @@ export const WELCOME_STEPS: { who: GuideWho; title: string; text: string }[] = [
 export const GUIDES = {
   adicionar: {
     title: "Adicionar material",
-    who: "mochi",
-    intro: "Tudo o que você mandar vira material de estudo: a IA lê, separa por assunto e guarda a página de cada trecho.",
+    who: "fuku",
+    intro: "Cada arquivo vira uma conversa: a IA lê, guarda a página de cada trecho e responde citando o material.",
     steps: [
-      "Escolha a matéria (ou crie uma nova).",
-      "Escolha como enviar: arquivo (PDF, slides, Word, fotos, áudio), link/YouTube ou texto colado.",
-      "Espere o selo “pronto” no material — dá para continuar usando o app enquanto isso.",
+      "Escolha o arquivo (PDF, slides, Word, fotos, áudio), um link/YouTube ou cole um texto.",
+      "Pasta é opcional: sem escolher, vai para “Sem pasta” e dá para mover depois.",
+      "Toque em Enviar: a conversa abre na hora e fica pronta em alguns instantes.",
     ],
   },
   materia: {

@@ -34,16 +34,30 @@ function withCitationLinks(text: string, citations: Citation[] = []) {
   });
 }
 
-export function Chat({ subjectId, materialId, initial = [] }: { subjectId: string; materialId?: string; initial?: Message[] }) {
+export function Chat({
+  subjectId,
+  materialId,
+  initial = [],
+  welcome,
+  suggestions = [],
+}: {
+  subjectId: string;
+  materialId?: string;
+  initial?: Message[];
+  /** primeira fala da Fuku numa conversa nova (não é salva) */
+  welcome?: string;
+  /** perguntas prontas para tocar e enviar */
+  suggestions?: string[];
+}) {
   const [messages, setMessages] = useState<Message[]>(initial);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const text = input.trim();
+  async function send(e: React.FormEvent | null, preset?: string) {
+    e?.preventDefault();
+    const text = (preset ?? input).trim();
     if (!text || busy) return;
     setError(null);
     setInput("");
@@ -63,11 +77,17 @@ export function Chat({ subjectId, materialId, initial = [] }: { subjectId: strin
   return (
     <div className="grid gap-4">
       <div className="grid gap-3" data-testid="chat-messages">
-        {messages.length === 0 && (
-          <p className="text-muted-foreground text-sm">
-            Pergunte qualquer coisa sobre o seu material. As respostas citam a página de onde saiu cada informação.
-          </p>
-        )}
+        {messages.length === 0 &&
+          (welcome ? (
+            <div className="flex max-w-[92%] items-start gap-2" data-testid="chat-welcome">
+              <CharacterAvatar pose={{ who: "fuku", mood: "feliz" }} />
+              <div className="bg-card animate-rise min-w-0 rounded-2xl border px-4 py-3 text-sm whitespace-pre-wrap">{welcome}</div>
+            </div>
+          ) : (
+            <p className="text-muted-foreground text-sm">
+              Pergunte qualquer coisa sobre o seu material. As respostas citam a página de onde saiu cada informação.
+            </p>
+          ))}
         {messages.map((m, i) => (
           <div key={i} className={cn("flex max-w-[92%] items-start gap-2", m.role === "user" && "justify-self-end")}>
           {m.role === "assistant" && <CharacterAvatar pose={{ who: "fuku", mood: m.noBasis ? "pensando" : "explicando" }} />}
@@ -109,7 +129,22 @@ export function Chat({ subjectId, materialId, initial = [] }: { subjectId: strin
           {error}
         </p>
       )}
-      <form onSubmit={send} className="flex items-end gap-2">
+      {messages.length === 0 && suggestions.length > 0 && (
+        <div className="flex flex-wrap gap-2" data-testid="chat-suggestions">
+          {suggestions.map((q) => (
+            <button
+              key={q}
+              type="button"
+              disabled={busy}
+              onClick={() => send(null, q)}
+              className="tap-spring bg-card rounded-full border-[1.5px] border-ink/40 px-3 py-1.5 text-left text-sm font-medium hover:border-ink"
+            >
+              {q}
+            </button>
+          ))}
+        </div>
+      )}
+      <form onSubmit={(e) => send(e)} className="flex items-end gap-2">
         <Textarea
           aria-label="Sua pergunta"
           value={input}

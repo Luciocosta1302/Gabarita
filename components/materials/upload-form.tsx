@@ -34,25 +34,28 @@ function sizeLabel(bytes: number) {
 
 /**
  * Envio de material. Na página da matéria a matéria já vem escolhida; em /adicionar o aluno escolhe
- * (`subjects`) e, ao terminar, vai para a matéria acompanhar o processamento (`goToSubject`).
+ * (`folders`, opcional: sem pasta vai para "Sem pasta") e, ao terminar, abre a conversa do arquivo (`openChat`).
  */
 export function UploadForm({
   subjectId,
-  subjects,
+  folders,
   purpose = "study",
   initialMode = "files",
-  goToSubject = false,
+  openChat = false,
 }: {
   subjectId?: string;
-  subjects?: { id: string; name: string }[];
+  /** escolher a pasta no próprio formulário (pastas do aluno, sem a "Sem pasta") */
+  folders?: { id: string; name: string }[];
   purpose?: "study" | "past_exam";
   initialMode?: Mode;
-  /** depois de enviar, abre a matéria (para acompanhar o processamento); sem isso, só atualiza a página */
-  goToSubject?: boolean;
+  /** depois de enviar, abre a conversa do arquivo; sem isso, só atualiza a página */
+  openChat?: boolean;
 }) {
   const router = useRouter();
   const [mode, setMode] = useState<Mode>(purpose === "past_exam" && initialMode === "link" ? "files" : initialMode);
-  const [subject, setSubject] = useState(subjectId ?? subjects?.[0]?.id ?? "");
+  // "" = Sem pasta; "__new__" = criar uma pasta agora
+  const [folder, setFolder] = useState(subjectId ?? "");
+  const [newFolder, setNewFolder] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [dragging, setDragging] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
@@ -73,24 +76,36 @@ export function UploadForm({
     setSent(false);
     const form = new FormData(e.currentTarget);
     try {
-      if (!subject) throw new Error("Escolha a matéria.");
+      let subject = folder;
+      if (!subject || subject === "__new__") {
+        if (subject === "__new__" && !newFolder.trim()) throw new Error("Escreva o nome da nova pasta (ou escolha “Sem pasta”).");
+        setBusy("Preparando a pasta...");
+        subject = (
+          await postJSON<{ subject_id: string }>("/api/folders", subject === "__new__" ? { name: newFolder.trim() } : { inbox: true })
+        ).subject_id;
+        if (folder === "__new__") {
+          setFolder(subject);
+          setNewFolder("");
+        }
+      }
+      let materialId: string;
       if (mode === "link") {
         setBusy("Enviando link...");
-        await postJSON<Created>("/api/upload", {
+        materialId = (await postJSON<Created>("/api/upload", {
           kind: "link",
           subject_id: subject,
           url: String(form.get("url") ?? ""),
           title: String(form.get("title") ?? ""),
-        });
+        })).material_id;
       } else if (mode === "text") {
         setBusy("Enviando texto...");
-        await postJSON<Created>("/api/upload", {
+        materialId = (await postJSON<Created>("/api/upload", {
           kind: "text",
           subject_id: subject,
           purpose,
           title: String(form.get("title") ?? ""),
           text: String(form.get("text") ?? ""),
-        });
+        })).material_id;
       } else {
         if (!files.length) throw new Error("Nenhum arquivo escolhido. Toque na área tracejada para escolher o arquivo.");
         const big = files.find((f) => f.size > MAX_UPLOAD_BYTES);
@@ -117,11 +132,12 @@ export function UploadForm({
           if (upError) throw new Error(explainStorageError(file.name, upError.message));
         }
         await postJSON("/api/upload/complete", { material_id: created.material_id });
+        materialId = created.material_id;
       }
       formRef.current?.reset();
       setFiles([]);
       setSent(true);
-      if (goToSubject) router.push(`/subjects/${subject}#materiais`);
+      if (openChat) router.push(`/chat/${subject}?material=${materialId}`);
       else router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Falha no envio.");
@@ -134,19 +150,6 @@ export function UploadForm({
 
   return (
     <form ref={formRef} onSubmit={submit} className="grid gap-4">
-      {subjects && (
-        <div className="grid gap-2">
-          <Label htmlFor="material-subject">Matéria</Label>
-          <select id="material-subject" className={selectClass} value={subject} onChange={(e) => setSubject(e.target.value)} required>
-            {subjects.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
       <FluidTabs
         label="Como enviar o material"
         value={mode}
@@ -254,16 +257,41 @@ export function UploadForm({
       )}
 
       <div className="grid gap-2">
-        <Label htmlFor="material-title">Título {mode !== "text" && "(opcional)"}</Label>
+        <Label htmlFor="material-title">{openChat ? "Nome da conversa" : "Título"} {mode !== "text" && "(opcional)"}</Label>
         <Input id="material-title" name="title" maxLength={200} placeholder="Ex.: Capítulo 3 — Funções" required={mode === "text"} />
       </div>
+
+      {folders && (
+        <div className="grid gap-2">
+          <Label htmlFor="material-folder">Pasta (opcional)</Label>
+          <select id="material-folder" className={selectClass} value={folder} onChange={(e) => setFolder(e.target.value)}>
+            <option value="">Sem pasta (organizo depois)</option>
+            {folders.map((f) => (
+              <option key={f.id} value={f.id}>
+                {f.name}
+              </option>
+            ))}
+            <option value="__new__">+ Nova pasta...</option>
+          </select>
+          {folder === "__new__" && (
+            <Input
+              aria-label="Nome da nova pasta"
+              autoFocus
+              value={newFolder}
+              onChange={(e) => setNewFolder(e.target.value)}
+              maxLength={120}
+              placeholder="Ex.: Cálculo I, ENEM, Concurso INSS"
+            />
+          )}
+        </div>
+      )}
 
       {error && (
         <p role="alert" className="text-destructive text-sm">
           {error}
         </p>
       )}
-      {sent && !goToSubject && (
+      {sent && !openChat && (
         <p role="status" className="text-matcha text-sm font-medium">
           Recebido! O material aparece na lista abaixo e fica pronto em alguns instantes.
         </p>
