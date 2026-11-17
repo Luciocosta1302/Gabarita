@@ -119,3 +119,34 @@ describe("relatório do simulado (D16)", () => {
     expect(simuladoReport({ questions, attempts, style: "enem", timeLimitS: 60, startedAt: null, finishedAt: null }).cebraspeNet).toBeNull();
   });
 });
+
+describe("resposta certa espalhada pelas letras", () => {
+  it("10 questões de 4 alternativas: nenhuma letra passa de 3", async () => {
+    const { balancedPositions } = await import("@/lib/quiz/options");
+    for (let r = 0; r < 200; r++) {
+      const pos = balancedPositions(Array(10).fill(4));
+      const count = [0, 0, 0, 0];
+      for (const p of pos) count[p]++;
+      expect(Math.max(...count)).toBeLessThanOrEqual(3);
+      expect(Math.min(...count)).toBeGreaterThanOrEqual(2);
+    }
+  });
+
+  it("coloca a correta na posição pedida e mantém as alternativas", async () => {
+    const { shuffleOptionsTo } = await import("@/lib/quiz/options");
+    const opts = ["certa", "x", "y", "z", "w"];
+    for (let t = 0; t < 5; t++) {
+      const out = shuffleOptionsTo(opts, 0, t);
+      expect(out.answerIndex).toBe(t);
+      expect(out.options[t]).toBe("certa");
+      expect([...out.options].sort()).toEqual([...opts].sort());
+    }
+  });
+
+  it("posição maior que as alternativas da questão cai dentro do limite", async () => {
+    const { balancedPositions } = await import("@/lib/quiz/options");
+    const pos = balancedPositions([5, 2, 2, 5, 0]);
+    expect(pos[1]).toBeLessThan(2);
+    expect(pos[2]).toBeLessThan(2);
+  });
+});

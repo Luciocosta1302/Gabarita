@@ -82,3 +82,48 @@ describe("AI_PROVIDER=gemini", () => {
     await expect(new GeminiProvider(models, "k").generateText({ prompt: "x" })).rejects.toThrow("content_filter");
   });
 });
+
+describe("vídeo do YouTube", () => {
+  const noWait = async () => {};
+  it("Gemini sobrecarregado (503 UNAVAILABLE) não vira 'vídeo privado': o job tenta de novo", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ error: { code: 503, status: "UNAVAILABLE", message: "The model is overloaded" } }, 503)));
+    const p = new GeminiProvider(models, "k", noWait);
+    const err = await p.transcribeVideo("https://www.youtube.com/watch?v=abc").catch((e) => e);
+    expect(err.constructor.name).not.toBe("UserFacingError");
+    expect(err.name).toBe("AIBusyError");
+    expect(err.rateLimited).toBe(true); // a API responde 429 com a mensagem clara
+    expect(err.message).toMatch(/muito ocupada/);
+  });
+
+  it("vídeo que o Gemini não consegue abrir (400) dá a mensagem de vídeo público", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => json({ error: { code: 400, message: "Request contains an invalid argument." } }, 400)));
+    const p = new GeminiProvider(models, "k", noWait);
+    await expect(p.transcribeVideo("https://www.youtube.com/watch?v=abc")).rejects.toThrow("precisa ser público");
+  });
+});
+
+describe("modelo reserva", () => {
+  it("modelo principal sobrecarregado (503) → tenta o reserva e responde", async () => {
+    const used: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: string, init: RequestInit) => {
+        const model = JSON.parse(init.body as string).model;
+        used.push(model);
+        return model === "f" ? json({ error: { code: 503, status: "UNAVAILABLE" } }, 503) : json({ choices: [{ message: { content: "ok" } }] });
+      }),
+    );
+    const p = new GeminiProvider({ ...models, fallback: "reserva" }, "k", async () => {});
+    const out = await p.generateText({ prompt: "oi", tier: "fast" });
+    expect(out.text).toBe("ok");
+    expect(used).toEqual(["f", "f", "reserva"]); // 1 nova tentativa no principal, depois o reserva
+  });
+
+  it("sem reserva, mantém as 3 novas tentativas", async () => {
+    const fetchMock = vi.fn(async () => json({ error: { code: 503 } }, 503));
+    vi.stubGlobal("fetch", fetchMock);
+    const p = new GeminiProvider(models, "k", async () => {});
+    await expect(p.generateText({ prompt: "oi", tier: "fast" })).rejects.toThrow("muito ocupada");
+    expect(fetchMock).toHaveBeenCalledTimes(4);
+  });
+});

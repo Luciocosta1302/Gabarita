@@ -35,7 +35,8 @@ test("página da web e vídeo do YouTube viram material", async ({ page }) => {
     await expect(page.getByText("Vídeo do YouTube").first()).toBeVisible({ timeout: 60_000 });
 
     // o material do vídeo mostra a transcrição com os tempos e o link para o original
-    await page.getByRole("link", { name: "https://www.youtube.com/watch?v=jNQXAC9IVRw" }).click();
+    // sem o título do YouTube (oEmbed bloqueado no teste), o nome fica legível em vez do link
+    await page.getByRole("link", { name: "Vídeo do YouTube (jNQXAC9IVRw)" }).click();
     await expect(page.getByTestId("source-link")).toHaveAttribute("href", "https://www.youtube.com/watch?v=jNQXAC9IVRw");
     await expect(page.getByText(/A mitose gera duas/)).toBeVisible();
     // os tempos viram links para aquele ponto do vídeo

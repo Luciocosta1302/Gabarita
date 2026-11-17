@@ -84,3 +84,14 @@ describe("tempos da transcrição", () => {
     expect(videoAt("https://www.youtube.com/watch?v=jNQXAC9IVRw", 90)).toBe("https://www.youtube.com/watch?v=jNQXAC9IVRw&t=90s");
   });
 });
+
+describe("transcrição de vídeo em partes", () => {
+  it("transcrição com uma linha por fala (sem linha em branco) vira várias partes", async () => {
+    const { splitPseudoPages } = await import("@/lib/ingest/extract");
+    const lines = Array.from({ length: 200 }, (_, i) => `[${String(Math.floor(i / 12)).padStart(2, "0")}:${String((i * 5) % 60).padStart(2, "0")}] Fala número ${i} sobre seno, cosseno e tangente no triângulo retângulo.`);
+    const ex = splitPseudoPages(lines.join("\n"));
+    expect(ex.pageCount).toBeGreaterThan(3);
+    for (const p of ex.pages) expect(p.text.length).toBeLessThanOrEqual(3200);
+    expect(ex.pages.map((p) => p.text).join("\n")).toContain("Fala número 199");
+  });
+});

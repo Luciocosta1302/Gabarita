@@ -41,7 +41,7 @@ export async function generateSummary(supabase: DB, userId: string, materialId: 
 
   const { data: chunks } = await supabase
     .from("chunks")
-    .select("id, page, content")
+    .select("id, page, page_breaks, content")
     .eq("material_id", materialId)
     .order("chunk_index")
     .limit(5000);

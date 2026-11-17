@@ -38,7 +38,7 @@ export function summaryPrompt(input: { title: string; chunks: SourceChunk[]; par
         : `Resuma o material "${input.title}".`,
       "",
       "Trechos do material:",
-      formatSources(input.chunks),
+      formatSources(input.chunks, { pageMarks: true }),
     ].join("\n"),
     schema: summarySchema,
     tier: input.partial ? ("fast" as const) : ("smart" as const),

@@ -36,6 +36,15 @@ export class AIRateLimitError extends Error {
   }
 }
 
+/** Gemini sobrecarregado (503 "high demand") mesmo depois das novas tentativas: passageiro, mensagem clara. */
+export class AIBusyError extends Error {
+  readonly rateLimited = true;
+  constructor() {
+    super("A IA gratuita está muito ocupada agora (muita gente usando ao mesmo tempo). Tente de novo em 1 ou 2 minutos.");
+    this.name = "AIBusyError";
+  }
+}
+
 type ContentPart =
   | { type: "text"; text: string }
   | { type: "image_url"; image_url: { url: string } }
@@ -50,11 +59,13 @@ export class GeminiProvider implements AIProvider {
   readonly name = "gemini";
 
   constructor(
-    private readonly models = {
+    private readonly models: { smart: string; fast: string; embed: string; fallback?: string } = {
       // Na cota grátis o "flash" fica em fila (46-86 s por resposta em teste); o "flash-lite" responde em ~1 s.
       smart: process.env.GEMINI_MODEL_SMART || "gemini-flash-lite-latest",
       fast: process.env.GEMINI_MODEL_FAST || "gemini-flash-lite-latest",
       embed: process.env.GEMINI_MODEL_EMBED || "gemini-embedding-001",
+      // reserva: quando o modelo principal está sobrecarregado (503), tenta este (outra fila no Google)
+      fallback: process.env.GEMINI_MODEL_FALLBACK || "gemini-3.1-flash-lite",
     },
     private readonly apiKey = process.env.GEMINI_API_KEY,
     private readonly sleep = (ms: number) => new Promise((r) => setTimeout(r, ms)),
@@ -62,7 +73,8 @@ export class GeminiProvider implements AIProvider {
     if (!apiKey) throw new Error("GEMINI_API_KEY não configurada.");
   }
 
-  private async post<T>(path: string, body: unknown): Promise<T> {
+  /** `busyRetries`: quantas vezes esperar e repetir num 503 (com modelo reserva, troca logo de modelo). */
+  private async post<T>(path: string, body: unknown, busyRetries = RETRY_WAITS_MS.length): Promise<T> {
     for (let attempt = 0; ; attempt++) {
       const res = await fetch(`${BASE_URL}${path}`, {
         method: "POST",
@@ -71,23 +83,33 @@ export class GeminiProvider implements AIProvider {
         signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
       });
       const retryable = res.status === 429 || res.status >= 500;
-      if (retryable && attempt < RETRY_WAITS_MS.length) {
+      if (retryable && attempt < (res.status === 503 ? busyRetries : RETRY_WAITS_MS.length)) {
         await this.sleep(RETRY_WAITS_MS[attempt]);
         continue;
       }
       if (res.status === 429) throw new AIRateLimitError();
+      if (res.status === 503) throw new AIBusyError();
       if (!res.ok) throw new Error(`Gemini respondeu ${res.status}: ${(await res.text()).slice(0, 500)}`);
       return (await res.json()) as T;
     }
   }
 
   private async chat(model: string, system: string | undefined, parts: ContentPart[], maxTokens: number, json: boolean) {
-    const res = await this.post<ChatResponse>("/chat/completions", {
-      model,
+    const body = (m: string) => ({
+      model: m,
       messages: [...(system ? [{ role: "system", content: system }] : []), { role: "user", content: parts }],
       max_tokens: maxTokens,
       ...(json ? { response_format: { type: "json_object" } } : {}),
     });
+    const fallback = this.models.fallback && this.models.fallback !== model ? this.models.fallback : null;
+    let res: ChatResponse;
+    try {
+      res = await this.post<ChatResponse>("/chat/completions", body(model), fallback ? 1 : RETRY_WAITS_MS.length);
+    } catch (e) {
+      if (!(e instanceof AIBusyError) || !fallback) throw e;
+      console.warn(`[gemini] ${model} sobrecarregado; usando ${fallback}`);
+      res = await this.post<ChatResponse>("/chat/completions", body(fallback));
+    }
     const choice = res.choices?.[0];
     const text = choice?.message?.content;
     if (!text) throw new AIBlockedError(choice?.finish_reason ?? "sem texto");
@@ -161,9 +183,12 @@ export class GeminiProvider implements AIProvider {
         throw Object.assign(new UserFacingError("A IA gratuita não deu conta desse vídeo agora (limite por minuto). Tente de novo em alguns minutos ou use um vídeo de até ~40 minutos."), { rateLimited: true });
       }
       const msg = e instanceof Error ? e.message : "";
+      // Só erros 4xx falam do vídeo. 5xx ("503 UNAVAILABLE" = Gemini sobrecarregado) é passageiro:
+      // segue como erro comum para o job tentar de novo, em vez de dizer que o vídeo é privado.
+      const status = Number(/^Gemini respondeu (\d{3})/.exec(msg)?.[1] ?? 0);
+      if (status < 400 || status >= 500) throw e;
       if (/token|too long|exceeds|limit/i.test(msg)) throw new UserFacingError("Vídeo longo demais para a IA gratuita (até ~40 minutos por vídeo).");
-      if (/40[034]|not found|private|unavailable|invalid/i.test(msg)) throw new UserFacingError("Não conseguimos assistir esse vídeo. Ele precisa ser público (não pode ser privado nem não listado com restrição).");
-      throw e;
+      throw new UserFacingError("Não conseguimos assistir esse vídeo. Ele precisa ser público (não pode ser privado nem não listado com restrição).");
     }
   }
 

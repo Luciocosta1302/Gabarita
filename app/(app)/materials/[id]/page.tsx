@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Summary } from "@/lib/ai/prompts/summary";
 import { MATERIALS_BUCKET } from "@/lib/ingest/pipeline";
 import { createClient } from "@/lib/supabase/server";
+import { quotePage } from "@/lib/text/pages";
 import { cn } from "@/lib/utils";
 
 const NEIGHBORS = 1;
@@ -45,7 +46,7 @@ export default async function MaterialPage({
     const { data } = await supabase.from("chunks").select("chunk_index").eq("id", chunkId).eq("material_id", id).maybeSingle();
     focus = data;
   }
-  let chunksQuery = supabase.from("chunks").select("id, page, content, chunk_index").eq("material_id", id).order("chunk_index");
+  let chunksQuery = supabase.from("chunks").select("id, page, page_breaks, content, chunk_index").eq("material_id", id).order("chunk_index");
   if (focus) {
     chunksQuery = chunksQuery
       .gte("chunk_index", focus.chunk_index - NEIGHBORS)
@@ -64,6 +65,8 @@ export default async function MaterialPage({
   ]);
   const summary = summaryRow?.content_json as Summary | undefined;
   const focusChunk = chunks?.find((c) => c.id === chunkId);
+  // página da citação (o trecho pode atravessar vários slides/páginas)
+  const focusPage = focusChunk ? quotePage(focusChunk, question?.source_quote) : null;
   const pdfUrl = signed.data?.signedUrl;
 
   return (
@@ -87,12 +90,12 @@ export default async function MaterialPage({
             <>
               {" · "}
               <a
-                href={`${pdfUrl}#page=${focusChunk?.page ?? 1}`}
+                href={`${pdfUrl}#page=${focusPage ?? 1}`}
                 target="_blank"
                 rel="noreferrer"
                 className="text-primary underline"
               >
-                Abrir PDF original{focusChunk?.page ? ` na página ${focusChunk.page}` : ""}
+                Abrir PDF original{focusPage ? ` na página ${focusPage}` : ""}
               </a>
             </>
           )}
@@ -116,7 +119,7 @@ export default async function MaterialPage({
                   className={cn("rounded-xl border p-4", isFocus ? "bg-card border-primary ring-primary/20 ring-2" : "opacity-60")}
                 >
                   <div className="text-muted-foreground mb-2 text-xs font-medium" data-testid={isFocus ? "focus-page" : undefined}>
-                    {c.page != null ? `${pageWord} ${c.page}` : "Trecho"}
+                    {(isFocus ? focusPage : c.page) != null ? `${pageWord} ${isFocus ? focusPage : c.page}` : "Trecho"}
                     {isFocus ? " · trecho citado" : ""}
                   </div>
                   <Highlighted text={c.content} quote={isFocus ? question?.source_quote : null} videoUrl={videoUrl} />

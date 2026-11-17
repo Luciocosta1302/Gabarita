@@ -62,7 +62,7 @@ export async function importMaterial(db: DB, userId: string, input: { roomMateri
   const { data: src } = await admin.from("materials").select("type, title, page_count").eq("id", shared.material_id).single();
   const { data: chunks } = await admin
     .from("chunks")
-    .select("content, page, chunk_index, embedding")
+    .select("content, page, page_breaks, chunk_index, embedding")
     .eq("material_id", shared.material_id)
     .order("chunk_index")
     .limit(5000);

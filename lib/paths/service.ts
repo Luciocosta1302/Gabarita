@@ -73,7 +73,7 @@ async function stepChunks(db: DB, topicIds: string[]): Promise<GenChunk[]> {
   if (!topicIds.length) return [];
   const { data } = await db
     .from("chunks")
-    .select("id, page, content, topic_id, chunk_index")
+    .select("id, page, page_breaks, content, topic_id, chunk_index")
     .in("topic_id", topicIds)
     .order("chunk_index")
     .limit(200);
@@ -218,7 +218,7 @@ export async function answerStep(
     // a próxima questão é sobre o MESMO ponto em que errou (o trecho da questão), para ver se entendeu
     const failed = q.chunk_id ? chunks.filter((c) => c.id === q.chunk_id) : [];
     const { data: own } = q.chunk_id && !failed.length
-      ? await db.from("chunks").select("id, page, content, topic_id").eq("id", q.chunk_id).maybeSingle()
+      ? await db.from("chunks").select("id, page, page_breaks, content, topic_id").eq("id", q.chunk_id).maybeSingle()
       : { data: null };
     await askQuestion(db, userId, fresh, false, failed.length ? failed : own ? [own] : chunks);
   } else {

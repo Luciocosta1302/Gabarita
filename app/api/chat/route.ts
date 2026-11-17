@@ -5,6 +5,7 @@ import { chatPrompt } from "@/lib/ai/prompts/chat";
 import { sourceAt } from "@/lib/ai/prompts/sources";
 import { apiRoute, jsonError } from "@/lib/api/route";
 import { searchChunks, searchMaterialChunks } from "@/lib/rag/search";
+import { bestPageFor } from "@/lib/text/pages";
 import { chatRequestSchema } from "@/lib/validation/generate";
 
 export const maxDuration = 120;
@@ -37,6 +38,11 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase, user }
     ? await supabase.from("materials").select("id, title").in("id", materialIds)
     : { data: [] };
   const titles = new Map((materials ?? []).map((m) => [m.id, m.title]));
+  // o trecho pode atravessar vários slides/páginas: cita a página que mais combina com a resposta
+  const { data: breaksRows } = used.length
+    ? await supabase.from("chunks").select("id, page_breaks").in("id", used.map((u) => u.chunk!.id))
+    : { data: [] };
+  const breaks = new Map((breaksRows ?? []).map((r) => [r.id, r.page_breaks]));
 
   const body: ChatResponse = {
     answer: data.answer,
@@ -46,7 +52,7 @@ export const POST = apiRoute(chatRequestSchema, async (input, { supabase, user }
       chunk_id: chunk!.id,
       material_id: chunk!.material_id,
       material_title: titles.get(chunk!.material_id) ?? "Material",
-      page: chunk!.page,
+      page: bestPageFor({ ...chunk!, page_breaks: breaks.get(chunk!.id) }, data.answer),
     })),
   };
   const { error } = await supabase.from("chat_messages").insert([

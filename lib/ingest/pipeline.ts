@@ -53,6 +53,7 @@ export async function ingestMaterial(admin: AdminClient, materialId: string) {
       subject_id: material.subject_id,
       content: c.content,
       page: c.page,
+      page_breaks: c.breaks,
       chunk_index: c.index,
       embedding: toPgVector(embeddings[i + j]),
     }));
@@ -81,7 +82,8 @@ async function extractLink(admin: AdminClient, m: LinkMaterial): Promise<Extract
     const [{ text }, t] = await Promise.all([transcribeVideo(url), youtubeTitle(url)]);
     if (text.replace(/\[[\d:]+\]/g, "").trim().length < 50) throw new UserFacingError("Não deu para entender a fala neste vídeo.");
     ex = splitPseudoPages(text);
-    title = t;
+    // sem o título (oEmbed fora do ar), um nome legível no lugar do link
+    title = t ?? `Vídeo do YouTube (${id})`;
   } else {
     const got = await fetchLink(m.source_url);
     if (got.kind === "pdf") {

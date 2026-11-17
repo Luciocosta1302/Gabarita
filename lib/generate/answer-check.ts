@@ -25,6 +25,8 @@ export async function checkAnswers(questions: CheckableQuestion[]): Promise<bool
         result[i] = byN.get(k + 1) === q.answerIndex;
       });
     } catch (e) {
+      // IA sobrecarregada/sem cota: avisa o aluno para tentar de novo, em vez de "não deu para conferir"
+      if (e instanceof Error && (e as { rateLimited?: boolean }).rateLimited) throw e;
       console.error("[gabarito] revisão falhou:", e instanceof Error ? e.message : e);
     }
   }

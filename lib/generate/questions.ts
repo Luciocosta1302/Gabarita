@@ -15,10 +15,12 @@ import { sourceAt, type SourceChunk } from "@/lib/ai/prompts/sources";
 import { teacherStyleGuide, type TeacherProfile } from "@/lib/ai/prompts/teacher";
 import { UserFacingError } from "@/lib/errors";
 import { EXAM_STYLE_LABELS, STYLE_SPECS, type ExamStyle } from "@/lib/exam-styles";
-import { indexToLetter, shuffleOptions } from "@/lib/quiz/options";
+import { balancedPositions, indexToLetter, shuffleOptionsTo } from "@/lib/quiz/options";
 import type { Database } from "@/lib/supabase/database.types";
 import { teacherOptionsCount, type LikelyTopic } from "@/lib/teacher/logic";
 import { findQuote } from "@/lib/text/quote";
+
+import { quotePage } from "@/lib/text/pages";
 
 import { keepChecked } from "./answer-check";
 import { pickChunks, splitCounts } from "./pick";
@@ -236,7 +238,7 @@ export async function pickSources(
   const picked = pickChunks(likely.length >= Math.min(input.count, 3) ? likely : index, used, input.count);
   const { data: contents } = await supabase
     .from("chunks")
-    .select("id, page, content, topic_id")
+    .select("id, page, page_breaks, content, topic_id")
     .in(
       "id",
       picked.map((c) => c.id),
@@ -295,7 +297,9 @@ export async function createQuestions(
   const valid = kept.slice(0, input.count);
   if (valid.length === 0) throw new UserFacingError("Não consegui gerar questões com o gabarito conferido neste material. Tente de novo ou escolha outro trecho.");
 
-  const rows: QuestionInsert[] = valid.map((v) => {
+  // resposta certa espalhada por igual entre as letras do lote (múltipla escolha)
+  const targets = balancedPositions(valid.map((v) => (v.type === "multiple_choice" ? v.options.length : 0)));
+  const rows: QuestionInsert[] = valid.map((v, i) => {
     if (v.type === "open") {
       return {
         user_id: userId,
@@ -310,14 +314,14 @@ export async function createQuestions(
         rubric_json: v.rubric!,
         difficulty: v.difficulty,
         style,
-        source_page: v.chunk.page,
+        source_page: quotePage(v.chunk, v.quote),
         source_quote: v.quote,
         origin: input.origin,
       };
     }
     // Certo/Errado mantém a ordem; múltipla escolha é embaralhada.
     const shuffled =
-      v.type === "true_false" ? { options: v.options, answerIndex: v.answerIndex } : shuffleOptions(v.options, v.answerIndex);
+      v.type === "true_false" ? { options: v.options, answerIndex: v.answerIndex } : shuffleOptionsTo(v.options, v.answerIndex, targets[i]);
     return {
       user_id: userId,
       subject_id: input.subjectId,
@@ -330,7 +334,7 @@ export async function createQuestions(
       explanation: v.explanation,
       difficulty: v.difficulty,
       style: teacher ? "professor" : style,
-      source_page: v.chunk.page,
+      source_page: quotePage(v.chunk, v.quote),
       source_quote: v.quote,
       origin: input.origin,
     };

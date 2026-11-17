@@ -1,11 +1,12 @@
 /**
  * Divide o texto em trechos de ~800 tokens com sobreposição de ~100 tokens.
  * Aproximação: 1 token ≈ 4 caracteres (bom o bastante para português; evita uma lib de tokenizer).
- * Cada trecho guarda a página onde começa.
+ * Cada trecho guarda a página onde começa e onde começam as páginas seguintes dentro dele.
  */
 
 export type PageText = { page: number; text: string };
-export type Chunk = { index: number; page: number; content: string };
+/** `breaks`: [posição no conteúdo, página] de cada página que começa dentro do trecho (além da primeira). */
+export type Chunk = { index: number; page: number; content: string; breaks: [number, number][] };
 
 export const CHARS_PER_TOKEN = 4;
 
@@ -77,7 +78,10 @@ export function chunkPages(
     const target = start + maxChars;
     const end = target >= full.length ? full.length : cutPoint(full, start, target, target);
     const content = full.slice(start, end).trim();
-    if (content) chunks.push({ index: chunks.length, page: pageAt(start), content });
+    if (content) {
+      const breaks = starts.filter((s) => s.offset > start && s.offset < start + content.length).map((s) => [s.offset - start, s.page] as [number, number]);
+      chunks.push({ index: chunks.length, page: pageAt(start), content, breaks });
+    }
     if (end >= full.length) break;
 
     // volta `overlap` caracteres, alinhando no começo de uma palavra

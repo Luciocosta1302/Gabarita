@@ -105,14 +105,14 @@ isOneToOne: false
                   ]
                 },"chunks": {
                   Row: {
-                    "chunk_index": number,"content": string,"embedding": string | null,"id": string,"material_id": string,"page": number | null,"subject_id": string,"topic_id": string | null,"user_id": string
+                    "chunk_index": number,"content": string,"embedding": string | null,"id": string,"material_id": string,"page": number | null,"page_breaks": NonNullable<Json>,"subject_id": string,"topic_id": string | null,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "chunk_index"?: number,"content": string,"embedding"?: string | null,"id"?: string,"material_id": string,"page"?: number | null,"subject_id": string,"topic_id"?: string | null,"user_id"?: string
+                    "chunk_index"?: number,"content": string,"embedding"?: string | null,"id"?: string,"material_id": string,"page"?: number | null,"page_breaks"?: NonNullable<Json>,"subject_id": string,"topic_id"?: string | null,"user_id"?: string
                   }
                   Update: {
-                    "chunk_index"?: number,"content"?: string,"embedding"?: string | null,"id"?: string,"material_id"?: string,"page"?: number | null,"subject_id"?: string,"topic_id"?: string | null,"user_id"?: string
+                    "chunk_index"?: number,"content"?: string,"embedding"?: string | null,"id"?: string,"material_id"?: string,"page"?: number | null,"page_breaks"?: NonNullable<Json>,"subject_id"?: string,"topic_id"?: string | null,"user_id"?: string
                   }
                   Relationships: [
                     {

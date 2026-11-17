@@ -213,7 +213,11 @@ export async function extractPptx(data: Uint8Array): Promise<Extracted> {
 
 /** Divide texto corrido em páginas de ~3000 caracteres, cortando em fim de parágrafo. */
 export function splitPseudoPages(text: string): Extracted {
-  const paragraphs = cleanText(text).split(/\n\n+/);
+  // Parágrafos; um parágrafo grande demais (ex.: transcrição com uma linha por fala, sem linha em branco)
+  // é quebrado nas linhas, para o texto não virar uma "parte" só.
+  const paragraphs = cleanText(text)
+    .split(/\n\n+/)
+    .flatMap((p) => (p.length > PSEUDO_PAGE_CHARS ? p.split("\n") : [p]));
   const pages: PageText[] = [];
   let current = "";
   for (const p of paragraphs) {

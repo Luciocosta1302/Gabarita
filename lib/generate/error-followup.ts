@@ -4,6 +4,7 @@ import { generateJSON } from "@/lib/ai/provider";
 import { errorFollowupPrompt, errorFollowupTfPrompt } from "@/lib/ai/prompts/error-followup";
 import { indexToLetter, letterToIndex, shuffleOptions } from "@/lib/quiz/options";
 import type { AdminClient } from "@/lib/supabase/admin";
+import { quotePage } from "@/lib/text/pages";
 import { findQuote } from "@/lib/text/quote";
 
 import { checkAnswers } from "./answer-check";
@@ -18,7 +19,7 @@ export async function createErrorFollowup(admin: AdminClient, notebookId: string
   const { data: entry, error } = await admin
     .from("error_notebook")
     .select(
-      "id, user_id, followup_status, attempts(answer, questions(id, subject_id, chunk_id, topic_id, type, style, stem, options_json, answer, explanation, source_page, chunks(content, page)))",
+      "id, user_id, followup_status, attempts(answer, questions(id, subject_id, chunk_id, topic_id, type, style, stem, options_json, answer, explanation, source_page, chunks(content, page, page_breaks)))",
     )
     .eq("id", notebookId)
     .single();
@@ -79,7 +80,7 @@ export async function createErrorFollowup(admin: AdminClient, notebookId: string
       answer: indexToLetter(followup.answerIndex),
       explanation: followup.explanation,
       difficulty: followup.difficulty,
-      source_page: q.source_page,
+      source_page: chunk ? quotePage(chunk, followup.quote) : q.source_page,
       source_quote: followup.quote,
       origin: "followup",
     })
