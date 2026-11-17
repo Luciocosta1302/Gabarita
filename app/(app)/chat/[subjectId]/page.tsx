@@ -1,4 +1,4 @@
-import { FileText, Layers, ListChecks } from "lucide-react";
+import { FileText, Layers } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -7,6 +7,7 @@ import type { Citation } from "@/app/api/chat/route";
 import { MascotSays } from "@/components/brand/mascot-says";
 import { Chat, type Message } from "@/components/chat/chat";
 import { MoveToFolder } from "@/components/chat/move-folder";
+import { QuickQuiz } from "@/components/chat/quick-quiz";
 import { AutoRefresh } from "@/components/layout/auto-refresh";
 import { RetryButton } from "@/components/materials/material-list";
 import { ToolGuide } from "@/components/tutorials/tutorials";
@@ -70,9 +71,6 @@ export default async function ChatPage({
               <Link href={`/materials/${doc.id}`} className="tap-spring bg-card inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-ink/25 px-3 text-sm font-bold hover:border-ink">
                 <FileText aria-hidden className="size-4" /> Ver arquivo
               </Link>
-              <Link href={`/subjects/${subjectId}#questoes`} className="tap-spring bg-card inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-ink/25 px-3 text-sm font-bold hover:border-ink">
-                <ListChecks aria-hidden className="size-4" /> Gerar questões
-              </Link>
               <Link href={`/subjects/${subjectId}/flashcards`} className="tap-spring bg-card inline-flex h-9 items-center gap-1.5 rounded-xl border-2 border-ink/25 px-3 text-sm font-bold hover:border-ink">
                 <Layers aria-hidden className="size-4" /> Flashcards
               </Link>
@@ -106,6 +104,10 @@ export default async function ChatPage({
             <RetryButton materialId={doc.id} />
           </div>
         ) : (
+          <>
+          {/* ação principal: praticar com questões; a conversa vem em seguida */}
+          <QuickQuiz subjectId={subjectId} materialId={doc.id} />
+          <h2 className="text-muted-foreground mt-2 text-xs font-bold tracking-[0.14em] uppercase">Ou converse com o arquivo</h2>
           <Chat
             subjectId={subjectId}
             materialId={doc.id}
@@ -113,6 +115,7 @@ export default async function ChatPage({
             welcome={`Li “${doc.title}”${doc.page_count ? ` (${doc.page_count} ${doc.page_count === 1 ? "página" : "páginas"})` : ""}. Pergunte o que quiser: eu respondo só com base nele e mostro a página de onde tirei cada coisa.`}
             suggestions={SUGGESTIONS}
           />
+          </>
         )
       ) : count ? (
         <>

@@ -6,6 +6,8 @@ import { indexToLetter, letterToIndex, shuffleOptions } from "@/lib/quiz/options
 import type { AdminClient } from "@/lib/supabase/admin";
 import { findQuote } from "@/lib/text/quote";
 
+import { checkAnswers } from "./answer-check";
+
 import { TRUE_FALSE_OPTIONS } from "./questions";
 
 /**
@@ -55,6 +57,13 @@ export async function createErrorFollowup(admin: AdminClient, notebookId: string
     followup = { stem: f.stem, options: shuffled.options, answerIndex: shuffled.answerIndex, quote: f.quote, explanation: f.explanation, difficulty: f.difficulty };
   }
   const quoteOk = chunk ? findQuote(chunk.content, followup.quote) !== null : false;
+  // Gabarito conferido: sem trecho que comprove ou se a revisão às cegas discordar, não cria a questão parecida
+  // (o erro continua no caderno com a explicação; o job tenta de novo).
+  const [answerOk] = chunk ? await checkAnswers([{ stem: followup.stem, options: followup.options, answerIndex: followup.answerIndex, source: chunk.content }]) : [false];
+  if (!quoteOk || !answerOk) {
+    await admin.from("error_notebook").update({ why_wrong: whyWrong }).eq("id", notebookId);
+    throw new Error("Questão parecida não passou na conferência do gabarito");
+  }
 
   const { data: inserted, error: insError } = await admin
     .from("questions")
@@ -71,7 +80,7 @@ export async function createErrorFollowup(admin: AdminClient, notebookId: string
       explanation: followup.explanation,
       difficulty: followup.difficulty,
       source_page: q.source_page,
-      source_quote: quoteOk ? followup.quote : null,
+      source_quote: followup.quote,
       origin: "followup",
     })
     .select("id")

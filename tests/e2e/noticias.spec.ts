@@ -6,11 +6,10 @@ import { expect, test } from "@playwright/test";
 import { signup } from "./helpers";
 
 // Notícias (IA de teste): o aluno escolhe objetivo e fontes; um "jornal" local serve o RSS.
-test("notícias: escolhe fontes, filtra por período, #etiqueta e busca, e pede o resumo", async ({ page }) => {
+test("notícias: escolhe fontes, filtra por período, #etiqueta e busca, e mostra a fonte de cada uma", async ({ page }) => {
   test.setTimeout(120_000);
   const now = new Date().toUTCString();
-  const article = `<article>${"<p>O Inep confirmou que as inscrições do ENEM vão até 12 de dezembro, pela Página do Participante.</p>".repeat(8)}</article>`;
-  let base = "";
+    let base = "";
   const server = createServer((req, res) => {
     if (req.url === "/feed.xml") {
       const items = [
@@ -22,7 +21,7 @@ test("notícias: escolhe fontes, filtra por período, #etiqueta e busca, e pede 
         .join("");
       return res.writeHead(200, { "content-type": "application/rss+xml; charset=utf-8" }).end(`<rss version="2.0"><channel><title>Jornal Local</title>${items}</channel></rss>`);
     }
-    res.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(`<title>Notícia</title>${article}`);
+    res.writeHead(404).end();
   });
   await new Promise<void>((r) => server.listen(0, "127.0.0.1", r));
   base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
@@ -61,16 +60,10 @@ test("notícias: escolhe fontes, filtra por período, #etiqueta e busca, e pede 
     await expect(list.getByTestId("news-source")).toContainText("Jornal Local");
     await expect(list.getByTestId("news-source")).toContainText("127.0.0.1");
     await expect(list.getByTestId("news-original")).toHaveAttribute("href", `${base}/a/concurso`);
-    await list.getByTestId("news-summarize").click();
-    const summary = page.getByTestId("news-summary");
-    // só a frase com trecho literal no texto fica; a inventada ("999 vagas") é descartada
-    await expect(summary).toContainText("Resumo de teste conferido com o texto.");
-    await expect(summary).toContainText("“O Inep confirmou");
-    await expect(summary).not.toContainText("999");
-    await expect(page.getByTestId("news-summary-note")).toContainText("Tirei 1 frase que não consegui conferir");
-    // link da notícia no fim do resumo
-    await expect(page.getByTestId("news-summary").getByTestId("news-link").getByRole("link")).toHaveAttribute("href", `${base}/a/concurso`);
-
+    // sem resumo de IA: só a notícia original, com a fonte e o link no fim
+    await expect(list.getByTestId("news-summarize")).toHaveCount(0);
+    await expect(list.getByTestId("news-link").getByRole("link")).toHaveAttribute("href", `${base}/a/concurso`);
+    await expect(list.getByTestId("news-link")).toContainText("Fonte: Jornal Local");
     // ícone da fonte: só para sites das notícias/catálogo; nome inválido recusado
     expect((await page.request.get("/api/news/icon?d=site-qualquer.com")).status()).toBe(404);
     expect((await page.request.get("/api/news/icon?d=../etc")).status()).toBe(400);

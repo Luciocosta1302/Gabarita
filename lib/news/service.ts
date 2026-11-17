@@ -1,19 +1,11 @@
 import "server-only";
 
-import type { SupabaseClient } from "@supabase/supabase-js";
-
-import { generateJSON } from "@/lib/ai/provider";
-import { newsSummaryPrompt } from "@/lib/ai/prompts/news";
 import { readText, safeFetch } from "@/lib/ingest/links";
-import { htmlToText } from "@/lib/ingest/html";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database } from "@/lib/supabase/database.types";
 
 import { customFeedKey, localFeed, NEWS_SOURCES, type StudyGoal, tagsFor } from "./catalog";
 import { domainOf, feedTitle, parseFeed } from "./rss";
-import { type CheckedSummary, verifySummary } from "./verify";
 
-type DB = SupabaseClient<Database>;
 export type Feed = { key: string; name: string; url: string };
 export type NewsPrefs = { sources: string[]; custom_feeds: string[]; state: string | null; city: string | null };
 
@@ -82,33 +74,3 @@ export async function refreshFeeds(feeds: Feed[], { force = false } = {}) {
 }
 
 /** Resume uma notícia (texto completo do site quando dá; senão, o trecho). Fica guardado para os próximos alunos. */
-/**
- * Resumo conferido: a IA cita o trecho literal de cada frase; o servidor descarta o que não estiver no
- * texto (e números que não aparecem nele). Se nada passar, tenta mais uma vez com instrução mais rígida;
- * sem nada confiável, devolve resumo vazio (a tela manda ler o original). Guardado para todos os alunos.
- */
-export async function summarizeNews(supabase: DB, itemId: string): Promise<CheckedSummary> {
-  const { data: item } = await supabase.from("news_items").select("id, url, title, snippet, source_name, summary_json").eq("id", itemId).maybeSingle();
-  if (!item) throw Object.assign(new Error("not found"), { status: 404 });
-  const cached = item.summary_json as CheckedSummary | null;
-  if (cached?.v === 2) return cached;
-
-  let text = "";
-  try {
-    const { res } = await safeFetch(item.url, { accept: "text/html,application/xhtml+xml;q=0.9,*/*;q=0.5", timeoutMs: 12_000 });
-    text = htmlToText(await readText(res)).text.slice(0, 12_000);
-  } catch {
-    /* site bloqueou ou exige login: resume pelo trecho */
-  }
-  const partial = text.length < 400;
-  if (partial) text = [item.title, item.snippet].filter(Boolean).join("\n");
-
-  let checked: CheckedSummary | null = null;
-  for (const strict of [false, true]) {
-    const { data } = await generateJSON(newsSummaryPrompt({ title: item.title, source: item.source_name, text, partial, strict }));
-    checked = verifySummary(data, text, partial);
-    if (checked.points.length) break;
-  }
-  await createAdminClient().from("news_items").update({ summary_json: checked, summarized_at: new Date().toISOString() }).eq("id", item.id);
-  return checked!;
-}

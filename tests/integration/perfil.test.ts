@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from "vitest";
 
+import { createRoom, joinRoom } from "@/lib/rooms/service";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 import { anon, newUser } from "./helpers";
@@ -27,18 +28,26 @@ describe("perfil público", () => {
     const bad = await bia.client.from("profiles").update({ username: "Com Espaço" }).eq("id", bia.user.id);
     expect(bad.error).not.toBeNull();
 
+    // perfil não é público: só o próprio aluno e colegas de turma veem
+    expect((await bia.client.rpc("public_profile_by_username", { p_username: at })).data).toEqual([]);
+    expect((await ana.client.rpc("public_profile_by_username", { p_username: at })).data).toHaveLength(1);
+    const room = await createRoom(ana.client, ana.user.id, { name: "Turma perfil" });
+    await joinRoom(bia.client, room.invite_code);
     const { data } = await bia.client.rpc("public_profile_by_username", { p_username: at.toUpperCase() });
     expect(data?.[0]).toMatchObject({ username: at, bio: "Medicina", posts: 0 });
     expect(JSON.stringify(data)).not.toContain("@"); // sem e-mail
   });
 
-  it("XP só o servidor grava; colegas veem nome, @, avatar e XP", async () => {
+  it("XP só o servidor grava; colegas de turma veem nome, @, avatar e XP", async () => {
     await ana.client.from("profiles").update({ xp_cached: 999999 } as never).eq("id", ana.user.id);
     const { data: p } = await admin.from("profiles").select("xp_cached").eq("id", ana.user.id).single();
     expect(p!.xp_cached).toBe(0);
     await admin.from("profiles").update({ xp_cached: 350 }).eq("id", ana.user.id);
     const { data } = await bia.client.rpc("public_profiles", { p_ids: [ana.user.id] });
     expect(data?.[0]).toMatchObject({ xp: 350 });
+    // quem não está em turma nenhuma com a Ana não vê nada
+    const caio = await newUser("caio-perfil");
+    expect((await caio.client.rpc("public_profiles", { p_ids: [ana.user.id] })).data).toEqual([]);
     expect(Object.keys(data![0]).sort()).toEqual(["avatar_json", "bio", "id", "name", "username", "xp"]);
   });
 

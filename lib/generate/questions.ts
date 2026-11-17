@@ -20,6 +20,7 @@ import type { Database } from "@/lib/supabase/database.types";
 import { teacherOptionsCount, type LikelyTopic } from "@/lib/teacher/logic";
 import { findQuote } from "@/lib/text/quote";
 
+import { keepChecked } from "./answer-check";
 import { pickChunks, splitCounts } from "./pick";
 
 type DB = SupabaseClient<Database>;
@@ -287,8 +288,12 @@ export async function createQuestions(
       return validateQuestions(data, chunks);
     }),
   );
-  const valid = results.flat().slice(0, input.count);
-  if (valid.length === 0) throw new UserFacingError("Não foi possível gerar questões com base no material. Tente de novo.");
+  // Gabarito conferido: outra chamada resolve cada questão sem ver a resposta; discordou, sai.
+  const { kept } = await keepChecked(
+    results.flat().map((v) => ({ ...v, source: v.chunk.content })),
+  );
+  const valid = kept.slice(0, input.count);
+  if (valid.length === 0) throw new UserFacingError("Não consegui gerar questões com o gabarito conferido neste material. Tente de novo ou escolha outro trecho.");
 
   const rows: QuestionInsert[] = valid.map((v) => {
     if (v.type === "open") {

@@ -56,6 +56,8 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await expect(page.getByTestId("chat-folder")).toHaveText("Sem pasta");
   await expect(page.getByTestId("chat-welcome")).toContainText("aula-limites", { timeout: 60_000 });
   await expect(page.getByTestId("chat-suggestions").getByRole("button")).toHaveCount(4);
+  // ação principal do arquivo: gerar questões (o chat vem em seguida)
+  await expect(page.getByTestId("quick-quiz")).toContainText("Gerar 10 questões");
 
   // colocar numa pasta nova: a conversa vai junto
   await page.getByTestId("move-folder").click();

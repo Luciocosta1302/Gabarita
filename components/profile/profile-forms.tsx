@@ -60,7 +60,7 @@ export function ProfileForm({ name, username, bio, suggested }: { name: string; 
         <Input id="profile-name" name="name" defaultValue={name} maxLength={80} required />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="profile-username">Seu @ (aparece para a turma e na Comunidade)</Label>
+        <Label htmlFor="profile-username">Seu @ (só colegas das suas turmas veem)</Label>
         <div className="flex items-center gap-2">
           <span className="font-display text-ink/60 text-lg font-bold">@</span>
           <Input

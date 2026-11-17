@@ -244,11 +244,10 @@ export const GUIDES = {
   noticias: {
     title: "Notícias",
     who: "fuku",
-    intro: "As notícias de educação, vestibulares e concursos das fontes que você escolheu, num lugar só.",
+    intro: "As notícias de verdade sobre educação, vestibulares e concursos, direto das fontes que você escolheu.",
     steps: [
       "Filtre por Hoje, Semana ou Mês, por #etiqueta (ex.: #enem, #edital) ou buscando uma palavra.",
-      "Toque no título para ler no site original.",
-      "“Resumo da Fuku” explica em poucas linhas, com datas e prazos.",
+      "Cada notícia mostra o jornal, o site e a data; toque para ler no site original.",
     ],
   },
   perfil: {

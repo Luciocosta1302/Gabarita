@@ -52,7 +52,7 @@ export function AvatarEditor({ initial, level }: { initial: Avatar; level: numbe
       await postJSON("/api/profile", { avatar: a });
       play("complete");
       petals(btn, 16);
-      setMsg({ ok: true, text: "Avatar salvo! Ele aparece no menu, na Comunidade e na sua turma." });
+      setMsg({ ok: true, text: "Avatar salvo! Ele aparece no menu e para os colegas das suas turmas." });
       router.refresh();
     } catch (err) {
       setMsg({ ok: false, text: err instanceof Error ? err.message : "Não deu para salvar agora. Tente de novo." });

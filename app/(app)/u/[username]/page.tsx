@@ -7,7 +7,7 @@ import { levelOf } from "@/lib/achievements/badges";
 import { parseAvatar } from "@/lib/avatar/avatar";
 import { getUser } from "@/lib/supabase/server";
 
-/** Perfil público de um aluno (só para quem está logado): avatar, @, nível, bio e posts na Comunidade. */
+/** Perfil de um aluno: só o próprio aluno e colegas de alguma turma em comum veem (avatar, @, nível, bio). */
 export default async function PublicProfilePage({ params }: { params: Promise<{ username: string }> }) {
   const { username } = await params;
   if (!/^[a-z0-9_]{3,20}$/i.test(username)) notFound();
@@ -17,7 +17,7 @@ export default async function PublicProfilePage({ params }: { params: Promise<{ 
   if (!p) {
     return (
       <div className="flex flex-col gap-6">
-        <MascotSays pose={{ who: "fuku", mood: "surpresa" }}>Não achei ninguém com o @{username.toLowerCase()}. Confira se digitou certo.</MascotSays>
+        <MascotSays pose={{ who: "fuku", mood: "surpresa" }}>Não encontrei o @{username.toLowerCase()}. Os perfis só aparecem para colegas de turma: se vocês ainda não estão numa turma juntos, entre na mesma turma pelo convite.</MascotSays>
       </div>
     );
   }

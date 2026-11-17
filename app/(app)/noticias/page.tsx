@@ -11,7 +11,6 @@ import { ToolGuide } from "@/components/tutorials/tutorials";
 import { Card, CardContent } from "@/components/ui/card";
 import { PERIODS, type Period, type StudyGoal, TAG_LABELS } from "@/lib/news/catalog";
 import { feedsFor, refreshFeeds } from "@/lib/news/service";
-import type { CheckedSummary } from "@/lib/news/verify";
 import { getUser } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -46,7 +45,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
         {header}
         <ToolGuide id="noticias" />
         <MascotSays pose={{ who: "fuku", mood: "explicando" }} size="sm">
-          Me conta o que você estuda e de onde quer receber notícias. Eu junto tudo aqui e resumo quando você pedir.
+          Me conta o que você estuda e de onde quer receber notícias. Eu junto aqui as notícias de verdade, sempre com o link do jornal.
         </MascotSays>
         <Card>
           <CardContent className="pt-6">
@@ -69,7 +68,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
 
   let query = supabase
     .from("news_items")
-    .select("id, feed_key, title, url, snippet, source_name, source_domain, published_at, tags, summary_json")
+    .select("id, feed_key, title, url, snippet, source_name, source_domain, published_at, tags")
     .in("feed_key", source ? [source] : feeds.map((f) => f.key))
     .order("published_at", { ascending: false })
     .limit(60);
@@ -80,9 +79,8 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
     query = query.or(`title.ilike.%${safe}%,snippet.ilike.%${safe}%`);
   }
   const [{ data: rows }, { data: feedState }] = await Promise.all([query, supabase.from("news_feeds").select("feed_key, ok, fetched_at").in("feed_key", feeds.map((f) => f.key))]);
-  const items: NewsRow[] = (rows ?? []).map(({ summary_json, feed_key, ...r }) => ({
+  const items: NewsRow[] = (rows ?? []).map(({ feed_key, ...r }) => ({
     ...r,
-    summary: (summary_json as CheckedSummary | null) ?? null,
     // notícias da região chegam pelo Google Notícias: mostra o jornal real e o "via"
     via: feed_key.startsWith("local:") ? "Google Notícias" : null,
   }));
@@ -177,8 +175,8 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
         </div>
       )}
       <p className="text-muted-foreground text-center text-xs">
-        Cada notícia mostra o jornal e o site de onde veio; toque em “Ler no site original” para a versão completa. O Gabarita não escreve
-        notícias: o resumo da Fuku é automático, conferido frase a frase com o texto, e na dúvida vale o original.
+        As notícias vêm direto dos sites dos jornais e órgãos oficiais que você escolheu, com título e trecho publicados por eles.
+        O Gabarita não escreve nem altera notícias: toque em “Ler no site original” para a versão completa.
       </p>
     </div>
   );

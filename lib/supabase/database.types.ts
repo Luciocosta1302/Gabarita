@@ -411,14 +411,14 @@ isOneToOne: false
                   ]
                 },"news_items": {
                   Row: {
-                    "created_at": string,"feed_key": string,"id": string,"published_at": string,"snippet": string | null,"source_domain": string | null,"source_name": string,"summarized_at": string | null,"summary_json": Json | null,"tags": (string)[],"title": string,"url": string
+                    "created_at": string,"feed_key": string,"id": string,"published_at": string,"snippet": string | null,"source_domain": string | null,"source_name": string,"tags": (string)[],"title": string,"url": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"feed_key": string,"id"?: string,"published_at": string,"snippet"?: string | null,"source_domain"?: string | null,"source_name": string,"summarized_at"?: string | null,"summary_json"?: Json | null,"tags"?: (string)[],"title": string,"url": string
+                    "created_at"?: string,"feed_key": string,"id"?: string,"published_at": string,"snippet"?: string | null,"source_domain"?: string | null,"source_name": string,"tags"?: (string)[],"title": string,"url": string
                   }
                   Update: {
-                    "created_at"?: string,"feed_key"?: string,"id"?: string,"published_at"?: string,"snippet"?: string | null,"source_domain"?: string | null,"source_name"?: string,"summarized_at"?: string | null,"summary_json"?: Json | null,"tags"?: (string)[],"title"?: string,"url"?: string
+                    "created_at"?: string,"feed_key"?: string,"id"?: string,"published_at"?: string,"snippet"?: string | null,"source_domain"?: string | null,"source_name"?: string,"tags"?: (string)[],"title"?: string,"url"?: string
                   }
                   Relationships: [
                     
@@ -963,6 +963,9 @@ isOneToOne: false
                            },
 "set_tutorial_seen":
 { Args: { "p_key": string,"p_seen"?: boolean }; Returns: (string)[]
+                           },
+"shares_room":
+{ Args: { "p_other": string }; Returns: boolean
                            }
           }
           Enums: {

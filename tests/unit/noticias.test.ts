@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { customFeedKey, localFeed, NEWS_SOURCES, suggestedSources, tagsFor } from "@/lib/news/catalog";
 import { newsPrefsSchema } from "@/lib/news/schema";
 import { cleanSnippet, domainOf, feedTitle, parseFeed } from "@/lib/news/rss";
-import { norm, verifySummary } from "@/lib/news/verify";
 
 const RSS = `<?xml version="1.0"?><rss version="2.0"><channel><title>Educação</title>
 <item><title><![CDATA[Inscrições do ENEM 2027 vão até 12 de dezembro]]></title><link>https://exemplo.com/enem?a=1&amp;b=2</link>
@@ -68,35 +67,5 @@ describe("notícias: etiquetas, fontes e preferências", () => {
     expect(newsPrefsSchema.safeParse({ sources: ["inventada"], custom_feeds: [], state: null, city: null }).success).toBe(false);
     expect(newsPrefsSchema.safeParse({ sources: [], custom_feeds: ["javascript:alert(1)"], state: null, city: null }).success).toBe(false);
     expect(newsPrefsSchema.safeParse({ sources: [], custom_feeds: [], state: "XX", city: null }).success).toBe(false);
-  });
-});
-
-describe("resumo conferido (contra notícia inventada)", () => {
-  const texto = "O Inep confirmou nesta segunda-feira que as inscrições do Enem 2027 vão até 12/12. A taxa será de R$ 85,00 e quem estuda em escola pública tem isenção.";
-  it("mantém só frases com trecho literal no texto e números que aparecem nele", () => {
-    const r = verifySummary(
-      {
-        points: [
-          { text: "Inscrições do ENEM 2027 vão até 12/12.", evidence: "as inscrições do Enem 2027 vão até 12/12" },
-          { text: "A taxa é de R$ 85,00.", evidence: "A taxa será de R$ 85,00" },
-          // trecho que não existe no texto
-          { text: "O prazo foi prorrogado.", evidence: "o prazo foi prorrogado por mais uma semana" },
-          // trecho existe, mas o número da frase foi inventado
-          { text: "São 3 milhões de inscritos.", evidence: "quem estuda em escola pública tem isenção" },
-        ],
-        dates: [{ text: "Inscrições até 12/12", evidence: "vão até 12/12" }],
-      },
-      texto,
-      false,
-    );
-    expect(r.points.map((p) => p.text)).toEqual(["Inscrições do ENEM 2027 vão até 12/12.", "A taxa é de R$ 85,00."]);
-    expect(r.dates).toHaveLength(1);
-    expect(r.dropped).toBe(2);
-    expect(r.v).toBe(2);
-  });
-  it("trecho curto demais não vale como prova; acento, aspas e espaços não atrapalham", () => {
-    expect(verifySummary({ points: [{ text: "Enem.", evidence: "Enem" }], dates: [] }, texto, false).points).toHaveLength(0);
-    expect(norm("  “Inscrições”   ATÉ ") ).toBe("inscricoes ate");
-    expect(verifySummary({ points: [{ text: "Escola pública tem isenção.", evidence: "QUEM ESTUDA EM ESCOLA PUBLICA tem isencao" }], dates: [] }, texto, true).points).toHaveLength(1);
   });
 });

@@ -84,7 +84,9 @@ export default async function ProfilePage() {
       <Card>
         <CardHeader>
           <CardTitle>Seus dados</CardTitle>
-          <p className="text-muted-foreground text-sm">{user!.email} (o e-mail não aparece para ninguém)</p>
+          <p className="text-muted-foreground text-sm">
+            {user!.email} (o e-mail não aparece para ninguém). Seu perfil (avatar, @, bio e nível) só aparece para colegas das suas turmas.
+          </p>
         </CardHeader>
         <CardContent>
           <ProfileForm name={me.name} username={me.username} bio={me.bio} suggested={suggestUsername(me.name)} />
