@@ -169,14 +169,17 @@ export function NewsItem({ item, period }: { item: NewsRow; /** período atual (
   );
 }
 
-/** "Fonte: Jornal — link completo", no fim da notícia e do resumo. */
+/** "Fonte: Jornal — link", no fim da notícia e do resumo: uma linha só, o link cortado com "…" (inteiro ao tocar). */
 function SourceLink({ item }: { item: NewsRow }) {
+  const short = item.url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "");
   return (
-    <p className="text-muted-foreground min-w-0 border-t border-ink/10 pt-2 text-xs" data-testid="news-link">
-      Fonte: <strong className="text-ink">{item.source_name}</strong>
-      {item.via && ` (via ${item.via})`} —{" "}
-      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary break-all underline">
-        {item.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+    <p className="text-muted-foreground flex min-w-0 items-baseline gap-1 border-t border-ink/10 pt-2 text-xs" data-testid="news-link">
+      <span className="shrink-0">
+        Fonte: <strong className="text-ink">{item.source_name}</strong>
+        {item.via && ` (via ${item.via})`} —
+      </span>
+      <a href={item.url} target="_blank" rel="noopener noreferrer" title={item.url} className="text-primary min-w-0 truncate underline">
+        {short}
       </a>
     </p>
   );
