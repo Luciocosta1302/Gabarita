@@ -316,3 +316,8 @@ Ordem sugerida pelo usuário: Trilhas + Tutor → Espaço de estudos → Revisã
 - Biblioteca: caixa "por sentido" usa `match_user_chunks` (migration `20261120300000`, todos os trechos do aluno, embeddings em cache) e mostra o % de parecido; a busca normal continua por texto exato (sem gastar IA).
 - Conquistas: `achievements_seen` (migration `20261120400000`); o Início anuncia uma vez as medalhas novas (abrir /conquistas também marca como vistas). Medalhas da comunidade (1 e 20 posts/respostas).
 - Moderação humana da Comunidade (painel para rever denúncias) ainda não existe: hoje é só pelo banco.
+
+## 10. Tribunal de Ideias (instalado a pedido do usuário)
+
+Quando o usuário pedir um julgamento ou disser "Tribunal de Ideias", siga @.claude/tribunal/TRIBUNAL.md.
+Subagentes em `.claude/agents/` (`tribunal-defesa`, `tribunal-acusacao`, `tribunal-juiz`) — escritos a partir do README/CLAUDE.md enviados pelo usuário (os arquivos originais dos agentes não vieram; trocar se ele mandar). Casos e vereditos ficam em `docs/tribunal/`.
