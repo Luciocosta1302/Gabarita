@@ -12,7 +12,8 @@ import { CONFIDENCE_LABELS, CONFIDENCE_LEVELS, type Confidence } from "@/lib/qui
 import { indexToLetter, letterToIndex } from "@/lib/quiz/options";
 import { cn } from "@/lib/utils";
 
-import { Daruma } from "@/components/brand/daruma";
+import { Fuku } from "@/components/brand/fuku";
+import { Mochi } from "@/components/brand/mochi";
 import { Hanko } from "@/components/brand/hanko";
 
 import { OpenFeedback } from "./open-feedback";
@@ -169,7 +170,11 @@ export function QuestionCard({
           )}
         >
           <div className="flex items-center gap-3">
-            <Daruma mood={result.correct ? "comemorando" : "pensando"} className="w-12 shrink-0" />
+            {result.correct ? (
+              <Mochi mood="comemorando" className="w-12 shrink-0" title="Mochi comemorando" />
+            ) : (
+              <Fuku mood="explicando" className="w-12 shrink-0" title="Fuku explicando" />
+            )}
             <p className={cn("font-display text-lg font-extrabold", result.correct ? "text-matcha" : "text-shu")}>
               {result.correct ? "Acertou!" : `Errou. A certa é ${tf ? question.options[correctIndex!] : result.answer}.`}
             </p>

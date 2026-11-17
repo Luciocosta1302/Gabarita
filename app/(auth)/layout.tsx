@@ -1,6 +1,8 @@
 import Link from "next/link";
 
 import { Daruma } from "@/components/brand/daruma";
+import { Fuku } from "@/components/brand/fuku";
+import { Mochi } from "@/components/brand/mochi";
 import { Hanko, Logo } from "@/components/brand/hanko";
 
 /** Entrar/criar conta: no computador, a capa índigo do caderno ao lado; no celular, só o essencial. */
@@ -12,12 +14,17 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <Logo light />
         </Link>
         <div className="relative grid gap-6">
-          <Daruma mood="feliz" eyes="um" className="w-40" title="Daruma com um olho pintado" />
+          <div className="flex items-end gap-2">
+            <Mochi mood="animada" className="w-24" title="Mochi, a gatinha" />
+            <Daruma mood="feliz" eyes="um" className="w-32" title="Daru, o Daruma com um olho pintado" />
+            <Fuku mood="feliz" className="w-24" title="Fuku, a coruja professora" />
+          </div>
           <p className="font-display max-w-sm text-3xl leading-snug font-extrabold">
             Pinte um olho agora. O outro, no dia em que você passar.
           </p>
           <p className="text-washi/70 max-w-sm text-sm">
-            Na tradição japonesa, o Daruma ganha um olho quando você define um objetivo e o outro quando o alcança.
+            Na tradição japonesa, o Daruma ganha um olho quando você define um objetivo e o outro quando o alcança. A Mochi
+            comemora seus acertos e a Fuku explica a matéria.
           </p>
         </div>
         <Hanko text="合格" className="absolute right-10 bottom-10 size-20 opacity-90" rotate={-8} />

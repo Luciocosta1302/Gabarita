@@ -82,7 +82,7 @@ export default async function DashboardPage() {
     .filter((s) => s.exam_date && daysBetween(today, s.exam_date) >= 0)
     .map((s) => ({ name: s.name, daysLeft: daysBetween(today, s.exam_date!) }))
     .sort((a, b) => a.daysLeft - b.daysLeft);
-  const line = mascotLine({
+  const { text: lineText, ...linePose } = mascotLine({
     hour,
     hasSubjects: !!subjects?.length,
     due,
@@ -120,9 +120,9 @@ export default async function DashboardPage() {
         </div>
       </header>
 
-      {/* o Daruma fala com o aluno */}
-      <MascotSays mood={line.mood} eyes={line.eyes} className="animate-rise">
-        {line.text}
+      {/* um personagem da turma fala com o aluno */}
+      <MascotSays pose={linePose} className="animate-rise">
+        {lineText}
       </MascotSays>
 
       {fresh.length > 0 && (

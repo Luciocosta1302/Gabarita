@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Daruma } from "@/components/brand/daruma";
+import { Mochi } from "@/components/brand/mochi";
 import { Hanko } from "@/components/brand/hanko";
 import { CardBack, CardFront } from "@/components/flashcards/flashcard";
 import { QuestionCard, type PublicQuestion } from "@/components/quiz/question-card";
@@ -38,7 +38,7 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
     return (
       <div className="bg-card animate-rise grid justify-items-center gap-3 rounded-2xl border-2 border-ink p-6 text-center shadow-[0_4px_0_var(--ink)]" data-testid="review-done">
         <div className="relative">
-          <Daruma mood="comemorando" className="w-24" />
+          <Mochi mood="comemorando" className="w-24" />
           <Hanko className="animate-stamp absolute -right-8 -bottom-1 size-12" rotate={-10} />
         </div>
         <p className="font-display text-2xl font-extrabold">Tudo revisado por hoje</p>

@@ -1,5 +1,6 @@
 "use client";
 
+import { Character, CharacterAvatar } from "@/components/brand/character";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -100,7 +101,7 @@ export function TutorSession({
   return (
     <div className="grid gap-4">
       {messages.length === 0 && (
-        <div className="bg-card text-muted-foreground animate-pulse rounded-2xl border p-5 text-sm">O tutor está preparando a explicação...</div>
+        <div className="bg-card text-muted-foreground animate-pulse rounded-2xl border p-5 text-sm">A Fuku está preparando a explicação...</div>
       )}
 
       <ol className="grid gap-4" data-testid="tutor-messages">
@@ -110,8 +111,12 @@ export function TutorSession({
             case "explanation":
               return (
                 <li key={m.id} data-testid="tutor-explanation" className="bg-card animate-rise grid gap-3 rounded-2xl border p-5 shadow-sm">
-                  <span className="text-muted-foreground text-xs font-medium">
-                    Tutor {c.simpler ? "· explicando de outro jeito" : ""}
+                  <span className="flex items-center gap-2 text-xs font-medium">
+                    <CharacterAvatar pose={{ who: "fuku", mood: "explicando" }} />
+                    <span>
+                      <span className="text-shu font-bold tracking-[0.14em] uppercase">Fuku</span>
+                      <span className="text-muted-foreground">{c.simpler ? " · explicando de outro jeito" : " · sua tutora"}</span>
+                    </span>
                   </span>
                   <p className="leading-relaxed whitespace-pre-wrap">
                     <WithCitations text={c.text} citations={c.citations} />
@@ -165,14 +170,20 @@ export function TutorSession({
                   {c.text}
                 </li>
               ) : (
-                <li key={m.id} className="bg-card max-w-[90%] rounded-2xl border px-4 py-3 text-sm whitespace-pre-wrap">
-                  <WithCitations text={c.text} citations={c.citations} />
+                <li key={m.id} className="flex max-w-[95%] items-start gap-2">
+                  <CharacterAvatar pose={{ who: "fuku", mood: "feliz" }} />
+                  <div className="bg-card rounded-2xl border px-4 py-3 text-sm whitespace-pre-wrap">
+                    <WithCitations text={c.text} citations={c.citations} />
+                  </div>
                 </li>
               );
             case "done":
               return (
                 <li key={m.id} data-testid="tutor-done" className="bg-pastel-mint animate-rise grid gap-2 rounded-2xl p-5">
-                  <span className="font-display text-xl font-bold">Etapa concluída</span>
+                  <span className="flex items-center gap-3">
+                    <Character pose={{ who: "mochi", mood: "comemorando" }} className="w-14 shrink-0" title="Mochi comemorando" />
+                    <span className="font-display text-xl font-bold">Etapa concluída</span>
+                  </span>
                   <p className="text-sm">{c.text}</p>
                   {nextStepHref && (
                     <Button asChild className="justify-self-start">
@@ -184,7 +195,7 @@ export function TutorSession({
           }
         })}
       </ol>
-      {busy === "answer" && <div className="text-muted-foreground animate-pulse text-sm">O tutor está analisando sua resposta...</div>}
+      {busy === "answer" && <div className="text-muted-foreground animate-pulse text-sm">A Fuku está analisando sua resposta...</div>}
       <div ref={endRef} />
 
       {error && (

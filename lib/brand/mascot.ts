@@ -1,6 +1,12 @@
-/** O que o Daruma diz no Início — uma frase curta e útil, conforme o dia do aluno (regras puras). */
+/**
+ * Quem da turma fala no Início e o que diz — uma frase curta e útil, conforme o dia do aluno (regras puras).
+ * Mochi recebe e comemora; Daru cuida da prova, do plano e da sequência; Fuku chama para revisar.
+ */
 
-export type MascotLine = { mood: "feliz" | "animado" | "pensando" | "sonolento" | "comemorando"; eyes: "um" | "dois"; text: string };
+export type MascotLine =
+  | { who: "mochi"; mood: "feliz" | "animada" | "pensando" | "dormindo" | "comemorando"; text: string }
+  | { who: "daru"; mood: "feliz" | "animado" | "pensando" | "sonolento" | "comemorando"; eyes: "um" | "dois"; text: string }
+  | { who: "fuku"; mood: "explicando" | "pensando" | "feliz" | "surpresa"; text: string };
 
 export type MascotInput = {
   hour: number;
@@ -19,17 +25,18 @@ const plural = (n: number, um: string, varios: string) => `${n} ${n === 1 ? um :
 export function mascotLine(i: MascotInput): MascotLine {
   if (!i.hasSubjects) {
     return {
-      mood: "feliz",
-      eyes: "um",
-      text: "Oi! Eu sou o Daruma. Crie sua primeira matéria com a data da prova: eu pinto um olho agora e o outro quando você passar.",
+      who: "mochi",
+      mood: "animada",
+      text: "Oi! Eu sou a Mochi. Crie sua primeira matéria com a data da prova e mande o material — a gente monta o caminho junto.",
     };
   }
   if (i.tasksTotal > 0 && i.tasksDone >= i.tasksTotal) {
-    return { mood: "comemorando", eyes: "dois", text: "Plano de hoje completo! Carimbei o seu dia. Descansar também é estudar." };
+    return { who: "mochi", mood: "comemorando", text: "Plano de hoje completo! Carimbei o seu dia. Descansar também é estudar." };
   }
   if (i.nearest && i.nearest.daysLeft <= 3) {
     const quando = i.nearest.daysLeft === 0 ? "É hoje" : i.nearest.daysLeft === 1 ? "É amanhã" : `Faltam ${i.nearest.daysLeft} dias`;
     return {
+      who: "daru",
       mood: "pensando",
       eyes: "um",
       text: `${quando} a prova de ${i.nearest.name}. Foco no que você mais erra: o caderno de erros e a revisão vêm primeiro.`,
@@ -37,22 +44,22 @@ export function mascotLine(i: MascotInput): MascotLine {
   }
   if (i.due > 0) {
     return {
-      mood: "animado",
-      eyes: "dois",
+      who: "fuku",
+      mood: "explicando",
       text: `Tem ${plural(i.due, "revisão", "revisões")} te esperando. Começa por elas: é o que segura a matéria na memória.`,
     };
   }
   if (i.hour >= 23 || i.hour < 5) {
-    return { mood: "sonolento", eyes: "dois", text: "Tá tarde… Uma revisão rápida e cama. Dormir bem fixa o que você estudou." };
+    return { who: "mochi", mood: "dormindo", text: "Tá tarde… Uma revisão rápida e cama. Dormir bem fixa o que você estudou." };
   }
   if (i.nextTask) {
     const seq = i.streak > 1 && !i.studiedToday ? ` Não deixa a sequência de ${i.streak} dias cair!` : "";
-    return { mood: "animado", eyes: "dois", text: `Próximo passo: ${i.nextTask}.${seq}` };
+    return { who: "daru", mood: "animado", eyes: "dois", text: `Próximo passo: ${i.nextTask}.${seq}` };
   }
   if (i.streak > 0 && !i.studiedToday) {
-    return { mood: "pensando", eyes: "dois", text: `Você está há ${plural(i.streak, "dia", "dias")} seguidos. Um pomodoro hoje e o selo é seu.` };
+    return { who: "daru", mood: "pensando", eyes: "dois", text: `Você está há ${plural(i.streak, "dia", "dias")} seguidos. Um pomodoro hoje e o selo é seu.` };
   }
-  return { mood: "feliz", eyes: "dois", text: "Bora estudar um pouquinho? Um pomodoro de 25 minutos já conta." };
+  return { who: "mochi", mood: "feliz", text: "Bora estudar um pouquinho? Um pomodoro de 25 minutos já conta." };
 }
 
 /** Os últimos 7 dias (do mais antigo para hoje), marcando os estudados. */

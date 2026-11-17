@@ -1,7 +1,15 @@
 import Link from "next/link";
 
+import { Character, CHARACTERS, type CharacterPose } from "@/components/brand/character";
 import { Daruma } from "@/components/brand/daruma";
+import { Mochi } from "@/components/brand/mochi";
 import { Hanko, Logo } from "@/components/brand/hanko";
+
+const TURMA: { pose: CharacterPose }[] = [
+  { pose: { who: "mochi", mood: "feliz" } },
+  { pose: { who: "daru", mood: "feliz", eyes: "um" } },
+  { pose: { who: "fuku", mood: "explicando" } },
+];
 
 const STEPS = [
   {
@@ -75,7 +83,8 @@ export default function Home() {
               <span aria-hidden className="absolute inset-y-0 left-0 w-3 rounded-l-lg border-r-2 border-ink/60 bg-black/25" />
             </div>
             <Daruma mood="animado" eyes="um" className="absolute -bottom-6 -left-8 w-28 sm:w-36 md:w-44" title="Daruma com um olho pintado: o objetivo foi definido" />
-            <Hanko className="absolute top-1/3 -right-3 size-16" rotate={12} />
+            <Mochi mood="animada" className="absolute -right-6 bottom-10 w-24 sm:w-28 md:w-32" title="Mochi, a gatinha do Gabarita, acenando" />
+            <Hanko className="absolute top-6 -right-3 size-16" rotate={12} />
             <Hanko text="合格" className="absolute right-10 -bottom-4 size-14" rotate={-8} />
           </div>
         </section>
@@ -97,6 +106,29 @@ export default function Home() {
               </li>
             ))}
           </ol>
+        </section>
+
+        {/* a turma: três personagens, cada um com um papel */}
+        <section className="grid gap-6" aria-labelledby="turma">
+          <div className="flex items-baseline justify-between">
+            <p className="eyebrow" id="turma">Conheça a turma</p>
+            <span className="font-display text-ink/25 text-3xl" lang="ja" title="nakama, companheiros">
+              仲間
+            </span>
+          </div>
+          <ul className="grid gap-4 md:grid-cols-3">
+            {TURMA.map((c) => (
+              <li key={c.pose.who} className="bg-card grid grid-cols-[5.5rem_1fr] items-start gap-4 rounded-2xl border-2 border-ink p-4 shadow-[0_4px_0_var(--ink)]">
+                <Character pose={c.pose} className="w-full" />
+                <div className="grid gap-1">
+                  <h2 className="text-2xl">{CHARACTERS[c.pose.who].name}</h2>
+                  <p className="text-shu text-xs font-bold tracking-[0.14em] uppercase">{CHARACTERS[c.pose.who].kind}</p>
+                  <p className="text-sm leading-relaxed">{CHARACTERS[c.pose.who].personality}</p>
+                  <p className="text-muted-foreground text-sm leading-relaxed">{CHARACTERS[c.pose.who].role}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
         </section>
       </main>
 

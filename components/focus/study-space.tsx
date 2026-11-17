@@ -1,5 +1,6 @@
 "use client";
 
+import { Mochi } from "@/components/brand/mochi";
 import { NotebookPen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -202,6 +203,12 @@ export function StudySpace({
           data-tod={tod}
         >
           <Scene scene={scene} tod={tod} raining={raining} />
+          {/* a Mochi faz companhia: cochila enquanto você foca, acorda na pausa */}
+          <Mochi
+            mood={running && phase === "focus" ? "dormindo" : phase === "focus" ? "feliz" : "animada"}
+            className="absolute right-3 bottom-1 w-16 sm:w-20"
+            title={running && phase === "focus" ? "Mochi cochilando enquanto você foca" : "Mochi, sua companhia de estudos"}
+          />
           <span className="absolute top-3 left-3 rounded-full bg-black/35 px-3 py-1 text-xs text-white">
             {SCENES.find((s) => s.id === scene)!.name} · {TIME_LABELS[tod]}
           </span>

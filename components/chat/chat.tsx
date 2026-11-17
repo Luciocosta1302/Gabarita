@@ -1,5 +1,6 @@
 "use client";
 
+import { CharacterAvatar } from "@/components/brand/character";
 import Link from "next/link";
 import { useRef, useState } from "react";
 
@@ -68,11 +69,12 @@ export function Chat({ subjectId, materialId, initial = [] }: { subjectId: strin
           </p>
         )}
         {messages.map((m, i) => (
+          <div key={i} className={cn("flex max-w-[92%] items-start gap-2", m.role === "user" && "justify-self-end")}>
+          {m.role === "assistant" && <CharacterAvatar pose={{ who: "fuku", mood: m.noBasis ? "pensando" : "explicando" }} />}
           <div
-            key={i}
             className={cn(
-              "animate-rise max-w-[85%] rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
-              m.role === "user" ? "bg-primary text-primary-foreground justify-self-end" : "bg-card border",
+              "animate-rise min-w-0 rounded-2xl px-4 py-3 text-sm whitespace-pre-wrap",
+              m.role === "user" ? "bg-primary text-primary-foreground" : "bg-card border",
               m.noBasis && "bg-muted",
             )}
           >
@@ -92,8 +94,14 @@ export function Chat({ subjectId, materialId, initial = [] }: { subjectId: strin
               </div>
             )}
           </div>
+          </div>
         ))}
-        {busy && <div className="bg-card text-muted-foreground w-fit rounded-2xl border px-4 py-3 text-sm">Pensando...</div>}
+        {busy && (
+          <div className="flex items-center gap-2">
+            <CharacterAvatar pose={{ who: "fuku", mood: "pensando" }} />
+            <div className="bg-card text-muted-foreground w-fit rounded-2xl border px-4 py-3 text-sm">A Fuku está procurando no material...</div>
+          </div>
+        )}
         <div ref={endRef} />
       </div>
       {error && (
