@@ -1,3 +1,4 @@
+import { Lock } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -75,7 +76,7 @@ export default async function PathPage({ params }: { params: Promise<{ id: strin
                 </span>
               )}
               {status === "locked" && s.prerequisites.length > 0 && (
-                <span className="text-xs">🔒 Depois de: {s.prerequisites.map((p) => titleAt.get(p) ?? `etapa ${p}`).join(", ")}</span>
+                <span className="text-xs">Depois de: {s.prerequisites.map((p) => titleAt.get(p) ?? `etapa ${p}`).join(", ")}</span>
               )}
             </div>
           );
@@ -92,7 +93,7 @@ export default async function PathPage({ params }: { params: Promise<{ id: strin
                 )}
                 aria-label={status === "done" ? "concluída" : status === "locked" ? "trancada" : "liberada"}
               >
-                {status === "done" ? "✓" : status === "locked" ? "🔒" : s.position}
+                {status === "done" ? "✓" : status === "locked" ? <Lock aria-label="trancada" className="size-4" /> : s.position}
               </div>
               <div className={cn(!right && "sm:invisible")}>
                 {/* no celular o card fica sempre à direita da bolinha */}

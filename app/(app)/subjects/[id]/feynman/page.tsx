@@ -49,7 +49,7 @@ export default async function FeynmanPage({ params }: { params: Promise<{ id: st
               {sessions.map((s) => (
                 <li key={s.id} className="flex justify-between gap-2 rounded-xl border p-3">
                   <span>
-                    {s.topics?.name ?? "Tópico"} <span className="text-muted-foreground text-xs">· {s.mode === "audio" ? "🎙 falando" : "✍ escrito"}</span>
+                    {s.topics?.name ?? "Tópico"} <span className="text-muted-foreground text-xs">· {s.mode === "audio" ? "por voz" : "por escrito"}</span>
                   </span>
                   <span className="text-muted-foreground">
                     <strong className="text-foreground">{s.score ?? "—"}</strong>/100 · {new Date(s.created_at).toLocaleDateString("pt-BR")}

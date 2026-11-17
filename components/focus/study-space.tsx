@@ -1,5 +1,6 @@
 "use client";
 
+import { NotebookPen } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -136,8 +137,8 @@ export function StudySpace({
         const unlocked = newlyUnlocked(r.before, r.totalMinutes);
         setToast(
           unlocked.length
-            ? `Novo cenário desbloqueado: ${unlocked.map((u) => u.name).join(", ")} ✨`
-            : `+${preset.focus} min de foco! Hora de uma pausa 🍵`,
+            ? `Novo cenário desbloqueado: ${unlocked.map((u) => u.name).join(", ")}`
+            : `+${preset.focus} min de foco! Hora de uma pausa.`,
         );
         router.refresh();
       } catch {
@@ -149,7 +150,7 @@ export function StudySpace({
     } else {
       setPhase("focus");
       setRemaining(preset.focus * 60_000);
-      setToast("Pausa terminada. Bora focar 📚");
+      setToast("Pausa terminada. Bora focar.");
     }
   }, [completedFocus, goals, phase, preset, router, scene, subjectId]);
 
@@ -269,7 +270,7 @@ export function StudySpace({
         )}
         {completedFocus > 0 && stats.todayMinutes > 0 && (
           <a href={`/diario?foco=${stats.todayMinutes}`} className="text-primary text-sm underline" data-testid="space-journal">
-            📓 Registrar no diário o que você aprendeu hoje
+            <NotebookPen aria-hidden className="mr-1 inline size-4 align-[-3px]" /> Registrar no diário o que você aprendeu hoje
           </a>
         )}
 
@@ -277,7 +278,7 @@ export function StudySpace({
           <Stat label="Foco hoje" value={`${stats.todayMinutes} min`} />
           <Stat
             label="Sequência"
-            value={`${stats.streak} ${stats.streak === 1 ? "dia" : "dias"} 🔥`}
+            value={`${stats.streak} ${stats.streak === 1 ? "dia" : "dias"}`}
             testId="space-streak"
           />
           <Stat
@@ -427,7 +428,7 @@ export function StudySpace({
                       ? scene === s.id
                         ? "em uso"
                         : ""
-                      : `🔒 ${s.unlockMinutes} min`}
+                      : `${s.unlockMinutes} min de foco`}
                   </span>
                 </button>
               );

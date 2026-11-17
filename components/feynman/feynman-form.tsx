@@ -1,5 +1,6 @@
 "use client";
 
+import { Mic } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -133,7 +134,7 @@ export function FeynmanForm({ topics }: { topics: { id: string; name: string }[]
           </Button>
         ) : (
           <Button variant="outline" onClick={startRecording} disabled={busy}>
-            🎙 {audio ? "Gravar de novo" : "Explicar falando"}
+            <Mic aria-hidden className="size-4" /> {audio ? "Gravar de novo" : "Explicar falando"}
           </Button>
         )}
         {audio && !recording && (
@@ -173,7 +174,7 @@ export function FeynmanFeedback({ result }: { result: FeynmanResult }) {
       {f.correct.length > 0 && <Block title="✓ O que você explicou bem" items={f.correct} />}
       {f.missing.length > 0 && <Block title="○ O que faltou" items={f.missing} />}
       {f.wrong.length > 0 && <Block title="✗ O que está errado" items={f.wrong} />}
-      {f.tip && <p>💡 {f.tip}</p>}
+      {f.tip && <p><strong>Dica:</strong> {f.tip}</p>}
       {f.citations.length > 0 && (
         <p className="text-xs">
           Compare com o material:{" "}

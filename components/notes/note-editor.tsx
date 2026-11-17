@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FluidTabs } from "@/components/ui/fluid-tabs";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { postJSON, selectClass } from "@/lib/api/client";
@@ -72,18 +73,19 @@ export function NoteEditor({ note, subjects }: { note: Note; subjects: { id: str
           {status === "salvo" ? "Salvo ✓" : status === "salvando" ? "Salvando..." : status === "erro" ? "Erro ao salvar" : "Editando..."}
         </span>
       </div>
-      <div className="flex flex-wrap gap-2" role="tablist">
-        <Button size="sm" role="tab" aria-selected={tab === "editar"} variant={tab === "editar" ? "default" : "outline"} onClick={() => setTab("editar")}>
-          Escrever
-        </Button>
-        <Button size="sm" role="tab" aria-selected={tab === "ver"} variant={tab === "ver" ? "default" : "outline"} onClick={() => setTab("ver")}>
-          Ver formatado
-        </Button>
-      </div>
+      <FluidTabs
+        label="Escrever ou ver formatado"
+        value={tab}
+        onChange={setTab}
+        items={[
+          { value: "editar", label: "Escrever" },
+          { value: "ver", label: "Ver formatado" },
+        ]}
+      />
       {tab === "editar" ? (
         <Textarea
           aria-label="Anotação"
-          className="min-h-80 font-mono text-sm"
+          className="paper-grid min-h-80 text-[15px] leading-7"
           value={content}
           maxLength={100000}
           placeholder={"# Título\n- tópico com **negrito**\n> citação"}

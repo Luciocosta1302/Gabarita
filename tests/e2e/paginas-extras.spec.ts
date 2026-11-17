@@ -59,7 +59,7 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
 
   // Diário: dois registros → acompanhamento da semana
   await page.getByRole("link", { name: "Diário" }).click();
-  for (const [learned, mood] of [["Mitose tem quatro fases", "🙂 Bem"], ["Meiose reduz cromossomos pela metade", "😴 Cansado"]]) {
+  for (const [learned, mood] of [["Mitose tem quatro fases", "Bem"], ["Meiose reduz cromossomos pela metade", "Cansado"]]) {
     await page.getByLabel("O que você aprendeu hoje?").fill(learned);
     await page.getByRole("radio", { name: mood }).click();
     await page.getByRole("button", { name: "Salvar registro" }).click();

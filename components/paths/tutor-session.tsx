@@ -111,7 +111,7 @@ export function TutorSession({
               return (
                 <li key={m.id} data-testid="tutor-explanation" className="bg-card animate-rise grid gap-3 rounded-2xl border p-5 shadow-sm">
                   <span className="text-muted-foreground text-xs font-medium">
-                    🧑‍🏫 Tutor {c.simpler ? "· explicando de outro jeito" : ""}
+                    Tutor {c.simpler ? "· explicando de outro jeito" : ""}
                   </span>
                   <p className="leading-relaxed whitespace-pre-wrap">
                     <WithCitations text={c.text} citations={c.citations} />
@@ -123,13 +123,13 @@ export function TutorSession({
                       ))}
                     </ul>
                   )}
-                  {c.example && <p className="bg-pastel-peach/60 rounded-xl p-3 text-sm">💡 {c.example}</p>}
+                  {c.example && <p className="bg-pastel-peach/60 rounded-xl p-3 text-sm"><strong>Exemplo:</strong> {c.example}</p>}
                 </li>
               );
             case "question":
               return (
                 <li key={m.id} className="bg-card animate-rise grid gap-2 rounded-2xl border p-5 shadow-sm">
-                  <span className="text-muted-foreground text-xs font-medium">✏️ Vamos ver se ficou claro</span>
+                  <span className="text-muted-foreground text-xs font-medium">Vamos ver se ficou claro</span>
                   {m.question && m.question.id === openQuestionId && !done ? (
                     <QuestionCard
                       question={m.question}
@@ -172,7 +172,7 @@ export function TutorSession({
             case "done":
               return (
                 <li key={m.id} data-testid="tutor-done" className="bg-pastel-mint animate-rise grid gap-2 rounded-2xl p-5">
-                  <span className="font-display text-xl font-bold">Etapa concluída 🌸</span>
+                  <span className="font-display text-xl font-bold">Etapa concluída</span>
                   <p className="text-sm">{c.text}</p>
                   {nextStepHref && (
                     <Button asChild className="justify-self-start">

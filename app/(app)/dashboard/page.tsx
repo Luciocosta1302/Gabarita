@@ -3,8 +3,10 @@ import Link from "next/link";
 
 import { Hanko } from "@/components/brand/hanko";
 import { MascotSays } from "@/components/brand/mascot-says";
+import { Medal } from "@/components/brand/medal";
 import { CreateSubjectForm } from "@/components/subjects/create-subject-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Counter } from "@/components/ui/counter";
 import { markSeen, newAchievements } from "@/lib/achievements/load";
 import { mascotLine, weekSeals } from "@/lib/brand/mascot";
 import { addDays, daysBetween, TIME_ZONE, todayBR } from "@/lib/dates";
@@ -125,9 +127,7 @@ export default async function DashboardPage() {
 
       {fresh.length > 0 && (
         <Link href="/conquistas" role="status" data-testid="new-achievements" className="bg-card animate-rise flex flex-wrap items-center gap-3 rounded-2xl border-2 border-ink px-4 py-3 shadow-[0_3px_0_var(--ink)]">
-          <span className="text-3xl" aria-hidden>
-            {fresh[0].icon}
-          </span>
+          <Medal kanji={fresh[0].icon} meaning={fresh[0].meaning} unlocked className="size-10" />
           <span className="text-sm">
             <strong>{fresh.length === 1 ? "Nova conquista" : `${fresh.length} conquistas novas`}:</strong> {fresh.slice(0, 3).map((b) => b.name).join(", ")}
             {fresh.length > 3 ? ` e mais ${fresh.length - 3}` : ""} <span className="text-shu underline">Ver conquistas</span>
@@ -146,7 +146,7 @@ export default async function DashboardPage() {
               Selos da semana
             </p>
             <p className="text-sm">
-              <strong className="font-display text-xl">{streak}</strong> {streak === 1 ? "dia seguido" : "dias seguidos"}
+              <Counter value={streak} className="font-display text-xl font-extrabold" /> {streak === 1 ? "dia seguido" : "dias seguidos"}
             </p>
           </div>
           <ol className="mt-3 grid grid-cols-7 gap-1.5" aria-label="Dias estudados nos últimos 7 dias">

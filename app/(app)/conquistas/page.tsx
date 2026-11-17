@@ -1,4 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Counter } from "@/components/ui/counter";
+import { Medal } from "@/components/brand/medal";
 import { evaluate, levelOf, xpOf } from "@/lib/achievements/badges";
 import { loadAchievementCounts, markSeen } from "@/lib/achievements/load";
 import { createClient } from "@/lib/supabase/server";
@@ -23,14 +25,14 @@ export default async function AchievementsPage() {
       <Card>
         <CardContent className="grid gap-3 pt-6" data-testid="level">
           <div className="flex items-baseline justify-between">
-            <span className="text-3xl font-bold">Nível {lvl.level}</span>
-            <span className="text-muted-foreground text-sm">{lvl.xp} XP</span>
+            <span className="font-display text-3xl font-extrabold">Nível {lvl.level}</span>
+            <span className="text-muted-foreground text-sm"><Counter value={lvl.xp} duration={900} /> XP</span>
           </div>
           <div className="bg-muted h-3 overflow-hidden rounded-full" role="progressbar" aria-valuenow={Math.round(lvl.progress * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso até o próximo nível">
             <div className="bg-primary h-full rounded-full" style={{ width: `${lvl.progress * 100}%` }} />
           </div>
           <p className="text-muted-foreground text-xs">
-            Faltam {lvl.next - lvl.xp} XP para o nível {lvl.level + 1} · {unlocked} de {badges.length} conquistas · sequência de {c.streak} dia(s) 🔥
+            Faltam {lvl.next - lvl.xp} XP para o nível {lvl.level + 1} · {unlocked} de {badges.length} conquistas · sequência de {c.streak} {c.streak === 1 ? "dia" : "dias"}
           </p>
         </CardContent>
       </Card>
@@ -42,9 +44,7 @@ export default async function AchievementsPage() {
             className={cn("bg-card grid gap-2 rounded-2xl border p-4 shadow-sm", !b.unlocked && "opacity-60")}
           >
             <div className="flex items-center gap-3">
-              <span className={cn("text-3xl", !b.unlocked && "grayscale")} aria-hidden>
-                {b.icon}
-              </span>
+              <Medal kanji={b.icon} meaning={b.meaning} unlocked={b.unlocked} className="size-12" />
               <div>
                 <p className="font-semibold">
                   {b.name} {b.unlocked && <span className="text-xs">✓</span>}

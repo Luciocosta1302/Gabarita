@@ -1,3 +1,4 @@
+import { Folder } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 
@@ -36,7 +37,8 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
         </Link>
         {(subjects ?? []).map((s) => (
           <Link key={s.id} href={`/anotacoes?pasta=${s.id}`} className={cn("rounded-full border px-3 py-1 text-sm", folder === s.id ? "bg-primary text-primary-foreground" : "bg-card")}>
-            📁 {s.name}
+            <Folder aria-hidden className="mr-1 inline size-3.5 align-[-2px]" />
+            {s.name}
           </Link>
         ))}
       </nav>

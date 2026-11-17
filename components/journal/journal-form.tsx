@@ -3,13 +3,16 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Daruma } from "@/components/brand/daruma";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { postJSON } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
-export const MOOD_LABELS = { otimo: "😄 Ótimo", bem: "🙂 Bem", ok: "😐 Ok", cansado: "😴 Cansado", frustrado: "😣 Frustrado" } as const;
+export const MOOD_LABELS = { otimo: "Ótimo", bem: "Bem", ok: "Ok", cansado: "Cansado", frustrado: "Frustrado" } as const;
+/** Cada humor com a expressão do Daruma (no lugar de emoji). */
+export const MOOD_FACE = { otimo: "comemorando", bem: "feliz", ok: "pensando", cansado: "sonolento", frustrado: "pensando" } as const;
 type Mood = keyof typeof MOOD_LABELS;
 
 /** Registro do fim da sessão de estudo. */
@@ -63,7 +66,8 @@ export function JournalForm({ subjects, focusMinutes }: { subjects: { id: string
       <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Como você está">
         <span className="text-sm">Como você está?</span>
         {(Object.keys(MOOD_LABELS) as Mood[]).map((m) => (
-          <Button key={m} type="button" size="sm" role="radio" aria-checked={mood === m} variant={mood === m ? "default" : "outline"} onClick={() => setMood(m)}>
+          <Button key={m} type="button" size="sm" role="radio" aria-checked={mood === m} variant={mood === m ? "default" : "outline"} onClick={() => setMood(m)} className="pl-1.5">
+            <Daruma mood={MOOD_FACE[m]} className="size-6" title="" />
             {MOOD_LABELS[m]}
           </Button>
         ))}

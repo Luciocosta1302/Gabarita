@@ -67,7 +67,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
               <span className="font-semibold">{p.title}</span>
               <span className="text-muted-foreground line-clamp-2 text-sm">{p.body}</span>
               <span className="text-muted-foreground text-xs">
-                ♥ {likeCount.get(p.id) ?? 0} · 💬 {commentCount.get(p.id) ?? 0}
+                ♥ {likeCount.get(p.id) ?? 0} · {commentCount.get(p.id) ?? 0} {commentCount.get(p.id) === 1 ? "resposta" : "respostas"}
               </span>
             </Link>
           </li>

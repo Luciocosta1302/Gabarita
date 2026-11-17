@@ -22,7 +22,7 @@ export default async function StepPage({ params }: { params: Promise<{ id: strin
     return (
       <div className="flex flex-col gap-4">
         {back}
-        <p className="bg-muted rounded-2xl p-6">🔒 Esta etapa abre quando você concluir as anteriores.</p>
+        <p className="bg-muted rounded-2xl p-6">Esta etapa abre quando você concluir as anteriores.</p>
       </div>
     );
   }
@@ -50,7 +50,7 @@ export default async function StepPage({ params }: { params: Promise<{ id: strin
       <div className="bg-pastel-lilac animate-rise grid gap-1 rounded-2xl p-5">
         <span className="text-muted-foreground text-xs">Etapa {step.position}</span>
         <h1 className="text-2xl font-bold">{step.title}</h1>
-        <p className="text-sm">🎯 {step.objective}</p>
+        <p className="text-sm"><strong>Objetivo:</strong> {step.objective}</p>
         <p className="text-xs" data-testid="step-streak">
           {step.status === "done"
             ? "✓ Concluída"

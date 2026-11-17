@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { BarChart, LineChart } from "@/components/performance/charts";
+import { Counter } from "@/components/ui/counter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDays, todayBR } from "@/lib/dates";
 import { focusStats } from "@/lib/focus/stats";
@@ -70,10 +71,10 @@ export default async function PerformancePage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="perf-tiles">
-        <Tile label="Questões respondidas" value={(totalAnswered ?? 0).toLocaleString("pt-BR")} />
-        <Tile label={`Aproveitamento (${WEEKS} sem.)`} value={all.length ? `${Math.round((correct / all.length) * 100)}%` : "—"} />
-        <Tile label="Tempo de foco" value={`${Math.round(focus.totalMinutes / 6) / 10} h`} />
-        <Tile label="Sequência" value={`${focus.streak} ${focus.streak === 1 ? "dia" : "dias"} 🔥`} />
+        <Tile label="Questões respondidas" num={totalAnswered ?? 0} />
+        <Tile label={`Aproveitamento (${WEEKS} sem.)`} num={all.length ? Math.round((correct / all.length) * 100) : null} suffix="%" />
+        <Tile label="Tempo de foco" num={Math.round(focus.totalMinutes / 60)} suffix=" h" />
+        <Tile label="Sequência" num={focus.streak} suffix={focus.streak === 1 ? " dia" : " dias"} />
       </div>
 
       <Card>
@@ -82,7 +83,7 @@ export default async function PerformancePage() {
         </CardHeader>
         <CardContent>
           {recs.length === 0 ? (
-            <p className="text-sm">Tudo em dia. Que tal um simulado? 🌸</p>
+            <p className="text-sm">Tudo em dia. Que tal um simulado?</p>
           ) : (
             <ul className="grid gap-2 text-sm" data-testid="recommendations">
               {recs.map((r, i) => (
@@ -168,11 +169,14 @@ export default async function PerformancePage() {
   );
 }
 
-function Tile({ label, value }: { label: string; value: string }) {
+function Tile({ label, num, suffix = "" }: { label: string; num: number | null; suffix?: string }) {
   return (
-    <div className="bg-card rounded-2xl border p-4 shadow-sm">
-      <div className="text-muted-foreground text-xs">{label}</div>
-      <div className="font-display text-2xl font-bold">{value}</div>
+    <div className="bg-card rounded-2xl border-[1.5px] border-ink/80 p-4 shadow-[0_3px_0_rgb(31_26_23/0.12)]">
+      <div className="eyebrow">{label}</div>
+      <div className="font-display mt-1 text-3xl font-extrabold">
+        {num == null ? "—" : <Counter value={num} />}
+        <span className="text-muted-foreground font-sans text-base font-bold">{num == null ? "" : suffix}</span>
+      </div>
     </div>
   );
 }

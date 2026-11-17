@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getUser } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
-const MEDALS = ["🥇", "🥈", "🥉"];
 
 export default async function RoomPage({ params }: { params: Promise<{ code: string }> }) {
   const { code } = await params;
@@ -62,7 +61,7 @@ export default async function RoomPage({ params }: { params: Promise<{ code: str
               {(ranking ?? []).map((r, i) => (
                 <li key={r.user_id} className={cn("flex items-center justify-between rounded-xl border p-3 text-sm", r.user_id === user!.id && "border-primary bg-accent")}>
                   <span>
-                    <span className="mr-2">{MEDALS[i] ?? `${i + 1}º`}</span>
+                    <span className={cn("font-display mr-2 inline-grid size-7 place-items-center rounded-full border-2 border-ink text-sm font-extrabold", i === 0 ? "bg-shu text-washi" : i < 3 ? "bg-kin/70" : "bg-card")}>{i + 1}</span>
                     {r.name}
                     {r.user_id === user!.id && " (você)"}
                   </span>
@@ -137,7 +136,7 @@ export default async function RoomPage({ params }: { params: Promise<{ code: str
             {(members ?? []).map((m) => (
               <li key={m.user_id} className="bg-muted rounded-full px-3 py-1">
                 {m.name}
-                {m.user_id === room.owner_id && " 👑"}
+                {m.user_id === room.owner_id && " · quem criou"}
               </li>
             ))}
           </ul>

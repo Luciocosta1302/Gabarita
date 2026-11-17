@@ -1,5 +1,6 @@
 "use client";
 
+import { Settings2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -19,7 +20,9 @@ export function EditSubject({ subject }: { subject: Subject }) {
 
   return (
     <details className="bg-card rounded-2xl border p-4 text-sm" data-testid="edit-subject">
-      <summary className="cursor-pointer font-medium">⚙️ Editar matéria</summary>
+      <summary className="flex cursor-pointer items-center gap-2 font-bold">
+        <Settings2 aria-hidden className="size-4" /> Editar matéria
+      </summary>
       <form
         className="mt-4 grid gap-4 sm:grid-cols-2"
         onSubmit={async (e) => {

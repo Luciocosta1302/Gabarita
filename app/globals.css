@@ -209,3 +209,16 @@
 @media (prefers-reduced-motion: reduce) {
   .animate-stamp { animation: none; }
 }
+
+/* papel quadriculado de caderno (ideia do Grid do Animata): linhas finas de tinta */
+@layer utilities {
+  .paper-grid {
+    background-color: var(--card);
+    background-image:
+      linear-gradient(rgb(34 51 75 / 0.09) 1px, transparent 1px),
+      linear-gradient(90deg, rgb(34 51 75 / 0.09) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+  }
+}
+

@@ -1,5 +1,6 @@
 "use client";
 
+import { Headphones, Pause } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -52,11 +53,11 @@ export function SpeakSummary({ text }: { text: string }) {
             setState("paused");
           }}
         >
-          ❚❚ Pausar
+          <Pause aria-hidden className="size-4" /> Pausar
         </Button>
       ) : (
         <Button size="sm" variant="secondary" onClick={play}>
-          🎧 {state === "paused" ? "Continuar" : "Ouvir resumo"}
+          <Headphones aria-hidden className="size-4" /> {state === "paused" ? "Continuar" : "Ouvir resumo"}
         </Button>
       )}
       {state !== "idle" && (

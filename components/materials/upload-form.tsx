@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { FluidTabs } from "@/components/ui/fluid-tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -85,21 +86,15 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
 
   return (
     <form ref={formRef} onSubmit={submit} className="grid gap-4">
-      <div className="flex flex-wrap gap-2" role="tablist">
-        {(purpose === "study" ? (["files", "link", "text"] as const) : (["files", "text"] as const)).map((m) => (
-          <Button
-            key={m}
-            type="button"
-            role="tab"
-            aria-selected={mode === m}
-            size="sm"
-            variant={mode === m ? "default" : "outline"}
-            onClick={() => setMode(m)}
-          >
-            {m === "files" ? "Arquivo ou fotos" : m === "link" ? "Link ou YouTube" : "Colar texto"}
-          </Button>
-        ))}
-      </div>
+      <FluidTabs
+        label="Como enviar o material"
+        value={mode}
+        onChange={setMode}
+        items={(purpose === "study" ? (["files", "link", "text"] as const) : (["files", "text"] as const)).map((m) => ({
+          value: m,
+          label: m === "files" ? "Arquivo ou fotos" : m === "link" ? "Link ou YouTube" : "Colar texto",
+        }))}
+      />
 
       <div className="grid gap-2">
         <Label htmlFor="material-title">Título {mode !== "text" && "(opcional)"}</Label>

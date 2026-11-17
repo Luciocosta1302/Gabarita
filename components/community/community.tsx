@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { postJSON, selectClass } from "@/lib/api/client";
 
-export const CATEGORY_LABELS = { duvida: "❓ Dúvida", dica: "💡 Dica", material: "📚 Material", grupo: "👥 Grupo de estudo" } as const;
+export const CATEGORY_LABELS = { duvida: "Dúvida", dica: "Dica", material: "Material", grupo: "Grupo de estudo" } as const;
 
 export function NewPostForm() {
   const router = useRouter();

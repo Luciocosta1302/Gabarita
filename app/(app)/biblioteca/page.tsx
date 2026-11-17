@@ -1,3 +1,4 @@
+import { Folder, MessageSquareText } from "lucide-react";
 import Link from "next/link";
 import { z } from "zod";
 
@@ -90,7 +91,8 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
         </Link>
         {(subjects ?? []).map((s) => (
           <Link key={s.id} href={href({ q, pasta: s.id })} className={cn("rounded-full border px-3 py-1 text-sm", folder === s.id ? "bg-primary text-primary-foreground" : "bg-card")}>
-            📁 {s.name}
+            <Folder aria-hidden className="mr-1 inline size-3.5 align-[-2px]" />
+            {s.name}
           </Link>
         ))}
       </nav>
@@ -126,7 +128,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
         {groups.map((g) => (
           <div key={g.id} className="grid gap-2">
             <h2 className="flex items-center gap-2 font-semibold">
-              📁 <Link href={`/subjects/${g.id}`} className="hover:underline">{g.name}</Link>
+              <Folder aria-hidden className="text-shu size-4" /> <Link href={`/subjects/${g.id}`} className="hover:underline">{g.name}</Link>
               <span className="text-muted-foreground text-xs font-normal">{g.items.length} material(is)</span>
             </h2>
             <ul className="grid gap-2">
@@ -143,7 +145,8 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
                   </div>
                   {m.status === "ready" && m.type !== "past_exam" && (
                     <Link href={`/chat/${m.subject_id}?material=${m.id}`} className="text-primary text-sm underline">
-                      💬 Conversar com este documento
+                      <MessageSquareText aria-hidden className="mr-1 inline size-4 align-[-3px]" />
+                      Conversar com este documento
                     </Link>
                   )}
                 </li>

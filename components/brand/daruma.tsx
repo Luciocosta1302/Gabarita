@@ -24,7 +24,7 @@ export function Daruma({
   const uid = useId().replace(/:/g, "");
   const ink = "#1f1a17";
   return (
-    <svg viewBox="0 0 120 132" className={cn("overflow-visible", className)} role="img" aria-label={title}>
+    <svg viewBox="0 0 120 132" className={cn("overflow-visible", className)} {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true })}>
       <defs>
         <radialGradient id={`body-${uid}`} cx="38%" cy="30%" r="75%">
           <stop offset="0%" stopColor="#e0503f" />

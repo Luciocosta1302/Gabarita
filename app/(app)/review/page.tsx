@@ -59,7 +59,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
       </div>
       {items.length === 0 ? (
         <div className="bg-pastel-mint rounded-2xl p-6 text-center" data-testid="review-empty">
-          <p className="font-display text-xl font-bold">Nada para revisar agora 🌸</p>
+          <p className="font-display text-xl font-bold">Nada para revisar agora</p>
           <p className="text-sm">Crie flashcards ou faça questões; o que precisar de revisão aparece aqui.</p>
         </div>
       ) : (

@@ -4,7 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { Daruma } from "@/components/brand/daruma";
+import { Hanko } from "@/components/brand/hanko";
+import { CardBack, CardFront } from "@/components/flashcards/flashcard";
 import { QuestionCard, type PublicQuestion } from "@/components/quiz/question-card";
+import { FlipCard } from "@/components/ui/flip-card";
 import { Button } from "@/components/ui/button";
 import { postJSON } from "@/lib/api/client";
 import { GRADE_LABELS, type ReviewGrade } from "@/lib/srs/grades";
@@ -14,6 +18,13 @@ export type ReviewItem =
   | { kind: "question"; id: string; subject: string; question: PublicQuestion };
 
 const GRADES: ReviewGrade[] = ["again", "hard", "good", "easy"];
+/** Uma cor por nota, para escolher sem precisar ler: errei (vermelho), difícil (caqui), bom (matchá), fácil (índigo). */
+const GRADE_COLORS: Record<ReviewGrade, string> = {
+  again: "bg-shu text-washi",
+  hard: "bg-[#d9a066] text-ink",
+  good: "bg-matcha text-washi",
+  easy: "bg-ai text-washi",
+};
 
 export function ReviewSession({ items }: { items: ReviewItem[] }) {
   const router = useRouter();
@@ -25,9 +36,13 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
 
   if (i >= items.length) {
     return (
-      <div className="bg-pastel-mint animate-rise grid gap-2 rounded-2xl p-6 text-center" data-testid="review-done">
-        <p className="font-display text-2xl font-bold">Tudo revisado por hoje 🍵</p>
-        <p className="text-sm">Os itens voltam na data certa para você não esquecer.</p>
+      <div className="bg-card animate-rise grid justify-items-center gap-3 rounded-2xl border-2 border-ink p-6 text-center shadow-[0_4px_0_var(--ink)]" data-testid="review-done">
+        <div className="relative">
+          <Daruma mood="comemorando" className="w-24" />
+          <Hanko className="animate-stamp absolute -right-8 -bottom-1 size-12" rotate={-10} />
+        </div>
+        <p className="font-display text-2xl font-extrabold">Tudo revisado por hoje</p>
+        <p className="text-muted-foreground text-sm">Os itens voltam na data certa para você não esquecer.</p>
         <Button variant="outline" className="justify-self-center" onClick={() => router.refresh()}>
           Atualizar
         </Button>
@@ -56,9 +71,10 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
   }
 
   return (
-    <div className="bg-card grid gap-4 rounded-2xl border p-5 shadow-sm" data-testid="review-item" data-kind={item.kind}>
-      <div className="text-muted-foreground flex justify-between text-xs">
-        <span className="bg-pastel-lilac text-foreground rounded-full px-2.5 py-0.5">{item.subject}</span>
+    <div className="relative grid gap-4" data-testid="review-item" data-kind={item.kind}>
+      {/* a pilha: os cartões que ainda faltam aparecem atrás (ideia do Card Stack do Animata) */}
+      <div className="text-muted-foreground flex items-center justify-between text-xs">
+        <span className="bg-card text-foreground rounded-full border-[1.5px] border-ink/70 px-2.5 py-0.5 font-bold">{item.subject}</span>
         <span>
           {i + 1} de {items.length}
         </span>
@@ -66,22 +82,39 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
 
       {item.kind === "flashcard" ? (
         <>
-          <p className="text-lg font-medium">{item.front}</p>
+          <div className="relative">
+            {items.length - i > 2 && <span aria-hidden className="bg-card absolute inset-x-6 -bottom-3 h-full rotate-2 rounded-2xl border-2 border-ink/40" />}
+            {items.length - i > 1 && <span aria-hidden className="bg-card absolute inset-x-3 -bottom-1.5 h-full -rotate-1 rounded-2xl border-2 border-ink/60" />}
+            <FlipCard
+              key={item.id}
+              className="relative"
+              flipped={revealed}
+              onFlip={() => setRevealed(true)}
+              label={`Virar o cartão: ${item.front}`}
+              front={<CardFront hint="Toque para ver a resposta">{item.front}</CardFront>}
+              back={
+                <CardBack
+                  testId={revealed ? "flashcard-back" : undefined}
+                  footer={
+                    item.chunkId ? (
+                      <Link href={`/chunks/${item.chunkId}`} target="_blank" className="text-xs underline underline-offset-2">
+                        Ver no material
+                      </Link>
+                    ) : null
+                  }
+                >
+                  {item.back}
+                </CardBack>
+              }
+            />
+          </div>
           {revealed ? (
             <>
-              <div className="bg-pastel-mint rounded-xl p-4" data-testid="flashcard-back">
-                {item.back}
-                {item.chunkId && (
-                  <Link href={`/chunks/${item.chunkId}`} target="_blank" className="text-primary mt-2 block text-xs underline">
-                    Ver no material
-                  </Link>
-                )}
-              </div>
-              <div className="grid gap-2">
+              <div className="grid gap-2 pt-2">
                 <span className="text-sm font-medium">Como foi lembrar?</span>
                 <div className="flex flex-wrap gap-2">
                   {GRADES.map((g) => (
-                    <Button key={g} size="sm" variant={g === "again" ? "outline" : "secondary"} disabled={busy} onClick={() => grade(g)}>
+                    <Button key={g} size="sm" disabled={busy} onClick={() => grade(g)} className={GRADE_COLORS[g]}>
                       {GRADE_LABELS[g]}
                     </Button>
                   ))}
