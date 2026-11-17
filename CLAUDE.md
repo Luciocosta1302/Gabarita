@@ -233,6 +233,7 @@ tests/
   - Cron `/api/jobs/process`: segredo comparado em tempo constante.
   - Dependências: `npm audit --omit=dev` = 0 (o PostCSS antigo dentro do Next foi trocado por `overrides`); restam avisos moderados só em ferramentas de desenvolvimento (eslint).
   - Já estava ok: RLS em todas as tabelas, chave de admin só no servidor (`server-only`, conferido no código do navegador), nada de SQL montado com texto, sem HTML cru na tela, SSRF dos links, `.env*` fora do git (histórico sem chaves).
+- **Produção (publicação):** Supabase projeto "Gabarita" (`ngsfmhypjmfminsyknvj`, região ca-central-1). Banco montado em 17/11/2026: a 1ª migration pelo conector MCP do Supabase, as outras 13 de uma vez pela API de gerenciamento (`POST /v1/projects/<ref>/database/query`, token do usuário guardado como segredo de rede do ambiente para `api.supabase.com`). Esquema conferido idêntico ao local (colunas, políticas, funções, índices). **O histórico de migrations do Supabase de produção não bate com os nomes dos arquivos** (só `schema_inicial` aparece): migrations novas devem ser aplicadas do mesmo jeito (API ou SQL Editor), não com `supabase db push` sem antes `supabase migration repair`. Site: Vercel (em configuração).
 - Pendências conhecidas: páginas de DOCX/texto/áudio são aproximadas; IA real sem teste automatizado (precisa de chave); vídeo do YouTube de ~40 min ou mais não foi testado com a IA real.
 
 ## 9. Proposta de design e páginas novas (do usuário, ainda não priorizada)
