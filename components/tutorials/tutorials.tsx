@@ -18,7 +18,13 @@ export function TutorialProvider({ initialSeen, children }: { initialSeen: strin
   const [seen, setSeen] = useState(() => new Set(initialSeen));
   const markSeen = useCallback((key: string) => {
     setSeen((s) => (s.has(key) ? s : new Set(s).add(key)));
-    postJSON("/api/tutorials", { key, seen: true }).catch(() => {});
+    // keepalive: a gravação termina mesmo se o aluno trocar de página logo em seguida
+    fetch("/api/tutorials", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ key, seen: true }),
+      keepalive: true,
+    }).catch(() => {});
   }, []);
   const resetAll = useCallback(async () => {
     await postJSON("/api/tutorials", { key: "*", seen: false });

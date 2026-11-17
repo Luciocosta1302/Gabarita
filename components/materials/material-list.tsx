@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
+import { postJSON } from "@/lib/api/client";
 import { cn } from "@/lib/utils";
 
 export type MaterialRow = {
@@ -62,7 +63,12 @@ export function MaterialList({ materials }: { materials: MaterialRow[] }) {
                 {TYPE_LABEL[m.type] ?? m.type}
                 {m.page_count ? ` · ${m.page_count} ${m.type === "pdf" || m.type === "image" ? "páginas" : "partes"}` : ""}
               </span>
-              {m.status === "error" && m.error && <p className="text-destructive text-xs">{m.error}</p>}
+              {m.status === "error" && (
+                <div className="mt-1 grid gap-1.5">
+                  {m.error && <p className="text-destructive text-xs leading-snug">{m.error}</p>}
+                  <RetryButton materialId={m.id} />
+                </div>
+              )}
             </div>
             <span
               data-testid="material-status"
@@ -74,5 +80,35 @@ export function MaterialList({ materials }: { materials: MaterialRow[] }) {
         );
       })}
     </ul>
+  );
+}
+
+function RetryButton({ materialId }: { materialId: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="grid gap-1">
+      <button
+        type="button"
+        disabled={busy}
+        className="w-fit rounded-full border-[1.5px] border-ink px-3 py-1 text-xs font-bold hover:bg-accent disabled:opacity-60"
+        onClick={async () => {
+          setBusy(true);
+          setError(null);
+          try {
+            await postJSON("/api/upload/retry", { material_id: materialId });
+            router.refresh();
+          } catch (e) {
+            setError(e instanceof Error ? e.message : "Não deu para tentar de novo agora.");
+          } finally {
+            setBusy(false);
+          }
+        }}
+      >
+        {busy ? "Colocando na fila..." : "Tentar de novo"}
+      </button>
+      {error && <p role="alert" className="text-destructive text-xs">{error}</p>}
+    </div>
   );
 }

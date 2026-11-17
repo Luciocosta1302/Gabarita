@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { postJSON, selectClass } from "@/lib/api/client";
+import { explainStorageError } from "@/lib/api/explain";
 import { MAX_UPLOAD_BYTES } from "@/lib/limits";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -91,9 +92,9 @@ export function UploadForm({
           text: String(form.get("text") ?? ""),
         });
       } else {
-        if (!files.length) throw new Error("Escolha um arquivo.");
+        if (!files.length) throw new Error("Nenhum arquivo escolhido. Toque na área tracejada para escolher o arquivo.");
         const big = files.find((f) => f.size > MAX_UPLOAD_BYTES);
-        if (big) throw new Error(`"${big.name}" passa de 20 MB.`);
+        if (big) throw new Error(`“${big.name}” tem ${sizeLabel(big.size)} e o limite é 20 MB. Divida o arquivo (ex.: em dois PDFs) ou envie fotos das páginas.`);
         const meta = files.map((f) => ({ name: f.name, size: f.size, type: f.type }));
         const kind = materialTypeFor(meta);
         if ("error" in kind) throw new Error(kind.error);
@@ -113,7 +114,7 @@ export function UploadForm({
           setBusy(`Enviando ${i + 1} de ${created.uploads.length}...`);
           const file = files[i];
           const { error: upError } = await supabase.storage.from("materials").upload(up.path, file, { contentType: file.type || undefined });
-          if (upError) throw new Error(`Falha ao enviar "${file.name}": ${upError.message}`);
+          if (upError) throw new Error(explainStorageError(file.name, upError.message));
         }
         await postJSON("/api/upload/complete", { material_id: created.material_id });
       }

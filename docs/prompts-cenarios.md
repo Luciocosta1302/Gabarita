@@ -1,5 +1,8 @@
 # Prompts de imagem — cenários do Espaço de estudos
 
+> **Já no app:** quarto (dia), Kyoto (dia), Tóquio (noite) e cafeteria (noite), em `public/cenarios/<cenário>.webp`.
+> O horário muda a luz por filtro. As versões que faltam (quarto/Kyoto de noite, Tóquio/cafeteria de dia) são opcionais.
+
 Hoje os 4 cenários do `/espaco` são desenhos simples em SVG. Estes prompts geram ilustrações para trocar por eles.
 São **8 imagens**: 4 cenários × (dia e noite). Amanhecer e entardecer saem do dia/noite com um filtro de cor no app.
 

@@ -12,7 +12,9 @@ export async function signup(page: Page, name: string, prefix = "e2e") {
 
 /** Primeiro acesso: pula o tour de boas-vindas. */
 export async function skipTour(page: Page) {
+  const saved = page.waitForResponse((r) => r.url().endsWith("/api/tutorials") && r.ok());
   await page.getByTestId("welcome-tour").getByRole("button", { name: "Pular" }).click();
+  await saved;
   await expect(page.getByTestId("welcome-tour")).toBeHidden();
 }
 

@@ -94,7 +94,8 @@ async function enqueueAdmin(admin: AdminClient, userId: string, kind: JobKind, p
   if (!count) await admin.from("jobs").insert({ user_id: userId, kind, payload_json: payload });
 }
 
-const GENERIC_ERROR = "Algo deu errado ao processar. Tente de novo mais tarde.";
+const GENERIC_ERROR =
+  "Deu um problema do nosso lado ao ler este material (não foi culpa sua). Use “Tentar de novo” em alguns minutos; se continuar, envie em outro formato (PDF ou fotos das páginas).";
 
 /**
  * Processa jobs da fila até acabar (ou até `max`). `userId` limita aos jobs de um usuário

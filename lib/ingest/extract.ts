@@ -2,7 +2,6 @@ import "server-only";
 
 import JSZip from "jszip";
 import mammoth from "mammoth";
-import { PDFParse } from "pdf-parse";
 import sharp from "sharp";
 
 import { generateJSON, transcribe } from "@/lib/ai/provider";
@@ -58,7 +57,29 @@ function limitPages(ex: Extracted, maxPages: number) {
 // PDF
 // ---------------------------------------------------------------------------
 
+/**
+ * O leitor de PDF (pdf.js) só é carregado quando precisa. Em Node ele exige o @napi-rs/canvas
+ * (DOMMatrix) e o arquivo do "worker"; sem eles, o import quebra e derrubava a rota inteira
+ * (foi o "Erro 500" no envio em produção). O `pdf-parse/worker` carrega os dois, e os imports
+ * com o nome fixo fazem a Vercel incluir esses arquivos no servidor.
+ */
+let pdfLib: Promise<typeof import("pdf-parse")> | null = null;
+function loadPdfParse() {
+  pdfLib ??= (async () => {
+    await import("@napi-rs/canvas");
+    await import("pdf-parse/worker");
+    await import("pdfjs-dist/legacy/build/pdf.worker.mjs");
+    return import("pdf-parse");
+  })().catch((e) => {
+    pdfLib = null;
+    console.error("[extract] não carregou o leitor de PDF:", e);
+    throw new UserFacingError("O leitor de PDF do servidor falhou ao iniciar. Tente de novo em alguns minutos; se continuar, envie as páginas como fotos.");
+  });
+  return pdfLib;
+}
+
 export async function extractPdf(data: Uint8Array, maxPages: number): Promise<Extracted> {
+  const { PDFParse } = await loadPdfParse();
   const parser = new PDFParse({ data: new Uint8Array(data) });
   let pages: PageText[];
   let total: number;

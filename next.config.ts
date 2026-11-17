@@ -21,7 +21,15 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Bibliotecas de extração rodam como módulos Node normais (o pdf.js usa worker e arquivos próprios
   // que quebram quando empacotados pelo Next).
-  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "mammoth", "sharp"],
+  serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas", "mammoth", "sharp"],
+  // o pdf.js carrega o canvas e o worker por caminhos que o rastreador de arquivos não enxerga sozinho
+  outputFileTracingIncludes: {
+    "/api/**": [
+      "./node_modules/@napi-rs/canvas/**",
+      "./node_modules/@napi-rs/canvas-linux-x64-gnu/**",
+      "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
+    ],
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

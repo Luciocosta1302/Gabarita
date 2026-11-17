@@ -1,5 +1,6 @@
 import "server-only";
 
+import { explainStatus, SERVER_ERROR } from "./explain";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -46,12 +47,12 @@ function sameOrigin(req: Request) {
  */
 export function apiRoute<S extends z.ZodType>(schema: S, handler: (input: z.infer<S>, ctx: Ctx) => Promise<Response>, options: Options = {}) {
   return async (req: Request) => {
-    if (!sameOrigin(req)) return jsonError("Origem não permitida.", 403);
+    if (!sameOrigin(req)) return jsonError(explainStatus(403), 403);
     if (!(req.headers.get("content-type") ?? "").toLowerCase().startsWith("application/json")) {
-      return jsonError("Envie os dados como JSON.", 415);
+      return jsonError(explainStatus(415), 415);
     }
     const ctx = await getUser();
-    if (!ctx.user) return jsonError("Faça login para continuar.", 401);
+    if (!ctx.user) return jsonError(explainStatus(401), 401);
 
     for (const r of [...RATE_LIMITS.general, ...(options.ai ? RATE_LIMITS.ai : [])]) {
       const { data: ok, error } = await ctx.supabase.rpc("hit_rate_limit", { p_bucket: r.bucket, p_limit: r.limit, p_window_seconds: r.windowS });
@@ -71,7 +72,7 @@ export function apiRoute<S extends z.ZodType>(schema: S, handler: (input: z.infe
     try {
       body = await req.json();
     } catch {
-      return jsonError("Corpo da requisição inválido.", 400);
+      return jsonError("Os dados chegaram incompletos. Recarregue a página e tente de novo.", 400);
     }
     const parsed = schema.safeParse(body);
     if (!parsed.success) {
@@ -85,7 +86,7 @@ export function apiRoute<S extends z.ZodType>(schema: S, handler: (input: z.infe
       if (isUserFacing(e)) return jsonError(e.message, 422);
       if (e instanceof Error && (e as { rateLimited?: boolean }).rateLimited) return jsonError(e.message, 429);
       console.error("[api]", e);
-      return jsonError("Algo deu errado. Tente de novo.", 500);
+      return jsonError(SERVER_ERROR, 500);
     }
   };
 }

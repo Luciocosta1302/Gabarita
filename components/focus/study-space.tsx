@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Mochi } from "@/components/brand/mochi";
 import { NotebookPen } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -33,7 +34,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { PomodoroDial, PomodoroSettings } from "./pomodoro-dial";
-import { Scene } from "./scene";
+import { SceneArt } from "./scene-art";
 
 type Goal = { id: string; title: string; done: boolean };
 type Stats = {
@@ -197,12 +198,12 @@ export function StudySpace({
     <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
       <div className="grid content-start gap-4">
         <div
-          className="relative aspect-video overflow-hidden rounded-3xl shadow-sm"
+          className="relative aspect-video overflow-hidden rounded-3xl border-2 border-ink shadow-[0_4px_0_var(--ink)]"
           data-testid="study-scene"
           data-scene={scene}
           data-tod={tod}
         >
-          <Scene scene={scene} tod={tod} raining={raining} />
+          <SceneArt scene={scene} tod={tod} raining={raining} label={`${SCENES.find((s) => s.id === scene)!.name}, ${TIME_LABELS[tod].toLowerCase()}`} />
           {/* a Mochi faz companhia: cochila enquanto você foca, acorda na pausa */}
           <Mochi
             mood={running && phase === "focus" ? "dormindo" : phase === "focus" ? "feliz" : "animada"}
@@ -424,12 +425,15 @@ export function StudySpace({
                   onClick={() => setScene(s.id)}
                   aria-pressed={scene === s.id}
                   className={cn(
-                    "flex items-center justify-between rounded-xl border px-3 py-2 text-left text-sm",
-                    scene === s.id ? "border-primary bg-accent" : "bg-card",
+                    "flex items-center gap-3 rounded-xl border-[1.5px] p-1.5 pr-3 text-left text-sm",
+                    scene === s.id ? "border-ink bg-accent shadow-[0_2px_0_var(--ink)]" : "bg-card border-ink/25",
                     !open && "opacity-60",
                   )}
                 >
-                  <span>{s.name}</span>
+                  <span className="relative block aspect-video w-16 shrink-0 overflow-hidden rounded-lg">
+                    <Image src={`/cenarios/${s.id}.webp`} alt="" fill sizes="64px" className={cn("object-cover", !open && "blur-[2px] grayscale")} />
+                  </span>
+                  <span className="flex-1">{s.name}</span>
                   <span className="text-muted-foreground text-xs">
                     {open
                       ? scene === s.id
