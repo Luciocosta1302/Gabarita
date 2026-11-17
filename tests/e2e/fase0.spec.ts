@@ -26,7 +26,7 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   const list = page.getByTestId("subject-list");
   await expect(list.getByText("Cálculo I — P1")).toBeVisible();
   await expect(list.getByText("FGV", { exact: true })).toBeVisible();
-  await expect(list.getByText(/^\d+d$/)).toBeVisible(); // dias até a prova
+  await expect(list.getByText("dias p/ prova")).toBeVisible(); // contagem até a prova
 
   await list.getByText("Cálculo I — P1").click();
   await expect(page.getByRole("heading", { name: "Cálculo I — P1" })).toBeVisible();

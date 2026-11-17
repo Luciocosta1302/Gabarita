@@ -4,34 +4,48 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Estética lo-fi japonesa: creme quente, ameixa e rosé, com cartões em tons pastel. */
-  --radius: 1rem;
-  --background: oklch(0.965 0.012 60);
-  --foreground: oklch(0.27 0.04 350);
-  --card: oklch(0.985 0.008 60);
-  --card-foreground: oklch(0.27 0.04 350);
-  --primary: oklch(0.47 0.1 5);
-  --primary-foreground: oklch(0.98 0.01 60);
-  --secondary: oklch(0.93 0.025 20);
-  --secondary-foreground: oklch(0.32 0.06 355);
-  --muted: oklch(0.935 0.015 40);
-  --muted-foreground: oklch(0.5 0.035 350);
-  --accent: oklch(0.92 0.035 15);
-  --accent-foreground: oklch(0.32 0.06 355);
-  --destructive: oklch(0.58 0.17 22);
-  --success: oklch(0.55 0.11 150);
-  --border: oklch(0.88 0.025 30);
-  --input: oklch(0.86 0.03 30);
-  --ring: oklch(0.62 0.1 5);
-  /* menu lateral */
-  --sidebar: oklch(0.26 0.04 345);
-  --sidebar-foreground: oklch(0.92 0.02 30);
-  --sidebar-accent: oklch(0.38 0.07 355);
-  /* cartões pastel */
-  --pastel-lilac: oklch(0.9 0.04 320);
-  --pastel-peach: oklch(0.91 0.05 55);
-  --pastel-mint: oklch(0.92 0.045 140);
-  --pastel-rose: oklch(0.9 0.05 10);
+  /*
+   * Identidade "caderno de selos": papel washi, tinta sumi, selo vermelho (shu), índigo (ai),
+   * matchá e um toque de dourado. Cores tradicionais japonesas, sem degradês genéricos.
+   */
+  --radius: 0.9rem;
+  --washi: #f4efe4;
+  --ink: #1f1a17;
+  --ink-soft: #3a322c;
+  --shu: #c8372d;
+  --shu-deep: #8f231c;
+  --ai: #22334b;
+  --ai-deep: #16223a;
+  --matcha: #5d8a3a;
+  --kin: #c79a3a;
+  --sakura: #e8b4b0;
+
+  --background: var(--washi);
+  --foreground: var(--ink);
+  --card: #fbf8f1;
+  --card-foreground: var(--ink);
+  --primary: var(--shu);
+  --primary-foreground: #fff8ef;
+  --secondary: var(--ai);
+  --secondary-foreground: #f4efe4;
+  --muted: #ebe3d4;
+  --muted-foreground: #6b6158;
+  --accent: #ede3d0;
+  --accent-foreground: var(--ink);
+  --destructive: #b3261e;
+  --success: var(--matcha);
+  --border: #d8ccb8;
+  --input: #cfc1aa;
+  --ring: var(--shu);
+  /* menu lateral e cartões escuros: índigo noturno */
+  --sidebar: var(--ai-deep);
+  --sidebar-foreground: #ece4d4;
+  --sidebar-accent: #33476a;
+  /* tons claros tradicionais (fuji, kaki, matchá, sakura) */
+  --pastel-lilac: #e0d8ea;
+  --pastel-peach: #f3dcc3;
+  --pastel-mint: #dbe6c8;
+  --pastel-rose: #f3d9d4;
 }
 
 @theme inline {
@@ -63,7 +77,16 @@
   --color-pastel-peach: var(--pastel-peach);
   --color-pastel-mint: var(--pastel-mint);
   --color-pastel-rose: var(--pastel-rose);
-  --font-display: ui-serif, Georgia, "Times New Roman", serif;
+  --color-ink: var(--ink);
+  --color-shu: var(--shu);
+  --color-shu-deep: var(--shu-deep);
+  --color-ai: var(--ai);
+  --color-matcha: var(--matcha);
+  --color-kin: var(--kin);
+  --color-sakura: var(--sakura);
+  --color-washi: var(--washi);
+  --font-display: "Shippori Mincho", "Hiragino Mincho ProN", "Yu Mincho", Georgia, serif;
+  --font-sans: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", ui-rounded, system-ui, sans-serif;
 }
 
 @layer base {
@@ -72,11 +95,54 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    /* textura de papel washi: fibras bem sutis */
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .27 0 0 0 0 .18 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
   h1,
   h2 {
     font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  ::selection {
+    background: var(--shu);
+    color: #fff8ef;
+  }
+}
+
+@layer utilities {
+  /* ondas seigaiha (padrão tradicional) para áreas decorativas */
+  .seigaiha {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='.09' stroke-width='1.2'%3E%3Cpath d='M0 20a20 20 0 0 1 40 0M6 20a14 14 0 0 1 28 0M12 20a8 8 0 0 1 16 0M-20 10a20 20 0 0 1 40 0M-14 10a14 14 0 0 1 28 0M-8 10a8 8 0 0 1 16 0M20 10a20 20 0 0 1 40 0M26 10a14 14 0 0 1 28 0M32 10a8 8 0 0 1 16 0'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  .seigaiha-ink {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20' viewBox='0 0 40 20'%3E%3Cg fill='none' stroke='%231f1a17' stroke-opacity='.07' stroke-width='1.2'%3E%3Cpath d='M0 20a20 20 0 0 1 40 0M6 20a14 14 0 0 1 28 0M12 20a8 8 0 0 1 16 0M-20 10a20 20 0 0 1 40 0M-14 10a14 14 0 0 1 28 0M-8 10a8 8 0 0 1 16 0M20 10a20 20 0 0 1 40 0M26 10a14 14 0 0 1 28 0M32 10a8 8 0 0 1 16 0'/%3E%3C/g%3E%3C/svg%3E");
+  }
+  /* rótulo de seção: caixa alta pequena com letras espaçadas */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted-foreground);
+  }
+  /* texto vertical (como nas etiquetas japonesas) */
+  .tategaki {
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 0.15em;
+  }
+  /* "carimbo": contorno de tinta + sombra dura que afunda ao tocar */
+  .stamp-press {
+    border: 2px solid var(--ink);
+    box-shadow: 0 4px 0 var(--ink);
+    transition: transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  .stamp-press:active {
+    transform: translateY(3px);
+    box-shadow: 0 1px 0 var(--ink);
   }
 }
 
@@ -129,4 +195,17 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .scene-steam, .scene-rain, .scene-twinkle, .scene-glow, .scene-breathe { animation: none; }
+}
+
+/* carimbo batendo no papel (acerto) */
+@keyframes stamp-in {
+  0% { transform: scale(1.8) rotate(-24deg); opacity: 0; }
+  60% { transform: scale(0.92) rotate(-8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(-10deg); opacity: 1; }
+}
+@layer utilities {
+  .animate-stamp { animation: stamp-in 0.35s cubic-bezier(.2,.9,.3,1.2) both; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-stamp { animation: none; }
 }

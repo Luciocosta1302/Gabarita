@@ -59,7 +59,7 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
   return (
     <div className="flex flex-col gap-6">
       {back}
-      <div className="from-pastel-lilac to-pastel-rose animate-rise rounded-3xl bg-gradient-to-br p-6">
+      <div className="bg-card seigaiha-ink animate-rise rounded-3xl border-2 border-ink p-6 shadow-[0_4px_0_var(--ink)]">
         <h1 className="text-3xl font-bold">Plano até a prova</h1>
         <p className="text-lg" data-testid="plan-countdown">
           Faltam <strong>{left}</strong> {left === 1 ? "dia" : "dias"} · prova em {subject.exam_date.split("-").reverse().join("/")}

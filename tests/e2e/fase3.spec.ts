@@ -50,7 +50,7 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await expect(page.getByTestId("likely-topics").locator("li").first()).toBeVisible();
   await page.getByRole("button", { name: "Gerar 10 questões no estilo do professor" }).click();
   await expect(page).toHaveURL(/\/quiz\//, { timeout: 60_000 });
-  await expect(page.getByTestId("question-card").getByRole("radio").filter({ hasText: /^[A-E]\)/ })).toHaveCount(5);
+  await expect(page.getByTestId("question-card").getByRole("radiogroup", { name: "Alternativas" }).getByRole("radio")).toHaveCount(5);
 
   // D10: discursiva com rubrica
   await page.goto(subjectUrl);

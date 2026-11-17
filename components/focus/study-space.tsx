@@ -206,8 +206,8 @@ export function StudySpace({
           </span>
         </div>
 
-        <div className="bg-sidebar relative overflow-hidden rounded-3xl p-5 shadow-sm sm:p-6" data-testid="pomodoro">
-          <div className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-[oklch(0.6_0.15_25/0.25)] blur-3xl" aria-hidden />
+        <div className="bg-sidebar relative overflow-hidden rounded-3xl border-2 border-ink p-5 shadow-[0_4px_0_var(--ink)] sm:p-6" data-testid="pomodoro">
+          <div className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-[#c8372d]/25 blur-3xl" aria-hidden />
           <div className="relative">
             {settingsOpen ? (
               <PomodoroSettings

@@ -45,7 +45,7 @@ export default async function RoomPage({ params }: { params: Promise<{ code: str
       <Link href="/salas" className="text-muted-foreground text-sm hover:underline">
         ← Turmas
       </Link>
-      <div className="from-pastel-lilac to-pastel-rose animate-rise grid gap-2 rounded-3xl bg-gradient-to-br p-6">
+      <div className="bg-card seigaiha-ink animate-rise grid gap-2 rounded-3xl border-2 border-ink p-6 shadow-[0_4px_0_var(--ink)]">
         <h1 className="text-3xl font-bold">{room.name}</h1>
         <p className="text-sm">{members?.length ?? 0} na turma · mande o link para quem estuda com você</p>
         <CopyInvite url={`${origin}/rooms/${room.invite_code}`} />

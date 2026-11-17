@@ -31,7 +31,7 @@ export default async function PathPage({ params }: { params: Promise<{ id: strin
       <Link href="/trilhas" className="text-muted-foreground text-sm hover:underline">
         ← Trilhas
       </Link>
-      <div className="animate-rise rounded-3xl bg-gradient-to-br from-[oklch(0.75_0.1_30)] to-[oklch(0.5_0.12_340)] p-6 text-white">
+      <div className="bg-ai seigaiha animate-rise rounded-3xl border-2 border-ink p-6 text-washi shadow-[0_4px_0_var(--ink)]">
         <h1 className="text-3xl font-bold">{path.title}</h1>
         <p className="text-sm opacity-90">
           {path.subjects?.name} · objetivo: {path.goal}

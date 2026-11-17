@@ -101,7 +101,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
       <Link
         href={`/subjects/${id}/plan`}
         data-testid="plan-card"
-        className="from-pastel-rose to-pastel-lilac animate-rise grid gap-1 rounded-2xl bg-gradient-to-br p-5 shadow-sm transition-transform hover:-translate-y-0.5"
+        className="stamp-press bg-card seigaiha-ink animate-rise grid gap-1 rounded-2xl p-5"
       >
         <span className="font-semibold">Plano até a prova →</span>
         {daysLeft != null && daysLeft > 0 ? (
@@ -122,7 +122,7 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
             key={a.title}
             href={a.href}
             style={{ animationDelay: `${i * 60}ms` }}
-            className={cn("animate-rise rounded-2xl p-4 shadow-sm transition-transform hover:-translate-y-0.5", a.color)}
+            className={cn("stamp-press animate-rise rounded-2xl p-4", a.color)}
           >
             <span className="font-semibold">{a.title} →</span>
             <span className="text-foreground/75 mt-1 block text-xs">{a.text}</span>

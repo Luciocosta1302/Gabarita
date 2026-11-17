@@ -27,7 +27,7 @@ export function DomainMap({ subjectId, topics }: { subjectId: string; topics: To
           const pct = t.mastery == null ? null : Math.round(t.mastery * 100);
           const sure = t.confidence.find((c) => c.level === "certeza");
           return (
-            <li key={t.id} data-testid="topic-tile" className={cn("grid gap-2 rounded-2xl p-4 shadow-sm", tone(t.mastery))}>
+            <li key={t.id} data-testid="topic-tile" className={cn("grid gap-2 rounded-2xl border-[1.5px] border-ink/70 p-4", tone(t.mastery))}>
               <div className="flex items-start justify-between gap-2">
                 <div>
                   <p className="font-semibold">{t.name}</p>

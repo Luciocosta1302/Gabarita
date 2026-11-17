@@ -61,7 +61,7 @@ export default async function TeacherPage({
       >
         ← {subject.name}
       </Link>
-      <div className="from-pastel-mint to-pastel-lilac animate-rise rounded-3xl bg-gradient-to-br p-6">
+      <div className="bg-card seigaiha-ink animate-rise rounded-3xl border-2 border-ink p-6 shadow-[0_4px_0_var(--ink)]">
         <h1 className="text-3xl font-bold">Prova do Professor</h1>
         <p className="text-sm">
           Mande provas antigas deste professor (ou da banca). O Gabarita aprende

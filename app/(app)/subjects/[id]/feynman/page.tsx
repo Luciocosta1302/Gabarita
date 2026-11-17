@@ -27,7 +27,7 @@ export default async function FeynmanPage({ params }: { params: Promise<{ id: st
       <Link href={`/subjects/${id}`} className="text-muted-foreground text-sm hover:underline">
         ← {subject.name}
       </Link>
-      <div className="from-pastel-rose to-pastel-peach animate-rise rounded-3xl bg-gradient-to-br p-6">
+      <div className="bg-card seigaiha-ink animate-rise rounded-3xl border-2 border-ink p-6 shadow-[0_4px_0_var(--ink)]">
         <h1 className="text-3xl font-bold">Modo Feynman</h1>
         <p className="text-sm">
           Se você consegue explicar de um jeito simples, você entendeu. Explique o conceito por escrito ou falando; o

@@ -11,7 +11,7 @@ async function answer(page: Page, { wrong, confidence }: { wrong: boolean; confi
   const options = card.getByRole("radiogroup", { name: "Alternativas" }).getByRole("radio");
   // No mock, as alternativas erradas começam com "Alternativa incorreta".
   const target = wrong
-    ? options.filter({ hasText: /^.\)Alternativa incorreta/ }).first()
+    ? options.filter({ hasText: "Alternativa incorreta" }).first()
     : options.filter({ hasNotText: "Alternativa incorreta" }).first();
   await target.click();
   await card.getByRole("radio", { name: confidence }).click();
@@ -28,7 +28,7 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
-  await expect(page.getByRole("heading", { name: "Aluno", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Aluno\./ })).toBeVisible();
 
   await page.getByLabel("Matéria / prova").fill("Biologia — P2");
   await page.getByRole("button", { name: "Criar matéria" }).click();

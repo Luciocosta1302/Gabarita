@@ -13,8 +13,8 @@ const TICKS = 60;
 
 /** Cores do anel: foco em rosé → laranja; pausas em verde-água. */
 const RING = {
-  focus: ["oklch(0.7 0.16 15)", "oklch(0.8 0.15 60)"],
-  break: ["oklch(0.78 0.1 170)", "oklch(0.85 0.1 130)"],
+  focus: ["#d9473a", "#e3a64a"],
+  break: ["#6f9a48", "#b8cf86"],
 } as const;
 
 /** Mostrador circular do Pomodoro: anel de progresso, marcações, tempo e bolinhas do ciclo. */
@@ -111,12 +111,12 @@ export function PomodoroDial({
           <span className="text-xs tracking-[0.2em] text-white/60 uppercase" data-testid="pomodoro-phase">
             {PHASE_LABELS[phase]}
           </span>
-          <span className="font-mono text-5xl font-light tracking-tight text-white tabular-nums sm:text-6xl" data-testid="pomodoro-clock" aria-live="off">
+          <span className="text-5xl font-bold tracking-tight text-white tabular-nums sm:text-6xl" data-testid="pomodoro-clock" aria-live="off">
             {formatClock(remaining)}
           </span>
           <span className="flex gap-1.5" aria-label={`${cycleDone} de ${longEvery} focos até a pausa longa`} role="img">
             {Array.from({ length: longEvery }, (_, i) => (
-              <span key={i} className={cn("size-1.5 rounded-full", i < cycleDone ? "bg-[oklch(0.8_0.15_60)]" : "bg-white/25")} />
+              <span key={i} className={cn("size-2 rotate-45 rounded-[2px]", i < cycleDone ? "bg-[#e3a64a]" : "bg-white/20")} />
             ))}
           </span>
           <span className="mt-1 text-[11px] text-white/50">
@@ -137,8 +137,8 @@ export function PomodoroDial({
           <button
             type="button"
             onClick={onStart}
-            className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold tracking-wider text-[oklch(0.22_0.04_345)] uppercase shadow-lg transition hover:brightness-105"
-            style={{ backgroundImage: `linear-gradient(135deg, ${colors[0]}, ${colors[1]})` }}
+            className="inline-flex h-12 min-w-36 items-center justify-center gap-2 rounded-full border-2 border-black/60 px-6 text-sm font-bold tracking-wider text-[#fff8ef] uppercase shadow-[0_4px_0_rgb(0_0_0/0.55)] transition-[transform,box-shadow] duration-75 active:translate-y-[3px] active:shadow-[0_1px_0_rgb(0_0_0/0.55)]"
+            style={{ backgroundColor: colors[0] }}
           >
             <Play aria-hidden className="size-4" /> {started ? "Continuar" : "Começar"}
           </button>

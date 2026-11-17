@@ -5,11 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { pathProgress, type StepStatus } from "@/lib/paths/logic";
 import { createClient } from "@/lib/supabase/server";
 
-const CARD_SKIES = [
-  "from-[oklch(0.75_0.1_30)] to-[oklch(0.55_0.12_340)]",
-  "from-[oklch(0.7_0.09_300)] to-[oklch(0.45_0.1_280)]",
-  "from-[oklch(0.8_0.08_60)] to-[oklch(0.6_0.12_20)]",
-];
+// capas em cores tradicionais (índigo, vermelho-selo, matchá)
+const CARD_SKIES = ["bg-ai", "bg-shu", "bg-matcha"];
 
 export default async function PathsPage() {
   const supabase = await createClient();
@@ -53,7 +50,7 @@ export default async function PathsPage() {
               <li key={p.id}>
                 <Link
                   href={`/trilhas/${p.id}`}
-                  className={`animate-rise block overflow-hidden rounded-2xl bg-gradient-to-b ${CARD_SKIES[i % CARD_SKIES.length]} text-white shadow-sm transition-transform hover:-translate-y-0.5`}
+                  className={`seigaiha animate-rise block overflow-hidden rounded-2xl border-2 border-ink ${CARD_SKIES[i % CARD_SKIES.length]} text-washi shadow-[0_4px_0_var(--ink)] transition-transform hover:-translate-y-0.5`}
                 >
                   <div className="relative h-24">
                     {/* silhueta de montanha e torii, desenho próprio */}

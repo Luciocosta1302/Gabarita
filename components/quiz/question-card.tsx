@@ -12,6 +12,9 @@ import { CONFIDENCE_LABELS, CONFIDENCE_LEVELS, type Confidence } from "@/lib/qui
 import { indexToLetter, letterToIndex } from "@/lib/quiz/options";
 import { cn } from "@/lib/utils";
 
+import { Daruma } from "@/components/brand/daruma";
+import { Hanko } from "@/components/brand/hanko";
+
 import { OpenFeedback } from "./open-feedback";
 
 export type PublicQuestion = { id: string; stem: string; options: string[] };
@@ -96,14 +99,26 @@ export function QuestionCard({
               disabled={!!result}
               onClick={() => setChosen(i)}
               className={cn(
-                "flex gap-3 rounded-xl border p-3 text-left text-sm transition-colors",
-                state === "idle" && "bg-card hover:bg-accent",
-                state === "chosen" && "border-primary bg-accent ring-primary/30 ring-2",
-                state === "correct" && "border-success bg-pastel-mint",
-                state === "wrong" && "border-destructive bg-destructive/10",
+                "group flex items-center gap-3 rounded-xl border-2 p-2.5 text-left text-sm font-medium transition-[transform,box-shadow,background-color] duration-75",
+                state === "idle" && "bg-card border-ink/25 shadow-[0_3px_0_rgb(31_26_23/0.18)] hover:border-ink/60 active:translate-y-[2px] active:shadow-none",
+                state === "chosen" && "border-shu bg-[#fbe9e4] shadow-[0_3px_0_var(--shu)]",
+                state === "correct" && "border-matcha bg-pastel-mint shadow-[0_3px_0_var(--matcha)]",
+                state === "wrong" && "border-shu bg-[#f6dcd7] shadow-[0_3px_0_var(--shu)]",
               )}
             >
-              {!tf && <span className="font-semibold">{indexToLetter(i)})</span>}
+              {!tf && (
+                <span
+                  className={cn(
+                    "grid size-8 shrink-0 place-items-center rounded-lg border-2 text-xs font-bold",
+                    state === "idle" && "border-ink/25 text-ink/70",
+                    state === "chosen" && "border-shu bg-shu text-washi",
+                    state === "correct" && "border-matcha bg-matcha text-washi",
+                    state === "wrong" && "border-shu bg-shu text-washi",
+                  )}
+                >
+                  {indexToLetter(i)}
+                </span>
+              )}
               <span>{opt}</span>
             </button>
           );
@@ -148,13 +163,18 @@ export function QuestionCard({
         <div
           role="status"
           data-testid="answer-feedback"
-          className={cn("grid gap-2 rounded-xl p-4 text-sm", result.correct ? "bg-pastel-mint" : "bg-pastel-rose")}
+          className={cn(
+            "relative grid gap-2 overflow-hidden rounded-2xl border-2 p-4 text-sm",
+            result.correct ? "border-matcha bg-pastel-mint" : "border-shu bg-[#f8e3de]",
+          )}
         >
-          <p className="font-semibold">
-            {result.correct
-              ? "✓ Acertou!"
-              : `✗ Errou. A resposta certa é ${tf ? question.options[correctIndex!] : result.answer}.`}
-          </p>
+          <div className="flex items-center gap-3">
+            <Daruma mood={result.correct ? "comemorando" : "pensando"} className="w-12 shrink-0" />
+            <p className={cn("font-display text-lg font-extrabold", result.correct ? "text-matcha" : "text-shu")}>
+              {result.correct ? "Acertou!" : `Errou. A certa é ${tf ? question.options[correctIndex!] : result.answer}.`}
+            </p>
+            {result.correct && <Hanko className="animate-stamp ml-auto size-12" rotate={-10} label="carimbo de acerto" />}
+          </div>
           {result.explanation && <p>{result.explanation}</p>}
           {result.chunk_id && (
             <Link href={`/chunks/${result.chunk_id}?q=${question.id}`} target="_blank" className="text-primary font-medium underline">
