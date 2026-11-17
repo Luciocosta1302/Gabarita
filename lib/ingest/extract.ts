@@ -2,11 +2,11 @@ import "server-only";
 
 import JSZip from "jszip";
 import mammoth from "mammoth";
-import sharp from "sharp";
 
 import { generateJSON, transcribe } from "@/lib/ai/provider";
 import { ocrImagePrompt, ocrPdfPrompt } from "@/lib/ai/prompts/ocr";
 import { UserFacingError } from "@/lib/errors";
+import { toAiJpeg } from "@/lib/images/resize";
 
 import { cleanText, type PageText } from "./chunk";
 
@@ -129,13 +129,8 @@ async function ocrPdfPages(data: Uint8Array, pageNumbers: number[]) {
 
 async function extractImages(files: InputFile[]): Promise<Extracted> {
   const texts = await mapLimit(files, 4, async (f) => {
-    let jpeg: Buffer;
-    try {
-      // 1568 px no lado maior é o tamanho que a IA usa; maior só gasta mais.
-      jpeg = await sharp(f.data).rotate().resize(1568, 1568, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
-    } catch {
-      throw new UserFacingError(`Não foi possível abrir a imagem "${f.name}".`);
-    }
+    // 1568 px no lado maior é o tamanho que a IA usa; maior só gasta mais.
+    const jpeg = await toAiJpeg(f.data, f.name);
     const { data } = await generateJSON({
       ...ocrImagePrompt(),
       images: [{ mediaType: "image/jpeg", base64: jpeg.toString("base64") }],

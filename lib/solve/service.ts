@@ -1,11 +1,10 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import sharp from "sharp";
 
 import { generateJSON } from "@/lib/ai/provider";
 import { solvePhotoPrompt } from "@/lib/ai/prompts/solve-photo";
-import { UserFacingError } from "@/lib/errors";
+import { toAiJpeg } from "@/lib/images/resize";
 import { searchChunks } from "@/lib/rag/search";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -18,12 +17,7 @@ export type MaterialMatch = { chunk_id: string; material_id: string; material_ti
  * do aluno onde está a matéria (na matéria escolhida ou em todas).
  */
 export async function solvePhoto(db: DB, input: { image: Uint8Array; subjectId?: string }) {
-  let jpeg: Buffer;
-  try {
-    jpeg = await sharp(input.image).rotate().resize(1568, 1568, { fit: "inside", withoutEnlargement: true }).jpeg({ quality: 85 }).toBuffer();
-  } catch {
-    throw new UserFacingError("Não foi possível abrir a imagem.");
-  }
+  const jpeg = await toAiJpeg(input.image);
   const { data: solution } = await generateJSON({ ...solvePhotoPrompt(), images: [{ mediaType: "image/jpeg", base64: jpeg.toString("base64") }] });
   if (!solution.readable) return { solution, matches: [] as MaterialMatch[] };
 

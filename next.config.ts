@@ -22,9 +22,13 @@ const nextConfig: NextConfig = {
   // Bibliotecas de extração rodam como módulos Node normais (o pdf.js usa worker e arquivos próprios
   // que quebram quando empacotados pelo Next).
   serverExternalPackages: ["pdf-parse", "pdfjs-dist", "@napi-rs/canvas", "mammoth", "sharp"],
-  // o pdf.js carrega o canvas e o worker por caminhos que o rastreador de arquivos não enxerga sozinho
+  // Bibliotecas nativas carregam seus binários por caminhos montados em tempo de execução, que o
+  // rastreador de arquivos da Vercel não enxerga: sem isto, as rotas que usam sharp (fotos) ou o
+  // pdf.js (PDF) caíam com "Erro 500" em produção. Servidor da Vercel = Linux x64 (glibc).
   outputFileTracingIncludes: {
     "/api/**": [
+      "./node_modules/@img/sharp-linux-x64/**",
+      "./node_modules/@img/sharp-libvips-linux-x64/**",
       "./node_modules/@napi-rs/canvas/**",
       "./node_modules/@napi-rs/canvas-linux-x64-gnu/**",
       "./node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs",
