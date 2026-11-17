@@ -159,9 +159,25 @@ export function NewsItem({ item, period }: { item: NewsRow; /** período atual (
                 </p>
               </>
             )}
+            {summary && <SourceLink item={item} />}
           </div>
         </div>
       )}
+      {/* link da notícia sempre no fim do cartão */}
+      {!open && <SourceLink item={item} />}
     </article>
+  );
+}
+
+/** "Fonte: Jornal — link completo", no fim da notícia e do resumo. */
+function SourceLink({ item }: { item: NewsRow }) {
+  return (
+    <p className="text-muted-foreground min-w-0 border-t border-ink/10 pt-2 text-xs" data-testid="news-link">
+      Fonte: <strong className="text-ink">{item.source_name}</strong>
+      {item.via && ` (via ${item.via})`} —{" "}
+      <a href={item.url} target="_blank" rel="noopener noreferrer" className="text-primary break-all underline">
+        {item.url.replace(/^https?:\/\//, "").replace(/\/$/, "")}
+      </a>
+    </p>
   );
 }

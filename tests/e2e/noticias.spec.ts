@@ -68,6 +68,8 @@ test("notícias: escolhe fontes, filtra por período, #etiqueta e busca, e pede 
     await expect(summary).toContainText("“O Inep confirmou");
     await expect(summary).not.toContainText("999");
     await expect(page.getByTestId("news-summary-note")).toContainText("Tirei 1 frase que não consegui conferir");
+    // link da notícia no fim do resumo
+    await expect(page.getByTestId("news-summary").getByTestId("news-link").getByRole("link")).toHaveAttribute("href", `${base}/a/concurso`);
 
     // ícone da fonte: só para sites das notícias/catálogo; nome inválido recusado
     expect((await page.request.get("/api/news/icon?d=site-qualquer.com")).status()).toBe(404);
