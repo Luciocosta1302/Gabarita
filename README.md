@@ -8,7 +8,7 @@ Aplicativo de estudo para vestibular, ENEM, concurso e faculdade: o aluno envia 
 
 🔗 **No ar:** https://gabarita-6wt6.vercel.app
 
-**Conta de demonstração** (já tem uma aula de História e uma videoaula de trigonometria):
+**Conta de demonstração** (já tem uma videoaula de trigonometria com quiz respondido, caderno de erros e flashcards):
 
 | E-mail | Senha |
 |---|---|
@@ -189,4 +189,6 @@ site, como um aluno faria:
 BASE=https://gabarita-6wt6.vercel.app EMAIL=demo@demo.gabarita.app PASSWORD=estudar-2026 PDF="Independência do Brasil — Aula 51.pdf" node scripts/demo-seed.cjs
 ```
 
+Sem `PDF`, o quiz sai do vídeo; `HIST_ID`/`MAT_ID` reaproveitam pastas já criadas. Na nuvem do Claude Code o envio
+de arquivo para o Storage é bloqueado pela rede, então lá só a parte do vídeo roda; o PDF se envia pelo navegador.
 A conta usa o login público do README; se alguém trocar a senha, crie de novo e rode o script.
