@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { avatarSchema, usernameSchema } from "@/lib/avatar/avatar";
 import { DIFFICULTIES } from "@/lib/ai/prompts/questions";
 import { SELECTABLE_STYLES } from "@/lib/exam-styles";
 import { CONFIDENCE_LEVELS } from "@/lib/quiz/confidence";
@@ -143,7 +144,14 @@ export const roomActionSchema = z.discriminatedUnion("action", [
   }),
 ]);
 
-export const profileSchema = z.object({ name: z.string().trim().min(1).max(80) });
+export const profileSchema = z
+  .object({
+    name: z.string().trim().min(1, "Escreva seu nome").max(80).optional(),
+    username: usernameSchema.optional(),
+    bio: z.string().trim().max(160, "A bio tem no máximo 160 caracteres").optional(),
+    avatar: avatarSchema.optional(),
+  })
+  .refine((v) => Object.values(v).some((x) => x !== undefined), "Nada para salvar.");
 
 export const MOODS = ["otimo", "bem", "ok", "cansado", "frustrado"] as const;
 

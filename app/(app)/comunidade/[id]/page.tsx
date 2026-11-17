@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { loadPublicProfiles } from "@/lib/profile/load";
+import { AuthorChip } from "@/components/avatar/author-chip";
 import { notFound } from "next/navigation";
 import { z } from "zod";
 
@@ -19,6 +21,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
   ]);
   if (!post) notFound();
   const liked = (likes ?? []).some((l) => l.user_id === user?.id);
+  const people = await loadPublicProfiles(supabase, [post.user_id, ...(comments ?? []).map((c) => c.user_id)]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -31,8 +34,11 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
         </p>
       )}
       <article className="bg-card grid gap-3 rounded-2xl border p-5 shadow-sm" data-testid="post">
-        <span className="text-muted-foreground text-xs">
-          {CATEGORY_LABELS[post.category as keyof typeof CATEGORY_LABELS]} · {post.author_name} · {new Date(post.created_at).toLocaleString("pt-BR")}
+        <span className="text-muted-foreground flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+          <AuthorChip profile={people.get(post.user_id)} fallbackName={post.author_name} size={32} className="text-foreground text-sm" />
+          <span>
+            {CATEGORY_LABELS[post.category as keyof typeof CATEGORY_LABELS]} · {new Date(post.created_at).toLocaleString("pt-BR")}
+          </span>
         </span>
         <h1 className="text-xl font-bold">{post.title}</h1>
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
@@ -47,8 +53,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
           {(comments ?? []).map((c) => (
             <li key={c.id} className="bg-card grid gap-1 rounded-xl border p-3 text-sm">
               <div className="text-muted-foreground flex items-center justify-between text-xs">
-                <span>
-                  {c.author_name} · {new Date(c.created_at).toLocaleString("pt-BR")}
+                <span className="flex min-w-0 flex-wrap items-center gap-x-2">
+                  <AuthorChip profile={people.get(c.user_id)} fallbackName={c.author_name} className="text-foreground" />
+                  <span>{new Date(c.created_at).toLocaleString("pt-BR")}</span>
                 </span>
                 {c.user_id === user?.id ? <DeleteButton action="delete_comment" id={c.id} /> : <ReportButton target="comment" id={c.id} />}
               </div>

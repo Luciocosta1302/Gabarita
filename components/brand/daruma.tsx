@@ -9,27 +9,39 @@ import { cn } from "@/lib/utils";
  */
 export type DarumaMood = "feliz" | "animado" | "pensando" | "sonolento" | "comemorando";
 
+export type DarumaColors = { light: string; mid: string; dark: string; text: string };
+
 export function Daruma({
   mood = "feliz",
   eyes = "dois",
   className,
   title = "Daruma, o mascote do Gabarita",
+  colors,
+  children,
+  plainBelly = false,
 }: {
   mood?: DarumaMood;
   /** "um" = objetivo definido, ainda não alcançado */
   eyes?: "um" | "dois";
   className?: string;
   title?: string;
+  /** cor do corpo (avatar do aluno); padrão = vermelho */
+  colors?: Partial<DarumaColors>;
+  /** roupas/acessórios desenhados por cima (avatar) */
+  children?: React.ReactNode;
+  /** sem o 合格 na barriga (quando o avatar usa algo no pescoço) */
+  plainBelly?: boolean;
 }) {
+  const c = { light: "#e0503f", mid: "#c8372d", dark: "#a52a22", text: "#f3d27a", ...colors };
   const uid = useId().replace(/:/g, "");
   const ink = "#1f1a17";
   return (
     <svg viewBox="0 0 120 132" className={cn("char char-daru overflow-visible", className)} {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true })}>
       <defs>
         <radialGradient id={`body-${uid}`} cx="38%" cy="30%" r="75%">
-          <stop offset="0%" stopColor="#e0503f" />
-          <stop offset="70%" stopColor="#c8372d" />
-          <stop offset="100%" stopColor="#a52a22" />
+          <stop offset="0%" stopColor={c.light} />
+          <stop offset="70%" stopColor={c.mid} />
+          <stop offset="100%" stopColor={c.dark} />
         </radialGradient>
       </defs>
       {/* sombra no chão */}
@@ -37,9 +49,9 @@ export function Daruma({
       <g className="char-body">
       {/* braços levantados ao comemorar */}
       {mood === "comemorando" && (
-        <g stroke={ink} strokeWidth="3" strokeLinecap="round" fill="#c8372d">
-          <path d="M12 74 Q-4 58 0 36" fill="none" strokeWidth="5" stroke="#c8372d" />
-          <path d="M108 74 Q124 58 120 36" fill="none" strokeWidth="5" stroke="#c8372d" />
+        <g stroke={ink} strokeWidth="3" strokeLinecap="round" fill={c.mid}>
+          <path d="M12 74 Q-4 58 0 36" fill="none" strokeWidth="5" stroke={c.mid} />
+          <path d="M108 74 Q124 58 120 36" fill="none" strokeWidth="5" stroke={c.mid} />
           <path d="M12 74 Q-4 58 0 36" fill="none" strokeWidth="1.5" />
           <path d="M108 74 Q124 58 120 36" fill="none" strokeWidth="1.5" />
           <circle cx="0" cy="33" r="6" />
@@ -55,9 +67,11 @@ export function Daruma({
       />
       {/* faixa dourada da barriga com 合格 (passar na prova) */}
       <path d="M26 98 Q60 112 94 98" fill="none" stroke="#c79a3a" strokeWidth="3" strokeLinecap="round" />
-      <text x="60" y="94" textAnchor="middle" fontSize="13" fontWeight="800" fill="#f3d27a" fontFamily="'Shippori Mincho', serif">
-        合格
-      </text>
+      {!plainBelly && (
+        <text x="60" y="94" textAnchor="middle" fontSize="13" fontWeight="800" fill={c.text} fontFamily="'Shippori Mincho', serif">
+          合格
+        </text>
+      )}
       {/* rosto */}
       <path
         d="M60 22 C82 22 94 36 94 52 C94 70 80 80 60 80 C40 80 26 70 26 52 C26 36 38 22 60 22 Z"
@@ -111,6 +125,7 @@ export function Daruma({
           <circle cx="106" cy="14" r="3.5" />
         </g>
       )}
+      {children}
       </g>
     </svg>
   );

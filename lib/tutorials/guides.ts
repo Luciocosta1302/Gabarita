@@ -235,6 +235,16 @@ export const GUIDES = {
       "Gere questões no estilo “Prova do professor” na página da matéria.",
     ],
   },
+  perfil: {
+    title: "Seu perfil",
+    who: "mochi",
+    intro: "Aqui você monta o seu personagem, escolhe seu @ e acompanha seu XP e nível.",
+    steps: [
+      "Escolha o personagem, a cor e as roupas: a prévia muda na hora.",
+      "Itens com cadeado liberam quando você sobe de nível (cada questão, foco e revisão dá XP).",
+      "Escolha um @ para a turma e a Comunidade te encontrarem.",
+    ],
+  },
   flashcards: {
     title: "Flashcards",
     who: "mochi",

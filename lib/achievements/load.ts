@@ -5,7 +5,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { focusStats } from "@/lib/focus/stats";
 import type { Database } from "@/lib/supabase/database.types";
 
-import { type AchievementCounts, evaluate } from "./badges";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+import { type AchievementCounts, evaluate, xpOf } from "./badges";
 
 type DB = SupabaseClient<Database>;
 
@@ -50,10 +52,21 @@ export async function loadAchievementCounts(supabase: DB): Promise<AchievementCo
   };
 }
 
+/** Guarda o XP no perfil (só o servidor grava) para os colegas verem o nível. Falha não atrapalha a página. */
+export async function cacheXp(supabase: DB, xp: number) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+  const { error } = await createAdminClient().from("profiles").update({ xp_cached: xp }).eq("id", user.id).neq("xp_cached", xp);
+  if (error) console.error("[achievements] xp_cached:", error.message);
+}
+
 /** Conquistas desbloqueadas que o aluno ainda não viu anunciadas. */
 export async function newAchievements(supabase: DB) {
   const [counts, { data: seen }] = await Promise.all([loadAchievementCounts(supabase), supabase.from("achievements_seen").select("badge_id")]);
   const seenIds = new Set((seen ?? []).map((s) => s.badge_id));
+  await cacheXp(supabase, xpOf(counts));
   return evaluate(counts).filter((b) => b.unlocked && !seenIds.has(b.id));
 }
 

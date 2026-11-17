@@ -457,14 +457,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"id": string,"name": string | null,"tutorials_seen": (string)[]
+                    "avatar_json": Json | null,"bio": string | null,"created_at": string,"id": string,"name": string | null,"tutorials_seen": (string)[],"username": string | null,"xp_cached": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id": string,"name"?: string | null,"tutorials_seen"?: (string)[]
+                    "avatar_json"?: Json | null,"bio"?: string | null,"created_at"?: string,"id": string,"name"?: string | null,"tutorials_seen"?: (string)[],"username"?: string | null,"xp_cached"?: number
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"name"?: string | null,"tutorials_seen"?: (string)[]
+                    "avatar_json"?: Json | null,"bio"?: string | null,"created_at"?: string,"id"?: string,"name"?: string | null,"tutorials_seen"?: (string)[],"username"?: string | null,"xp_cached"?: number
                   }
                   Relationships: [
                     
@@ -898,6 +898,16 @@ isOneToOne: false
                            },
 "owns_subject":
 { Args: { "p_subject_id": string }; Returns: boolean
+                           },
+"public_profile_by_username":
+{ Args: { "p_username": string }; Returns: {
+              "avatar_json": Json,"bio": string,"created_at": string,"id": string,"name": string,"posts": number,"username": string,"xp": number
+            }[]
+                           },
+"public_profiles":
+{ Args: { "p_ids": (string)[] }; Returns: {
+              "avatar_json": Json,"bio": string,"id": string,"name": string,"username": string,"xp": number
+            }[]
                            },
 "room_member_names":
 { Args: { "p_room_id": string }; Returns: {

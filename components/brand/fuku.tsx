@@ -11,7 +11,22 @@ const FEATHER = "#7a5a43";
 const FEATHER_DARK = "#5b4232";
 const BELLY = "#f1e2c8";
 
-export function Fuku({ mood = "explicando", className, title = "Fuku, a coruja professora" }: { mood?: FukuMood; className?: string; title?: string }) {
+export type FukuColors = { feather: string; dark: string; belly: string };
+
+export function Fuku({
+  mood = "explicando",
+  className,
+  title = "Fuku, a coruja professora",
+  colors,
+  children,
+}: {
+  mood?: FukuMood;
+  className?: string;
+  title?: string;
+  colors?: Partial<FukuColors>;
+  children?: React.ReactNode;
+}) {
+  const c = { feather: FEATHER, dark: FEATHER_DARK, belly: BELLY, ...colors };
   return (
     <svg
       viewBox="0 0 120 132"
@@ -28,23 +43,23 @@ export function Fuku({ mood = "explicando", className, title = "Fuku, a coruja p
       {/* corpo (gota arredondada) com tufos de orelha */}
       <path
         d="M60 14 C66 14 72 8 80 4 C80 12 84 18 88 22 C100 34 102 56 100 80 C98 104 82 118 60 118 C38 118 22 104 20 80 C18 56 20 34 32 22 C36 18 40 12 40 4 C48 8 54 14 60 14 Z"
-        fill={FEATHER}
+        fill={c.feather}
         stroke={INK}
         strokeWidth="3"
         strokeLinejoin="round"
       />
       {/* asas */}
-      <path d="M22 70 C14 84 18 102 32 108 C30 92 30 80 34 68 Z" fill={FEATHER_DARK} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M98 70 C106 84 102 102 88 108 C90 92 90 80 86 68 Z" fill={FEATHER_DARK} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M22 70 C14 84 18 102 32 108 C30 92 30 80 34 68 Z" fill={c.dark} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M98 70 C106 84 102 102 88 108 C90 92 90 80 86 68 Z" fill={c.dark} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
       {/* barriga com penas em ondas (seigaiha) */}
-      <path d="M60 62 C78 62 86 78 84 94 C82 108 72 114 60 114 C48 114 38 108 36 94 C34 78 42 62 60 62 Z" fill={BELLY} stroke={INK} strokeWidth="2" />
-      <g fill="none" stroke={FEATHER} strokeWidth="1.6" strokeLinecap="round" opacity=".8">
+      <path d="M60 62 C78 62 86 78 84 94 C82 108 72 114 60 114 C48 114 38 108 36 94 C34 78 42 62 60 62 Z" fill={c.belly} stroke={INK} strokeWidth="2" />
+      <g fill="none" stroke={c.feather} strokeWidth="1.6" strokeLinecap="round" opacity=".8">
         {[78, 88, 98].map((y) =>
           [44, 52, 60, 68, 76].map((x) => (y === 98 && (x === 44 || x === 76) ? null : <path key={`${x}-${y}`} d={`M${x - 4} ${y} Q${x} ${y + 5} ${x + 4} ${y}`} />)),
         )}
       </g>
       {/* disco do rosto */}
-      <path d="M60 26 C72 20 90 26 92 44 C94 58 82 66 60 62 C38 66 26 58 28 44 C30 26 48 20 60 26 Z" fill={BELLY} stroke={INK} strokeWidth="2.5" />
+      <path d="M60 26 C72 20 90 26 92 44 C94 58 82 66 60 62 C38 66 26 58 28 44 C30 26 48 20 60 26 Z" fill={c.belly} stroke={INK} strokeWidth="2.5" />
 
       {/* olhos grandes + óculos redondos */}
       <g className="char-eyes">
@@ -82,6 +97,7 @@ export function Fuku({ mood = "explicando", className, title = "Fuku, a coruja p
           <circle cx="110" cy="20" r="3.5" />
         </g>
       )}
+      {children}
       </g>
     </svg>
   );

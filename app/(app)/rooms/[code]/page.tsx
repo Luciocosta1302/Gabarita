@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { loadPublicProfiles } from "@/lib/profile/load";
+import { AuthorChip } from "@/components/avatar/author-chip";
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 
@@ -35,6 +37,7 @@ export default async function RoomPage({ params }: { params: Promise<{ code: str
     supabase.from("materials").select("id, title").eq("status", "ready").neq("type", "past_exam").eq("user_id", user!.id),
   ]);
   const names = new Map((members ?? []).map((m) => [m.user_id, m.name]));
+  const people = await loadPublicProfiles(supabase, (ranking ?? []).map((r) => r.user_id));
   const mine = new Map((myAttempts ?? []).map((a) => [a.room_quiz_id, a]));
   const h = await headers();
   const origin = `${h.get("x-forwarded-proto") ?? "http"}://${h.get("host")}`;
@@ -60,10 +63,10 @@ export default async function RoomPage({ params }: { params: Promise<{ code: str
             <ol className="grid gap-2" data-testid="room-ranking">
               {(ranking ?? []).map((r, i) => (
                 <li key={r.user_id} className={cn("flex items-center justify-between rounded-xl border p-3 text-sm", r.user_id === user!.id && "border-primary bg-accent")}>
-                  <span>
-                    <span className={cn("font-display mr-2 inline-grid size-7 place-items-center rounded-full border-2 border-ink text-sm font-extrabold", i === 0 ? "bg-shu text-washi" : i < 3 ? "bg-kin/70" : "bg-card")}>{i + 1}</span>
-                    {r.name}
-                    {r.user_id === user!.id && " (você)"}
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className={cn("font-display inline-grid size-7 shrink-0 place-items-center rounded-full border-2 border-ink text-sm font-extrabold", i === 0 ? "bg-shu text-washi" : i < 3 ? "bg-kin/70" : "bg-card")}>{i + 1}</span>
+                    <AuthorChip profile={people.get(r.user_id)} fallbackName={r.name} size={30} />
+                    {r.user_id === user!.id && <span className="text-muted-foreground shrink-0">(você)</span>}
                   </span>
                   <span className="font-semibold" data-testid="ranking-points">
                     {r.points} pts

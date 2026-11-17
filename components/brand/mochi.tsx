@@ -14,7 +14,24 @@ const ORANGE = "#e39a4f";
 const BLACK = "#3a2f2a";
 const PINK = "#eba3a0";
 
-export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do Gabarita" }: { mood?: MochiMood; className?: string; title?: string }) {
+export type MochiColors = { fur: string; p1: string; p2: string };
+
+export function Mochi({
+  mood = "feliz",
+  className,
+  title = "Mochi, a gatinha do Gabarita",
+  colors,
+  children,
+}: {
+  mood?: MochiMood;
+  className?: string;
+  title?: string;
+  /** pelagem (avatar do aluno); padrão = tricolor */
+  colors?: Partial<MochiColors>;
+  /** roupas/acessórios desenhados por cima (avatar) */
+  children?: React.ReactNode;
+}) {
+  const c = { fur: FUR, p1: ORANGE, p2: BLACK, ...colors };
   const uid = useId().replace(/:/g, "");
   const waving = mood === "comemorando" || mood === "animada";
   return (
@@ -35,33 +52,33 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
       <g className="char-body">
 
       {/* rabinho curto (bobtail), atrás do corpo */}
-      <circle className="mochi-tail" cx="92" cy="112" r="8" fill={ORANGE} stroke={INK} strokeWidth="2.5" />
+      <circle className="mochi-tail" cx="92" cy="112" r="8" fill={c.p1} stroke={INK} strokeWidth="2.5" />
 
       {/* corpo */}
-      <path d="M30 76 C28 104 36 122 60 122 C84 122 92 104 90 76 Z" fill={FUR} stroke={INK} strokeWidth="3" />
+      <path d="M30 76 C28 104 36 122 60 122 C84 122 92 104 90 76 Z" fill={c.fur} stroke={INK} strokeWidth="3" />
       <g clipPath={`url(#body-${uid})`}>
-        <ellipse cx="34" cy="110" rx="14" ry="12" fill={ORANGE} />
-        <ellipse cx="86" cy="96" rx="9" ry="12" fill={BLACK} />
+        <ellipse cx="34" cy="110" rx="14" ry="12" fill={c.p1} />
+        <ellipse cx="86" cy="96" rx="9" ry="12" fill={c.p2} />
       </g>
       <path d="M30 76 C28 104 36 122 60 122 C84 122 92 104 90 76 Z" fill="none" stroke={INK} strokeWidth="3" />
 
       {/* patas da frente (a direita levanta para acenar, como a maneki-neko) */}
-      {!waving && <ellipse cx="72" cy="118" rx="9" ry="6" fill={FUR} stroke={INK} strokeWidth="2.5" />}
-      <ellipse cx="48" cy="118" rx="9" ry="6" fill={FUR} stroke={INK} strokeWidth="2.5" />
+      {!waving && <ellipse cx="72" cy="118" rx="9" ry="6" fill={c.fur} stroke={INK} strokeWidth="2.5" />}
+      <ellipse cx="48" cy="118" rx="9" ry="6" fill={c.fur} stroke={INK} strokeWidth="2.5" />
 
       {/* orelhas */}
       <g stroke={INK} strokeWidth="3" strokeLinejoin="round">
-        <path d="M24 44 L26 12 L50 28 Z" fill={ORANGE} />
-        <path d="M96 44 L94 12 L70 28 Z" fill={BLACK} />
+        <path d="M24 44 L26 12 L50 28 Z" fill={c.p1} />
+        <path d="M96 44 L94 12 L70 28 Z" fill={c.p2} />
         <path d="M30 36 L31 20 L43 29 Z" fill={PINK} strokeWidth="0" />
         <path d="M90 36 L89 20 L77 29 Z" fill={PINK} strokeWidth="0" />
       </g>
 
       {/* cabeça */}
-      <ellipse cx="60" cy="56" rx="40" ry="34" fill={FUR} stroke={INK} strokeWidth="3" />
+      <ellipse cx="60" cy="56" rx="40" ry="34" fill={c.fur} stroke={INK} strokeWidth="3" />
       <g clipPath={`url(#head-${uid})`}>
-        <path d="M20 22 C34 22 48 32 46 50 C36 52 24 50 18 44 Z" fill={ORANGE} />
-        <path d="M100 22 C86 22 74 30 76 46 C86 48 96 46 102 40 Z" fill={BLACK} />
+        <path d="M20 22 C34 22 48 32 46 50 C36 52 24 50 18 44 Z" fill={c.p1} />
+        <path d="M100 22 C86 22 74 30 76 46 C86 48 96 46 102 40 Z" fill={c.p2} />
       </g>
       <ellipse cx="60" cy="56" rx="40" ry="34" fill="none" stroke={INK} strokeWidth="3" />
 
@@ -77,8 +94,8 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
       {waving && (
         <g className="mochi-paw">
           <path d="M84 84 Q102 70 98 46" fill="none" stroke={INK} strokeWidth="14" strokeLinecap="round" />
-          <path d="M84 84 Q102 70 98 46" fill="none" stroke={FUR} strokeWidth="9" strokeLinecap="round" />
-          <circle cx="98" cy="44" r="8" fill={FUR} stroke={INK} strokeWidth="2.5" />
+          <path d="M84 84 Q102 70 98 46" fill="none" stroke={c.fur} strokeWidth="9" strokeLinecap="round" />
+          <circle cx="98" cy="44" r="8" fill={c.fur} stroke={INK} strokeWidth="2.5" />
           <circle cx="98" cy="45" r="2.4" fill={PINK} />
         </g>
       )}
@@ -94,6 +111,7 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
           <path d="M108 8 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5 z" fill="#e3b45a" />
         </g>
       )}
+      {children}
       </g>
     </svg>
   );
