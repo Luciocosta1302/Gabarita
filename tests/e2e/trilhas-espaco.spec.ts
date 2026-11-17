@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { makePdf, studyPages } from "../fixtures/make-pdf";
+import { skipTour } from "./helpers";
 
 async function signup(page: Page, name: string) {
   await page.goto("/signup");
@@ -9,6 +10,7 @@ async function signup(page: Page, name: string) {
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  await skipTour(page);
 }
 
 /** Responde a questão aberta do tutor (no mock, as erradas começam com "Alternativa incorreta"). */
@@ -27,7 +29,7 @@ test("trilha: tutor explica, diagnostica o erro e só libera a próxima etapa co
   await page.getByRole("button", { name: "Criar matéria" }).click();
   await page.getByTestId("subject-list").getByText("Biologia").click();
   await expect(page).toHaveURL(/\/subjects\//);
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
+  await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   await expect(page.getByTestId("topic-tile").first()).toBeVisible({ timeout: 60_000 });
 

@@ -5,6 +5,7 @@ import { z } from "zod";
 import { NewNoteButton, NoteEditor } from "@/components/notes/note-editor";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Anotações — Gabarita" };
 
@@ -31,6 +32,7 @@ export default async function NotesPage({ searchParams }: { searchParams: Promis
         </div>
         <NewNoteButton subjectId={folder ?? undefined} />
       </div>
+      <ToolGuide id="anotacoes" />
       <nav aria-label="Pastas" className="flex flex-wrap gap-2">
         <Link href="/anotacoes" className={cn("rounded-full border px-3 py-1 text-sm", !folder ? "bg-primary text-primary-foreground" : "bg-card")}>
           Todas

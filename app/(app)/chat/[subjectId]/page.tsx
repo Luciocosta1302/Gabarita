@@ -5,6 +5,7 @@ import { z } from "zod";
 import type { Citation } from "@/app/api/chat/route";
 import { Chat, type Message } from "@/components/chat/chat";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export default async function ChatPage({
   params,
@@ -44,6 +45,7 @@ export default async function ChatPage({
         ← {subject.name}
       </Link>
       <h1 className="text-2xl font-bold">{doc ? `Conversar com “${doc.title}”` : "Conversar com o material"}</h1>
+      <ToolGuide id="chat" />
       {doc && (
         <p className="text-muted-foreground -mt-2 text-sm" data-testid="chat-doc">
           Só este documento.{" "}

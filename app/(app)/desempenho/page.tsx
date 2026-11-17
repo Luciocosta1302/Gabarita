@@ -9,6 +9,7 @@ import { recommendations, weeklySeries } from "@/lib/performance/stats";
 import { confidenceStats } from "@/lib/quiz/confidence";
 import { createClient } from "@/lib/supabase/server";
 import { loadTopicStats } from "@/lib/topics/stats";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Desempenho — Gabarita" };
 
@@ -69,6 +70,7 @@ export default async function PerformancePage() {
         <h1 className="text-3xl font-bold">Desempenho</h1>
         <p className="text-muted-foreground text-sm">Sua evolução nas últimas {WEEKS} semanas e o que fazer agora.</p>
       </div>
+      <ToolGuide id="desempenho" />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" data-testid="perf-tiles">
         <Tile label="Questões respondidas" num={totalAnswered ?? 0} />

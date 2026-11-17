@@ -5,6 +5,7 @@ import { z } from "zod";
 import { FeynmanForm } from "@/components/feynman/feynman-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export default async function FeynmanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -34,6 +35,7 @@ export default async function FeynmanPage({ params }: { params: Promise<{ id: st
           Gabarita compara com o seu material e mostra o que acertou, o que faltou e o que está errado.
         </p>
       </div>
+      <ToolGuide id="feynman" />
       <Card>
         <CardContent className="pt-6">
           <FeynmanForm topics={topics ?? []} />

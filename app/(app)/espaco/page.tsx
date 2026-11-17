@@ -3,6 +3,7 @@ import { TIME_ZONE, todayBR } from "@/lib/dates";
 import { timeOfDay } from "@/lib/focus/scenes";
 import { focusStats } from "@/lib/focus/stats";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Espaço de estudos — Gabarita" };
 
@@ -30,6 +31,7 @@ export default async function StudySpacePage() {
           acumula tempo de foco.
         </p>
       </div>
+      <ToolGuide id="espaco" />
       <StudySpace initialStats={stats} planTasks={planTasks} subjects={subjects ?? []} today={today} initialTod={timeOfDay(hourBR)} />
     </div>
   );

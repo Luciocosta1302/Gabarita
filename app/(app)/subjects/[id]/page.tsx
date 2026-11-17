@@ -1,3 +1,4 @@
+import { Plus } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -10,6 +11,7 @@ import { ConfidenceMeter } from "@/components/quiz/confidence-meter";
 import { GenerateQuizForm } from "@/components/quiz/generate-quiz-form";
 import { SimuladoForm } from "@/components/quiz/simulado-form";
 import { DomainMap } from "@/components/topics/domain-map";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EXAM_STYLE_LABELS, type ExamStyle } from "@/lib/exam-styles";
 import { daysBetween, todayBR } from "@/lib/dates";
@@ -81,18 +83,41 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
     { href: `/subjects/${id}/feynman`, title: "Modo Feynman", text: "Explique com suas palavras (texto ou voz) e veja o que faltou.", color: "bg-pastel-rose" },
   ];
 
+  const materialsCard = (
+    <Card id="materiais" className="scroll-mt-20">
+      <CardHeader>
+        <CardTitle>Materiais</CardTitle>
+        <p className="text-muted-foreground text-sm">PDF, slides, Word, fotos, áudio da aula, link ou YouTube. Tudo vira questões com a página de onde saíram.</p>
+      </CardHeader>
+      <CardContent className="grid gap-6">
+        <UploadForm subjectId={id} />
+        <MaterialList materials={materials ?? []} />
+      </CardContent>
+    </Card>
+  );
+  const empty = !(materials ?? []).length;
+
   return (
     <div className="flex flex-col gap-6">
-      <div className="animate-rise">
-        <Link href="/dashboard" className="text-muted-foreground text-sm hover:underline">
-          ← Início
-        </Link>
-        <h1 className="mt-1 text-3xl font-bold">{subject.name}</h1>
-        <p className="text-muted-foreground text-sm">
-          {EXAM_STYLE_LABELS[subject.exam_style as ExamStyle] ?? subject.exam_style}
-          {subject.exam_date && ` · prova em ${subject.exam_date.split("-").reverse().join("/")}`}
-        </p>
+      <div className="animate-rise flex flex-wrap items-end justify-between gap-3">
+        <div className="min-w-0">
+          <Link href="/dashboard" className="text-muted-foreground text-sm hover:underline">
+            ← Início
+          </Link>
+          <h1 className="mt-1 text-3xl font-bold [overflow-wrap:anywhere]">{subject.name}</h1>
+          <p className="text-muted-foreground text-sm">
+            {EXAM_STYLE_LABELS[subject.exam_style as ExamStyle] ?? subject.exam_style}
+            {subject.exam_date && ` · prova em ${subject.exam_date.split("-").reverse().join("/")}`}
+          </p>
+        </div>
+        <a href="#materiais" className="stamp-press bg-primary text-primary-foreground flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-bold">
+          <Plus aria-hidden className="size-4" strokeWidth={2.6} />
+          Adicionar material
+        </a>
       </div>
+
+      <ToolGuide id="materia" />
+      {empty && materialsCard}
 
       <EditSubject subject={subject} />
 
@@ -130,15 +155,8 @@ export default async function SubjectPage({ params }: { params: Promise<{ id: st
         ))}
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Materiais</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-6">
-          <UploadForm subjectId={id} />
-          <MaterialList materials={materials ?? []} />
-        </CardContent>
-      </Card>
+
+      {!empty && materialsCard}
 
       <Card id="dominio">
         <CardHeader>

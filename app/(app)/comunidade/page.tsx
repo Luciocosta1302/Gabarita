@@ -4,6 +4,7 @@ import { CATEGORY_LABELS, NewPostForm } from "@/components/community/community";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { COMMUNITY_CATEGORIES } from "@/lib/validation/generate";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Comunidade — Gabarita" };
 
@@ -45,6 +46,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
           <p className="text-muted-foreground text-sm">Tire dúvidas, troque dicas e encontre gente para estudar junto.</p>
         </div>
       </div>
+      <ToolGuide id="comunidade" />
       <NewPostForm />
       <nav aria-label="Categorias" className="flex flex-wrap gap-2">
         <Link href="/comunidade" className={cn("rounded-full border px-3 py-1 text-sm", !cat ? "bg-primary text-primary-foreground" : "bg-card")}>

@@ -15,7 +15,7 @@ test("sala da turma", async ({ browser }) => {
   await ana.getByRole("button", { name: "Criar matéria" }).click();
   await ana.getByTestId("subject-list").getByText("Biologia").click();
   await expect(ana).toHaveURL(/\/subjects\/[^/]+$/);
-  await ana.getByLabel("PDF, DOCX ou fotos").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(8)) });
+  await ana.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(8)) });
   await ana.getByRole("button", { name: "Enviar material" }).click();
   await expect(ana.getByTestId("topic-tile").first()).toBeVisible({ timeout: 60_000 });
 

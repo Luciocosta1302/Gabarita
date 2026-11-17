@@ -3,10 +3,11 @@ import { z } from "zod";
 import { MAX_IMAGES_PER_MATERIAL, MAX_PASTED_TEXT_CHARS, MAX_UPLOAD_BYTES } from "@/lib/limits";
 
 export const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+export const PPTX_MIME = "application/vnd.openxmlformats-officedocument.presentationml.presentation";
 export const IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"] as const;
 export const AUDIO_EXTS = ["mp3", "wav", "m4a", "ogg", "webm", "aac"] as const;
 /** Valor do atributo `accept` do input de arquivo. */
-export const ACCEPT = ["application/pdf", ".pdf", DOCX_MIME, ".docx", ...IMAGE_MIMES, "audio/*", ...AUDIO_EXTS.map((e) => `.${e}`)].join(",");
+export const ACCEPT = ["application/pdf", ".pdf", DOCX_MIME, ".docx", PPTX_MIME, ".pptx", ...IMAGE_MIMES, "audio/*", ...AUDIO_EXTS.map((e) => `.${e}`)].join(",");
 
 const fileMeta = z.object({
   name: z.string().trim().min(1).max(255),
@@ -56,6 +57,9 @@ export function isPdf(f: FileMeta) {
 export function isDocx(f: FileMeta) {
   return f.type === DOCX_MIME || ext(f.name) === "docx";
 }
+export function isPptx(f: FileMeta) {
+  return f.type === PPTX_MIME || ext(f.name) === "pptx";
+}
 export function isAudio(f: FileMeta) {
   return f.type.startsWith("audio/") || (AUDIO_EXTS as readonly string[]).includes(ext(f.name));
 }
@@ -64,17 +68,20 @@ export function isImage(f: FileMeta) {
 }
 
 /** Decide o tipo do material: 1 PDF, 1 DOCX, ou várias fotos. Devolve mensagem de erro se a combinação não vale. */
-export function materialTypeFor(files: FileMeta[]): { type: "pdf" | "docx" | "image" | "audio" } | { error: string } {
+export function materialTypeFor(files: FileMeta[]): { type: "pdf" | "docx" | "pptx" | "image" | "audio" } | { error: string } {
   if (files.every(isImage)) return { type: "image" };
   if (files.length === 1 && isAudio(files[0])) return { type: "audio" };
   if (files.length === 1 && isPdf(files[0])) return { type: "pdf" };
   if (files.length === 1 && isDocx(files[0])) return { type: "docx" };
-  if (files.length > 1) return { error: "Envie um PDF, DOCX ou áudio por vez (várias de uma vez só para fotos)." };
-  return { error: "Formato não suportado. Use PDF, DOCX, fotos (JPG, PNG, WEBP) ou áudio (MP3, WAV, M4A)." };
+  if (files.length === 1 && isPptx(files[0])) return { type: "pptx" };
+  if (files.some((f) => /\.(ppt|doc)$/i.test(f.name)))
+    return { error: "Arquivos .ppt e .doc antigos não são lidos. Salve como PPTX, DOCX ou PDF (Arquivo → Salvar como) e envie de novo." };
+  if (files.length > 1) return { error: "Envie um PDF, slide, DOCX ou áudio por vez (várias de uma vez só para fotos)." };
+  return { error: "Formato não suportado. Use PDF, slides (PPTX), Word (DOCX), fotos (JPG, PNG, WEBP) ou áudio (MP3, WAV, M4A)." };
 }
 
 /** Caminho no Storage: <user_id>/<material_id>/001.pdf — nomes do servidor, nunca do usuário. */
 export function storagePathFor(userId: string, materialId: string, index: number, file: FileMeta) {
-  const e = isPdf(file) ? "pdf" : isDocx(file) ? "docx" : ext(file.name) || (isAudio(file) ? "mp3" : "jpg");
+  const e = isPdf(file) ? "pdf" : isDocx(file) ? "docx" : isPptx(file) ? "pptx" : ext(file.name) || (isAudio(file) ? "mp3" : "jpg");
   return `${userId}/${materialId}/${String(index + 1).padStart(3, "0")}.${e}`;
 }

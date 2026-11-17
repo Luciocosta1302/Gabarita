@@ -1,4 +1,5 @@
 import { NameForm } from "@/components/profile/profile-forms";
+import { ResetTutorials } from "@/components/tutorials/tutorials";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDays, todayBR } from "@/lib/dates";
 import { getUser } from "@/lib/supabase/server";
@@ -23,6 +24,16 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent>
           <NameForm name={profile?.name ?? ""} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Tutoriais</CardTitle>
+          <p className="text-muted-foreground text-sm">Cada ferramenta tem um guia rápido. Quer ver todos de novo, inclusive o de boas-vindas?</p>
+        </CardHeader>
+        <CardContent>
+          <ResetTutorials />
         </CardContent>
       </Card>
 

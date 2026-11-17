@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { ReviewSession, type ReviewItem } from "@/components/review/review-session";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 const MAX_PER_SESSION = 50;
 
@@ -57,6 +58,7 @@ export default async function ReviewPage({ searchParams }: { searchParams: Promi
           </Link>
         )}
       </div>
+      <ToolGuide id="revisao" />
       {items.length === 0 ? (
         <div className="bg-pastel-mint rounded-2xl p-6 text-center" data-testid="review-empty">
           <p className="font-display text-xl font-bold">Nada para revisar agora</p>

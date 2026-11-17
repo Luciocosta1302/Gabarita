@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TeacherProfile } from "@/lib/ai/prompts/teacher";
 import { createClient } from "@/lib/supabase/server";
 import type { LikelyTopic } from "@/lib/teacher/logic";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 const TYPE_LABELS: Record<string, string> = {
   multipla_escolha: "Múltipla escolha",
@@ -70,6 +71,7 @@ export default async function TeacherPage({
           iguais às dele.
         </p>
       </div>
+      <ToolGuide id="professor" />
 
       <Card>
         <CardHeader>

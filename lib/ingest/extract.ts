@@ -1,5 +1,6 @@
 import "server-only";
 
+import JSZip from "jszip";
 import mammoth from "mammoth";
 import { PDFParse } from "pdf-parse";
 import sharp from "sharp";
@@ -10,7 +11,7 @@ import { UserFacingError } from "@/lib/errors";
 
 import { cleanText, type PageText } from "./chunk";
 
-export type MaterialType = "pdf" | "image" | "docx" | "text" | "audio";
+export type MaterialType = "pdf" | "image" | "docx" | "pptx" | "text" | "audio";
 export type InputFile = { name: string; mimeType: string; data: Uint8Array };
 
 /** Página com menos que isso de texto é considerada escaneada (sem camada de texto). */
@@ -35,6 +36,8 @@ export async function extractMaterial(
       return extractImages(files);
     case "docx":
       return limitPages(splitPseudoPages(await extractDocx(files[0].data)), maxPages);
+    case "pptx":
+      return limitPages(await extractPptx(files[0].data), maxPages);
     case "text":
       return limitPages(splitPseudoPages(new TextDecoder().decode(files[0].data)), maxPages);
     case "audio":
@@ -142,6 +145,54 @@ async function extractDocx(data: Uint8Array) {
   } catch {
     throw new UserFacingError("Não foi possível ler este arquivo DOCX.");
   }
+}
+
+// ---------------------------------------------------------------------------
+// Slides (PPTX): cada slide = 1 página; as notas do apresentador vão junto
+// ---------------------------------------------------------------------------
+
+const XML_ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" };
+function decodeXml(s: string) {
+  return s.replace(/&(#x[0-9a-f]+|#\d+|[a-z]+);/gi, (m, e: string) =>
+    e[0] === "#" ? String.fromCodePoint(e[1].toLowerCase() === "x" ? parseInt(e.slice(2), 16) : parseInt(e.slice(1), 10)) : (XML_ENTITIES[e] ?? m),
+  );
+}
+
+/** Texto de um XML do PowerPoint: cada parágrafo (<a:p>) vira uma linha; os pedaços (<a:t>) se juntam. */
+export function slideXmlText(xml: string) {
+  return xml
+    .split(/<\/a:p>/)
+    .map((p) => Array.from(p.matchAll(/<a:t(?:\s[^>]*)?>([^<]*)<\/a:t>/g), (m) => decodeXml(m[1])).join(""))
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .join("\n");
+}
+
+export async function extractPptx(data: Uint8Array): Promise<Extracted> {
+  let zip: JSZip;
+  try {
+    zip = await JSZip.loadAsync(data);
+  } catch {
+    throw new UserFacingError("Não foi possível ler estes slides. Salve como PPTX ou PDF e envie de novo.");
+  }
+  const num = (name: string) => Number(name.match(/(\d+)\.xml$/)?.[1] ?? 0);
+  const slides = Object.keys(zip.files)
+    .filter((n) => /^ppt\/slides\/slide\d+\.xml$/.test(n))
+    .sort((a, b) => num(a) - num(b));
+  if (slides.length === 0) throw new UserFacingError("Não encontramos slides neste arquivo.");
+
+  const pages: PageText[] = [];
+  for (const [i, name] of slides.entries()) {
+    const text = slideXmlText(await zip.file(name)!.async("string"));
+    const notesFile = zip.file(`ppt/notesSlides/notesSlide${num(name)}.xml`);
+    // nas notas, o número do slide também aparece como texto: tiramos linhas só com dígitos
+    const notes = notesFile ? slideXmlText(await notesFile.async("string")).split("\n").filter((l) => !/^\d+$/.test(l)).join("\n") : "";
+    pages.push({ page: i + 1, text: [text, notes && `Notas do slide: ${notes}`].filter(Boolean).join("\n\n") });
+  }
+  if (pages.every((p) => cleanText(p.text).length < 20)) {
+    throw new UserFacingError("Estes slides são só imagens, sem texto. Exporte como PDF (Arquivo → Exportar → PDF) e envie o PDF: aí a IA lê as imagens.");
+  }
+  return { pages, pageCount: pages.length };
 }
 
 /** Divide texto corrido em páginas de ~3000 caracteres, cortando em fim de parágrafo. */

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CreateRoomForm, JoinRoomForm } from "@/components/rooms/room-actions";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Turmas — Gabarita" };
 
@@ -20,6 +21,7 @@ export default async function RoomsPage() {
           Crie uma sala, mande o link para a turma: vocês juntam materiais, fazem simulados juntos e têm um ranking semanal.
         </p>
       </div>
+      <ToolGuide id="salas" />
       <Card>
         <CardHeader>
           <CardTitle>Nova sala</CardTitle>

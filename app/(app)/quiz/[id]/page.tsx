@@ -11,6 +11,7 @@ import { letterToIndex } from "@/lib/quiz/options";
 import { formatDuration, simuladoReport } from "@/lib/quiz/report";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 /** Como mostrar uma resposta: letra + texto, ou só "Certo"/"Errado". */
 function answerText(options: string[], letter: string) {
@@ -77,6 +78,7 @@ export default async function QuizPage({
       <div className="flex flex-col gap-4">
         {back}
         <h1 className="text-2xl font-bold">{quiz.title}</h1>
+        <ToolGuide id="simulado" />
         <SimuladoRunner
           quizId={id}
           questions={publicQuestions(ordered)}
@@ -92,6 +94,7 @@ export default async function QuizPage({
       <div className="flex flex-col gap-4">
         {back}
         <h1 className="text-2xl font-bold">{quiz.title}</h1>
+        <ToolGuide id="quiz" />
         <QuizRunner
           quizId={id}
           offset={ordered.length - pending.length}

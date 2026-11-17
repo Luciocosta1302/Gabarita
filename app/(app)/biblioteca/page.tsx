@@ -9,10 +9,11 @@ import { withUsage } from "@/lib/ai/usage";
 import { searchUserChunks } from "@/lib/rag/search";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Biblioteca — Gabarita" };
 
-const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", text: "Texto", audio: "Áudio", web: "Página da web", youtube: "YouTube", past_exam: "Prova antiga" };
+const TYPE_LABEL: Record<string, string> = { pdf: "PDF", image: "Fotos", docx: "DOCX", pptx: "Slides", text: "Texto", audio: "Áudio", web: "Página da web", youtube: "YouTube", past_exam: "Prova antiga" };
 const STATUS_LABEL: Record<string, string> = { pending: "na fila", processing: "processando", ready: "pronto", error: "erro" };
 
 /** Busca de texto: escapa os curingas do LIKE. */
@@ -75,6 +76,7 @@ export default async function LibraryPage({ searchParams }: { searchParams: Prom
         <h1 className="text-2xl font-bold">Biblioteca</h1>
         <p className="text-muted-foreground text-sm">Todos os seus materiais, organizados por matéria. Busque pelo título ou por uma frase de dentro do texto.</p>
       </div>
+      <ToolGuide id="biblioteca" />
 
       <form className="flex gap-2" role="search" action="/biblioteca">
         {folder && <input type="hidden" name="pasta" value={folder} />}

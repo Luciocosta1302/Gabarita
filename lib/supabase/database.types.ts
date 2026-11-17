@@ -457,14 +457,14 @@ isOneToOne: false
                   ]
                 },"profiles": {
                   Row: {
-                    "created_at": string,"id": string,"name": string | null
+                    "created_at": string,"id": string,"name": string | null,"tutorials_seen": (string)[]
                   }
                   ComputedFields: never
                   Insert: {
-                    "created_at"?: string,"id": string,"name"?: string | null
+                    "created_at"?: string,"id": string,"name"?: string | null,"tutorials_seen"?: (string)[]
                   }
                   Update: {
-                    "created_at"?: string,"id"?: string,"name"?: string | null
+                    "created_at"?: string,"id"?: string,"name"?: string | null,"tutorials_seen"?: (string)[]
                   }
                   Relationships: [
                     
@@ -908,6 +908,9 @@ isOneToOne: false
 { Args: { "p_room_id": string }; Returns: {
               "name": string,"own_correct": number,"points": number,"room_correct": number,"user_id": string
             }[]
+                           },
+"set_tutorial_seen":
+{ Args: { "p_key": string,"p_seen"?: boolean }; Returns: (string)[]
                            }
           }
           Enums: {

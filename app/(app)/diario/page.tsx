@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { JournalReflection } from "@/lib/ai/prompts/journal";
 import { addDays, shortDateBR, todayBR } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Diário de aprendizagem — Gabarita" };
 
@@ -25,6 +26,7 @@ export default async function JournalPage({ searchParams }: { searchParams: Prom
         <h1 className="text-2xl font-bold">Diário de aprendizagem</h1>
         <p className="text-muted-foreground text-sm">Registre ao fim de cada sessão. Uma vez por semana, a IA lê seus registros e mostra sua evolução.</p>
       </div>
+      <ToolGuide id="diario" />
 
       <Card>
         <CardHeader>

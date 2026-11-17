@@ -15,6 +15,7 @@ function formatOf(fileName: string): MaterialType {
   const ext = fileName.toLowerCase().split(".").pop();
   if (ext === "pdf") return "pdf";
   if (ext === "docx") return "docx";
+  if (ext === "pptx") return "pptx";
   if (ext === "txt") return "text";
   return "image";
 }

@@ -42,5 +42,6 @@ export async function createSubject(_prev: CreateSubjectState, formData: FormDat
   }
 
   revalidatePath("/dashboard");
+  revalidatePath("/adicionar");
   return { ok: true };
 }

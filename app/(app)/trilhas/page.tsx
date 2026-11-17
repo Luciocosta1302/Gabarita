@@ -4,6 +4,7 @@ import { CreatePathForm } from "@/components/paths/create-path-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { pathProgress, type StepStatus } from "@/lib/paths/logic";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 // capas em cores tradicionais (índigo, vermelho-selo, matchá)
 const CARD_SKIES = ["bg-ai", "bg-shu", "bg-matcha"];
@@ -30,6 +31,7 @@ export default async function PathsPage() {
           explica, testa com uma questão e só libera a próxima quando você acerta duas seguidas.
         </p>
       </div>
+      <ToolGuide id="trilhas" />
 
       <Card>
         <CardHeader>

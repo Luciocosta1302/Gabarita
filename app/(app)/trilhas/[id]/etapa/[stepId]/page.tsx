@@ -5,6 +5,7 @@ import { z } from "zod";
 import { TutorSession, type TutorMessage } from "@/components/paths/tutor-session";
 import { STREAK_TO_PASS } from "@/lib/paths/logic";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export default async function StepPage({ params }: { params: Promise<{ id: string; stepId: string }> }) {
   const { id, stepId } = await params;
@@ -57,6 +58,7 @@ export default async function StepPage({ params }: { params: Promise<{ id: strin
             : `Acertos seguidos: ${"●".repeat(step.correct_streak)}${"○".repeat(Math.max(0, STREAK_TO_PASS - step.correct_streak))} (${STREAK_TO_PASS} para concluir)`}
         </p>
       </div>
+      <ToolGuide id="tutor" />
       <TutorSession stepId={stepId} messages={messages} status={step.status} nextStepHref={`/trilhas/${id}`} />
     </div>
   );

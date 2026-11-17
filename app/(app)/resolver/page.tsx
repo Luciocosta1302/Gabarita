@@ -1,6 +1,7 @@
 import { SolvePhoto } from "@/components/solve/solve-photo";
 import { Card, CardContent } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Foto da questão — Gabarita" };
 
@@ -15,6 +16,7 @@ export default async function SolvePage() {
           Tire foto de qualquer questão: o Gabarita resolve passo a passo e mostra onde essa matéria está no seu material.
         </p>
       </div>
+      <ToolGuide id="resolver" />
       <Card>
         <CardContent className="pt-6">
           <SolvePhoto subjects={subjects ?? []} />

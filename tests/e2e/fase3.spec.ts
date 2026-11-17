@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { expect, test } from "@playwright/test";
 
 import { makePdf, studyPages } from "../fixtures/make-pdf";
+import { skipTour } from "./helpers";
 
 // Fase 3 (com IA de teste): Prova do Professor, discursiva com rubrica, Feynman, foto da questão,
 // áudio de aula vira material e resumo em áudio.
@@ -13,6 +14,7 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  await skipTour(page);
   await page.goto("/dashboard");
   await page.getByLabel("Matéria / prova").fill("Biologia");
   await page.getByRole("button", { name: "Criar matéria" }).click();
@@ -21,10 +23,10 @@ test("diferenciais da Fase 3", async ({ page }) => {
   const subjectUrl = page.url();
 
   // material + áudio de aula
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
+  await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   await expect(page.getByTestId("topic-tile").first()).toBeVisible({ timeout: 60_000 });
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({ name: "aula.mp3", mimeType: "audio/mpeg", buffer: Buffer.alloc(2000) });
+  await page.getByLabel("Escolher arquivo").setInputFiles({ name: "aula.mp3", mimeType: "audio/mpeg", buffer: Buffer.alloc(2000) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   const audioRow = page.getByTestId("material-list").locator("li").filter({ hasText: "Áudio da aula" });
   await expect(audioRow.getByTestId("material-status")).toHaveText("Pronto", { timeout: 60_000 });
@@ -40,7 +42,7 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await page.goto(subjectUrl);
   await page.getByRole("link", { name: /Prova do Professor/ }).click();
   await expect(page).toHaveURL(/\/professor$/);
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({
+  await page.getByLabel("Escolher arquivo").setInputFiles({
     name: "p1-2025.pdf",
     mimeType: "application/pdf",
     buffer: makePdf(["Prova 1. Questão 1: Sobre a fotossíntese, é correto afirmar que ocorre nos cloroplastos. Questão 2: A respiração celular libera ATP."]),

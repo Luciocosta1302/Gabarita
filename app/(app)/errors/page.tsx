@@ -8,6 +8,7 @@ import { CONFIDENCE_LABELS, type Confidence } from "@/lib/quiz/confidence";
 import { letterToIndex } from "@/lib/quiz/options";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export default async function ErrorsPage({ searchParams }: { searchParams: Promise<{ subject?: string }> }) {
   const { subject } = await searchParams;
@@ -40,6 +41,7 @@ export default async function ErrorsPage({ searchParams }: { searchParams: Promi
           </Link>
         )}
       </div>
+      <ToolGuide id="erros" />
 
       {!entries?.length && <p className="text-muted-foreground">Nenhum erro por aqui. Bora fazer questões!</p>}
 

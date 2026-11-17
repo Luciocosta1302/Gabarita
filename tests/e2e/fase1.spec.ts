@@ -1,6 +1,7 @@
 import { expect, test, type Page } from "@playwright/test";
 
 import { makePdf, studyPages } from "../fixtures/make-pdf";
+import { skipTour } from "./helpers";
 
 // Critério de pronto da Fase 1 (com IA de teste, AI_PROVIDER=mock):
 // subir um PDF de 20 páginas, gerar 10 questões, cada uma abre o trecho certo;
@@ -29,6 +30,7 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page.getByRole("heading", { name: /Aluno\./ })).toBeVisible();
+  await skipTour(page);
 
   await page.getByLabel("Matéria / prova").fill("Biologia — P2");
   await page.getByRole("button", { name: "Criar matéria" }).click();
@@ -36,7 +38,7 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
   await expect(page.getByRole("heading", { name: "Biologia — P2" })).toBeVisible();
 
   // --- upload ------------------------------------------------------------------
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({
+  await page.getByLabel("Escolher arquivo").setInputFiles({
     name: "biologia.pdf",
     mimeType: "application/pdf",
     buffer: makePdf(studyPages(20)),

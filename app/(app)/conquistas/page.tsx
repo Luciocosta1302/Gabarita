@@ -5,6 +5,7 @@ import { evaluate, levelOf, xpOf } from "@/lib/achievements/badges";
 import { loadAchievementCounts, markSeen } from "@/lib/achievements/load";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export const metadata = { title: "Conquistas — Gabarita" };
 
@@ -22,6 +23,7 @@ export default async function AchievementsPage() {
         <h1 className="text-2xl font-bold">Conquistas</h1>
         <p className="text-muted-foreground text-sm">XP vem de tudo o que você faz: questões, foco, simulados, trilhas, diário.</p>
       </div>
+      <ToolGuide id="conquistas" />
       <Card>
         <CardContent className="grid gap-3 pt-6" data-testid="level">
           <div className="flex items-baseline justify-between">

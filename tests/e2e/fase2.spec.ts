@@ -2,6 +2,7 @@ import { expect, test } from "@playwright/test";
 
 import { addDays, todayBR } from "../../lib/dates";
 import { makePdf, studyPages } from "../fixtures/make-pdf";
+import { skipTour } from "./helpers";
 
 // Critério de pronto da Fase 2: criar matéria com data da prova daqui 14 dias gera plano;
 // marcar um dia como não feito redistribui as tarefas. (+ tópicos, simulado e revisão, com IA de teste)
@@ -15,6 +16,7 @@ test("plano de 14 dias se reorganiza; tópicos, simulado e revisão", async ({ p
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  await skipTour(page);
 
   await page.getByLabel("Matéria / prova").fill("Biologia — ENEM");
   await page.getByLabel("Data da prova").fill(addDays(today, 14));
@@ -44,7 +46,7 @@ test("plano de 14 dias se reorganiza; tópicos, simulado e revisão", async ({ p
   // --- material → tópicos → plano por tópico ------------------------------------
   await page.getByRole("link", { name: "← Biologia — ENEM" }).click();
   await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
+  await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(10)) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   await expect(page.getByTestId("material-status")).toHaveText("Pronto", { timeout: 60_000 });
   await expect(page.getByTestId("topic-tile").first()).toBeVisible({ timeout: 60_000 });

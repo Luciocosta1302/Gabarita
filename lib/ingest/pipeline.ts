@@ -26,7 +26,7 @@ export async function ingestMaterial(admin: AdminClient, materialId: string) {
     .single();
   if (error || !material) throw new UserFacingError("Material não encontrado.");
   if (!material.storage_path) throw new UserFacingError("Material sem arquivo.");
-  if (!["pdf", "image", "docx", "text", "audio", "web", "youtube"].includes(material.type)) {
+  if (!["pdf", "image", "docx", "pptx", "text", "audio", "web", "youtube"].includes(material.type)) {
     throw new UserFacingError("Este tipo de material ainda não é suportado.");
   }
 

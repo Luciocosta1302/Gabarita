@@ -1,4 +1,4 @@
-import { ArrowRight, BookX, Camera, Circle, LibraryBig, Plus, RotateCcw, Route, ScanLine, Search } from "lucide-react";
+import { ArrowRight, BookX, Camera, Circle, FilePlus2, LibraryBig, Plus, RotateCcw, Route, ScanLine, Search } from "lucide-react";
 import Link from "next/link";
 
 import { Hanko } from "@/components/brand/hanko";
@@ -189,6 +189,13 @@ export default async function DashboardPage() {
             </span>
             <span className={cn("rounded-full px-2.5 py-0.5 text-sm font-bold", due ? "bg-shu text-washi" : "bg-muted text-muted-foreground")} data-testid="due-count">
               {due}
+            </span>
+          </Link>
+          <Link href="/adicionar" className="stamp-press bg-card flex items-center gap-3 rounded-2xl px-5 py-3">
+            <FilePlus2 aria-hidden className="text-shu size-5" />
+            <span>
+              <span className="block font-bold">Adicionar material</span>
+              <span className="text-muted-foreground block text-xs">PDF, slides, Word, fotos, áudio, link ou YouTube</span>
             </span>
           </Link>
         </div>

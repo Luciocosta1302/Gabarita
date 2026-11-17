@@ -7,5 +7,12 @@ export async function signup(page: Page, name: string, prefix = "e2e") {
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
+  await skipTour(page);
+}
+
+/** Primeiro acesso: pula o tour de boas-vindas. */
+export async function skipTour(page: Page) {
+  await page.getByTestId("welcome-tour").getByRole("button", { name: "Pular" }).click();
+  await expect(page.getByTestId("welcome-tour")).toBeHidden();
 }
 

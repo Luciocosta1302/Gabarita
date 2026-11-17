@@ -14,7 +14,7 @@ test("biblioteca, anotações, diário, desempenho, conquistas e comunidade", as
   await page.getByRole("button", { name: "Criar matéria" }).click();
   await page.getByTestId("subject-list").getByText("Biologia").click();
   await expect(page).toHaveURL(/\/subjects\/[^/]+$/);
-  await page.getByLabel("PDF, DOCX ou fotos").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(6)) });
+  await page.getByLabel("Escolher arquivo").setInputFiles({ name: "bio.pdf", mimeType: "application/pdf", buffer: makePdf(studyPages(6)) });
   await page.getByRole("button", { name: "Enviar material" }).click();
   await expect(page.getByTestId("topic-tile").first()).toBeVisible({ timeout: 60_000 });
 

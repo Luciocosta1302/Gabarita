@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { daysBetween, todayBR } from "@/lib/dates";
 import { createPlan, getPlan } from "@/lib/planner/service";
 import { createClient, getUser } from "@/lib/supabase/server";
+import { ToolGuide } from "@/components/tutorials/tutorials";
 
 export default async function PlanPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -73,6 +74,8 @@ export default async function PlanPage({ params }: { params: Promise<{ id: strin
           </p>
         )}
       </div>
+
+      <ToolGuide id="plano" />
 
       <PlanView subjectId={id} days={days} today={today} />
 
