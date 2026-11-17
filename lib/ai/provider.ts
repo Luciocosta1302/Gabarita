@@ -11,7 +11,9 @@ import { recordUsage } from "./usage";
 let current: AIProvider | null = null;
 
 function createProvider(): AIProvider {
-  const name = process.env.AI_PROVIDER ?? "mock";
+  // Em produção não existe padrão: sem AI_PROVIDER o app falharia em silêncio com questões falsas da IA de teste.
+  const name = process.env.AI_PROVIDER ?? (process.env.NODE_ENV === "production" ? undefined : "mock");
+  if (!name) throw new Error("AI_PROVIDER não configurado (use gemini ou anthropic nas variáveis de ambiente do servidor).");
   switch (name) {
     case "mock":
       return new MockProvider();
