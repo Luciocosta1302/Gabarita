@@ -36,7 +36,7 @@ export async function signup(_prev: AuthState, formData: FormData): Promise<Auth
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
-      data: { name: parsed.data.name },
+      data: { name: parsed.data.name, terms_accepted_at: new Date().toISOString() },
       emailRedirectTo: `${origin}/auth/callback`,
     },
   });

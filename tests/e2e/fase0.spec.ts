@@ -25,6 +25,7 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await page.getByLabel("Nome").fill("Aluna Teste");
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill(password);
+  await page.getByLabel(/Li e aceito/).check();
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByTestId("convo-empty")).toBeVisible();

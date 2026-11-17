@@ -35,9 +35,15 @@ const STEPS = [
   },
 ];
 
-export default function Home() {
+export default async function Home({ searchParams }: { searchParams: Promise<{ conta?: string }> }) {
+  const { conta } = await searchParams;
   return (
     <div className="min-h-screen">
+      {conta === "apagada" && (
+        <p role="status" className="bg-matcha text-washi px-5 py-3 text-center text-sm font-bold" data-testid="account-deleted">
+          Sua conta e todos os seus dados foram apagados. Obrigado por ter estudado com a gente.
+        </p>
+      )}
       <header className="mx-auto flex max-w-6xl items-center justify-between px-5 py-5">
         <Logo />
         <Link href="/login" className="text-sm font-bold underline-offset-4 hover:underline">
@@ -134,6 +140,10 @@ export default function Home() {
 
       <footer className="border-t-[1.5px] border-ink/20 py-6 text-center text-xs text-ink/50">
         Gabarita · estudo com plano, fonte e revisão
+        <span className="mt-2 flex justify-center gap-4">
+          <Link href="/privacidade" className="underline">Privacidade</Link>
+          <Link href="/termos" className="underline">Termos de uso</Link>
+        </span>
       </footer>
     </div>
   );

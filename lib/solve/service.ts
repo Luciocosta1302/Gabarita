@@ -10,7 +10,7 @@ import type { Database } from "@/lib/supabase/database.types";
 
 type DB = SupabaseClient<Database>;
 
-export type MaterialMatch = { chunk_id: string; material_id: string; material_title: string; subject_name: string; page: number | null; preview: string; similarity: number };
+export type MaterialMatch = { chunk_id: string; material_id: string; material_title: string; subject_name: string; page: number | null; paged: boolean; preview: string; similarity: number };
 
 /**
  * D11 — foto de uma questão: a IA (visão) transcreve e resolve passo a passo; depois buscamos no material
@@ -39,14 +39,17 @@ export async function solvePhoto(db: DB, input: { image: Uint8Array; subjectId?:
     .slice(0, 4);
 
   const ids = [...new Set(found.map((f) => f.material_id))];
-  const { data: mats } = ids.length ? await db.from("materials").select("id, title").in("id", ids) : { data: [] };
+  const { data: mats } = ids.length ? await db.from("materials").select("id, title, type").in("id", ids) : { data: [] };
   const title = new Map((mats ?? []).map((m) => [m.id, m.title]));
+  // PDF, fotos e slides têm páginas; texto, áudio, vídeo e links têm "partes"
+  const paged = new Set((mats ?? []).filter((m) => ["pdf", "image", "pptx"].includes(m.type)).map((m) => m.id));
   const matches: MaterialMatch[] = found.map((f) => ({
     chunk_id: f.id,
     material_id: f.material_id,
     material_title: title.get(f.material_id) ?? "Material",
     subject_name: f.subject_name,
     page: f.page,
+    paged: paged.has(f.material_id),
     preview: f.content.replace(/\s+/g, " ").slice(0, 220),
     similarity: f.similarity,
   }));

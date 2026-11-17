@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { plainMathDeep } from "@/lib/text/math";
+
 import type { AIProvider, TextRequest, Usage } from "./types";
 
 export class AIValidationError extends Error {
@@ -31,7 +33,8 @@ function parseWith<T>(schema: z.ZodType<T>, raw: string): { ok: true; data: T } 
   } catch (e) {
     return { ok: false, error: `JSON inválido: ${(e as Error).message}` };
   }
-  const result = schema.safeParse(value);
+  // matemática em LaTeX vira símbolos comuns (√, θ, ²), menos nas citações literais
+  const result = schema.safeParse(plainMathDeep(value));
   if (result.success) return { ok: true, data: result.data };
   return { ok: false, error: z.prettifyError(result.error) };
 }
@@ -54,6 +57,7 @@ export async function generateJSONWith<T>(
   const system = [
     rest.system,
     `Responda APENAS com um JSON válido que siga este JSON Schema, sem texto fora do JSON:\n${jsonSchema}`,
+    "Escreva fórmulas em texto simples com símbolos (√3, x², π, θ, 1/2), nunca em LaTeX.",
   ]
     .filter(Boolean)
     .join("\n\n");

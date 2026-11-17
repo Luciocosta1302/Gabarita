@@ -30,7 +30,9 @@ describe("auth", () => {
   it("senha precisa de letras e número", () => {
     expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "abcdefgh" }).success).toBe(false);
     expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "12345678" }).success).toBe(false);
-    expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "senha-forte-123" }).success).toBe(true);
+    expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "senha-forte-123", terms: "on" }).success).toBe(true);
+    // sem aceitar os termos não cria a conta
+    expect(signupSchema.safeParse({ name: "Ana", email: "a@b.com", password: "senha-forte-123" }).success).toBe(false);
   });
 
   it("safeNext bloqueia redirecionamento para fora", () => {

@@ -125,7 +125,7 @@ export function SolvePhoto({ subjects }: { subjects: { id: string; name: string 
                 <Link key={m.chunk_id} href={`/chunks/${m.chunk_id}`} className="bg-card hover:bg-accent grid gap-1 rounded-xl border p-3 text-sm">
                   <span className="font-medium">
                     {m.material_title}
-                    {m.page != null ? `, p. ${m.page}` : ""} <span className="text-muted-foreground text-xs">· {m.subject_name}</span>
+                    {m.page != null ? `, ${m.paged ? "p." : "parte"} ${m.page}` : ""} <span className="text-muted-foreground text-xs">· {m.subject_name}</span>
                   </span>
                   <span className="text-muted-foreground text-xs">{m.preview}…</span>
                 </Link>

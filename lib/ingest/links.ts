@@ -160,3 +160,24 @@ export async function youtubeTitle(url: string): Promise<string | null> {
     return null;
   }
 }
+
+/**
+ * Duração (s) de um vídeo do YouTube, lida da página pública do vídeo ("lengthSeconds"). Sem chave e sem
+ * baixar o vídeo. Falhou = null (o vídeo segue; a IA ainda tem o próprio limite).
+ */
+export async function youtubeDurationSeconds(url: string): Promise<number | null> {
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": USER_AGENT, "Accept-Language": "pt-BR" }, signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) return null;
+    return parseYoutubeDuration(await res.text());
+  } catch {
+    return null;
+  }
+}
+
+export function parseYoutubeDuration(html: string): number | null {
+  const m = /"lengthSeconds":"(\d+)"/.exec(html) ?? /<meta itemprop="duration" content="PT(?:(\d+)H)?(\d+)M(\d+)S"/.exec(html);
+  if (!m) return null;
+  if (m.length === 2) return Number(m[1]);
+  return Number(m[1] ?? 0) * 3600 + Number(m[2]) * 60 + Number(m[3]);
+}

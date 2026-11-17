@@ -14,6 +14,7 @@ test("plano de 14 dias se reorganiza; tópicos, simulado e revisão", async ({ p
   await page.getByLabel("Nome").fill("Aluna Fase Dois");
   await page.getByLabel("E-mail").fill(`e2e2-${Date.now()}@teste.gabarita.local`);
   await page.getByLabel("Senha").fill("senha-forte-123");
+  await page.getByLabel(/Li e aceito/).check();
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await skipTour(page);

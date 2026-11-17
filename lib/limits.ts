@@ -8,3 +8,10 @@ export const MAX_PAGES = 100;
 
 export const MAX_QUESTIONS_PER_REQUEST = 30;
 export const MAX_FLASHCARDS_PER_REQUEST = 40;
+
+/**
+ * Cota grátis da IA (Gemini): vídeo custa ~90 tokens por segundo. Um vídeo longo pode esgotar o limite
+ * por minuto de todo mundo, então: vídeo de até 30 min e até 5 vídeos/áudios por aluno por dia.
+ */
+export const MAX_VIDEO_MINUTES = 30;
+export const MAX_MEDIA_PER_DAY = 5;

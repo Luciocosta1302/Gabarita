@@ -1,6 +1,8 @@
 import { after, NextResponse } from "next/server";
 
 import { apiRoute, jsonError } from "@/lib/api/route";
+import { todayBR } from "@/lib/dates";
+import { MAX_MEDIA_PER_DAY } from "@/lib/limits";
 import { MATERIALS_BUCKET } from "@/lib/ingest/pipeline";
 import { enqueueJob, runJobs } from "@/lib/jobs/queue";
 import { youtubeId, youtubeWatchUrl } from "@/lib/ingest/html";
@@ -18,6 +20,23 @@ export const POST = apiRoute(createUploadSchema, async (input, { supabase, user 
   const { data: subject } = await supabase.from("subjects").select("id").eq("id", input.subject_id).maybeSingle();
   if (!subject) return jsonError("Matéria não encontrada.", 404);
 
+
+  // cota grátis da IA: vídeos e áudios são os pedidos mais caros, então há um limite por dia
+  const isMedia = input.kind === "link" ? youtubeId(input.url) !== null : input.kind === "files" && (materialTypeFor(input.files) as { type?: string }).type === "audio";
+  if (isMedia) {
+    const since = new Date(`${todayBR()}T00:00:00-03:00`).toISOString();
+    const { count } = await supabase
+      .from("materials")
+      .select("id", { count: "exact", head: true })
+      .in("type", ["youtube", "audio"])
+      .gte("created_at", since);
+    if ((count ?? 0) >= MAX_MEDIA_PER_DAY) {
+      return jsonError(
+        `Você já enviou ${MAX_MEDIA_PER_DAY} vídeos/áudios hoje, o limite diário (a IA gratuita é dividida entre todos). Amanhã libera de novo; PDF, slides, fotos e texto continuam liberados.`,
+        429,
+      );
+    }
+  }
 
   const materialId = crypto.randomUUID();
   const folder = `${user.id}/${materialId}`;

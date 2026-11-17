@@ -2,14 +2,15 @@ import "server-only";
 
 import { transcribeVideo } from "@/lib/ai/provider";
 import { UserFacingError } from "@/lib/errors";
-import { MAX_PAGES } from "@/lib/limits";
+import { MAX_PAGES, MAX_VIDEO_MINUTES } from "@/lib/limits";
+import { plainMath } from "@/lib/text/math";
 import type { AdminClient } from "@/lib/supabase/admin";
 
 import { chunkPages } from "./chunk";
 import { embedTexts, toPgVector } from "./embed";
 import { type Extracted, extractMaterial, extractPdf, type InputFile, type MaterialType, splitPseudoPages } from "./extract";
 import { youtubeId, youtubeWatchUrl } from "./html";
-import { fetchLink, youtubeTitle } from "./links";
+import { fetchLink, youtubeDurationSeconds, youtubeTitle } from "./links";
 
 export const MATERIALS_BUCKET = "materials";
 const INSERT_BATCH = 100;
@@ -79,9 +80,16 @@ async function extractLink(admin: AdminClient, m: LinkMaterial): Promise<Extract
     const id = youtubeId(m.source_url);
     if (!id) throw new UserFacingError("Link do YouTube inválido.");
     const url = youtubeWatchUrl(id);
+    // protege a cota grátis: vídeo longo demais nem vai para a IA
+    const secs = await youtubeDurationSeconds(url);
+    if (secs != null && secs > MAX_VIDEO_MINUTES * 60) {
+      throw new UserFacingError(
+        `Esse vídeo tem ${Math.round(secs / 60)} minutos; o limite é ${MAX_VIDEO_MINUTES} minutos por vídeo (a IA gratuita não dá conta de mais). Procure uma aula mais curta ou divida o assunto em partes.`,
+      );
+    }
     const [{ text }, t] = await Promise.all([transcribeVideo(url), youtubeTitle(url)]);
     if (text.replace(/\[[\d:]+\]/g, "").trim().length < 50) throw new UserFacingError("Não deu para entender a fala neste vídeo.");
-    ex = splitPseudoPages(text);
+    ex = splitPseudoPages(plainMath(text));
     // sem o título (oEmbed fora do ar), um nome legível no lugar do link
     title = t ?? `Vídeo do YouTube (${id})`;
   } else {

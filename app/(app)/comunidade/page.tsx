@@ -3,6 +3,7 @@ import Link from "next/link";
 import { loadPublicProfiles } from "@/lib/profile/load";
 import { AuthorChip } from "@/components/avatar/author-chip";
 import { CATEGORY_LABELS, NewPostForm } from "@/components/community/community";
+import { isModerator } from "@/lib/moderation/moderation";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 import { COMMUNITY_CATEGORIES } from "@/lib/validation/generate";
@@ -18,6 +19,7 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
   const sp = await searchParams;
   const cat = (COMMUNITY_CATEGORIES as readonly string[]).includes(sp.cat ?? "") ? (sp.cat as Cat) : null;
   const supabase = await createClient();
+  const moderator = isModerator((await supabase.auth.getUser()).data.user?.email);
   const pageNum = Math.max(1, Math.min(500, Number.parseInt(sp.pagina ?? "1", 10) || 1));
   let pq = supabase
     .from("community_posts")
@@ -48,6 +50,11 @@ export default async function CommunityPage({ searchParams }: { searchParams: Pr
           <h1 className="text-2xl font-bold">Comunidade</h1>
           <p className="text-muted-foreground text-sm">Tire dúvidas, troque dicas e encontre gente para estudar junto.</p>
         </div>
+        {moderator && (
+          <Link href="/moderacao" className="tap-spring bg-card rounded-xl border-2 border-ink/25 px-3 py-1.5 text-sm font-bold hover:border-ink" data-testid="mod-link">
+            Moderação
+          </Link>
+        )}
       </div>
       <ToolGuide id="comunidade" />
       <NewPostForm />

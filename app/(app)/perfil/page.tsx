@@ -8,6 +8,7 @@ import { Counter } from "@/components/ui/counter";
 import { suggestUsername } from "@/lib/avatar/avatar";
 import { loadMyProfile } from "@/lib/profile/load";
 import { SoundToggle } from "@/components/feedback/sound-toggle";
+import { DeleteAccount } from "@/components/profile/delete-account";
 import { ResetTutorials } from "@/components/tutorials/tutorials";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDays, todayBR } from "@/lib/dates";
@@ -128,6 +129,19 @@ export default async function ProfilePage() {
               {total.calls} {total.calls === 1 ? "chamada" : "chamadas"} · {total.tokens.toLocaleString("pt-BR")} tokens
             </p>
           )}
+        </CardContent>
+      </Card>
+
+      <Card id="apagar-conta" className="border-destructive/40">
+        <CardHeader>
+          <CardTitle>Apagar minha conta</CardTitle>
+          <p className="text-muted-foreground text-sm">
+            Apaga a conta, os arquivos enviados e todos os dados de estudo, para sempre. Turmas que você criou também somem. Veja a{" "}
+            <Link href="/privacidade" className="underline">Política de privacidade</Link>.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <DeleteAccount />
         </CardContent>
       </Card>
     </div>

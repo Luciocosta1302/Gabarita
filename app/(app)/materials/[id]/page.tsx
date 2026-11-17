@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 
 import { Highlighted } from "@/components/materials/highlighted";
+import { ScrollToQuote } from "@/components/materials/scroll-to-quote";
 import { SpeakSummary } from "@/components/materials/speak-summary";
 import { SummaryButton } from "@/components/materials/summary-button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -102,6 +103,7 @@ export default async function MaterialPage({
         </p>
       </div>
 
+      {chunkId && <ScrollToQuote />}
       {chunkId && (
         <Card id="trecho" className="border-primary/40">
           <CardHeader>

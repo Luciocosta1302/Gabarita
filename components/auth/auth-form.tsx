@@ -59,6 +59,22 @@ export function AuthForm({ mode, action, googleAction, next }: Props) {
               required
             />
           </div>
+          {!isLogin && (
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" name="terms" required className="accent-primary mt-1 size-4 shrink-0" />
+              <span>
+                Li e aceito os{" "}
+                <Link className="underline" href="/termos" target="_blank">
+                  Termos de uso
+                </Link>{" "}
+                e a{" "}
+                <Link className="underline" href="/privacidade" target="_blank">
+                  Política de privacidade
+                </Link>
+                .
+              </span>
+            </label>
+          )}
           {state.error && (
             <p role="alert" className="text-destructive text-sm">
               {state.error}

@@ -12,6 +12,7 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await page.getByLabel("Nome").fill("Aluna Fase Três");
   await page.getByLabel("E-mail").fill(`e2e4-${Date.now()}@teste.gabarita.local`);
   await page.getByLabel("Senha").fill("senha-forte-123");
+  await page.getByLabel(/Li e aceito/).check();
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await skipTour(page);

@@ -7,6 +7,7 @@ import { generateJSON, transcribe } from "@/lib/ai/provider";
 import { ocrImagePrompt, ocrPdfPrompt } from "@/lib/ai/prompts/ocr";
 import { UserFacingError } from "@/lib/errors";
 import { toAiJpeg } from "@/lib/images/resize";
+import { plainMath } from "@/lib/text/math";
 
 import { cleanText, type PageText } from "./chunk";
 
@@ -147,7 +148,7 @@ async function extractImages(files: InputFile[]): Promise<Extracted> {
 async function transcribeAudio(f: InputFile) {
   const { text } = await transcribe({ data: f.data, filename: f.name, mimeType: f.mimeType || "audio/mpeg", language: "pt" });
   if (cleanText(text).length < 20) throw new UserFacingError("Não deu para entender a fala neste áudio.");
-  return text;
+  return plainMath(text);
 }
 
 // ---------------------------------------------------------------------------

@@ -95,3 +95,13 @@ describe("transcrição de vídeo em partes", () => {
     expect(ex.pages.map((p) => p.text).join("\n")).toContain("Fala número 199");
   });
 });
+
+describe("duração do vídeo do YouTube", () => {
+  it("lê lengthSeconds ou a meta de duração da página", async () => {
+    const { parseYoutubeDuration } = await import("@/lib/ingest/links");
+    expect(parseYoutubeDuration('..."lengthSeconds":"996","keywords"...')).toBe(996);
+    expect(parseYoutubeDuration('<meta itemprop="duration" content="PT1H2M3S">')).toBe(3723);
+    expect(parseYoutubeDuration('<meta itemprop="duration" content="PT16M36S">')).toBe(996);
+    expect(parseYoutubeDuration("<html>sem nada</html>")).toBeNull();
+  });
+});

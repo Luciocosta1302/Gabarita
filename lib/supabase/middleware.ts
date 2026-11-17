@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { publicEnv } from "@/lib/env";
 
-const PUBLIC_PATHS = ["/login", "/signup", "/auth"];
+const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/privacidade", "/termos"];
 
 /** Renova a sessão em toda requisição e manda para /login quem não está logado. */
 export async function updateSession(request: NextRequest) {

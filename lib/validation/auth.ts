@@ -15,6 +15,7 @@ export const signupSchema = z.object({
     .max(72, "Senha longa demais (máx. 72 caracteres)")
     .regex(/[A-Za-zÀ-ÿ]/, "A senha precisa ter letras")
     .regex(/\d/, "A senha precisa ter pelo menos um número"),
+  terms: z.literal("on", "Para criar a conta, aceite os Termos de uso e a Política de privacidade"),
 });
 
 /** Só aceita caminhos internos, para não virar redirecionamento aberto. */
