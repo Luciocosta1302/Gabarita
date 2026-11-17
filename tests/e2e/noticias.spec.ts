@@ -57,9 +57,21 @@ test("notícias: escolhe fontes, filtra por período, #etiqueta e busca, e pede 
 
     // título abre o original; resumo da Fuku
     await expect(list.getByRole("link", { name: /Edital do concurso/ })).toHaveAttribute("href", `${base}/a/concurso`);
+    // origem sempre à vista: nome do jornal (do próprio feed) e site
+    await expect(list.getByTestId("news-source")).toContainText("Jornal Local");
+    await expect(list.getByTestId("news-source")).toContainText("127.0.0.1");
+    await expect(list.getByTestId("news-original")).toHaveAttribute("href", `${base}/a/concurso`);
     await list.getByTestId("news-summarize").click();
-    await expect(page.getByTestId("news-summary")).toContainText("Resumo de teste: Edital do concurso");
-    await expect(page.getByTestId("news-summary")).toContainText("texto da notícia");
+    const summary = page.getByTestId("news-summary");
+    // só a frase com trecho literal no texto fica; a inventada ("999 vagas") é descartada
+    await expect(summary).toContainText("Resumo de teste conferido com o texto.");
+    await expect(summary).toContainText("“O Inep confirmou");
+    await expect(summary).not.toContainText("999");
+    await expect(page.getByTestId("news-summary-note")).toContainText("Tirei 1 frase que não consegui conferir");
+
+    // ícone da fonte: só para sites das notícias/catálogo; nome inválido recusado
+    expect((await page.request.get("/api/news/icon?d=site-qualquer.com")).status()).toBe(404);
+    expect((await page.request.get("/api/news/icon?d=../etc")).status()).toBe(400);
   } finally {
     server.close();
   }

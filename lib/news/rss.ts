@@ -1,7 +1,15 @@
 import { decodeEntities } from "@/lib/ingest/html";
 
 /** Uma notícia lida de um feed RSS 2.0 ou Atom. */
-export type FeedItem = { title: string; url: string; snippet: string | null; publishedAt: Date | null; source: string | null };
+export type FeedItem = {
+  title: string;
+  url: string;
+  snippet: string | null;
+  publishedAt: Date | null;
+  /** jornal de origem, quando o feed agrega vários (ex.: Google Notícias: <source url="...">Folha</source>) */
+  source: string | null;
+  sourceUrl: string | null;
+};
 
 const MAX_ITEMS = 40;
 
@@ -60,6 +68,7 @@ export function parseFeed(xml: string): FeedItem[] {
       snippet: cleanSnippet(tag(b, "description") ?? tag(b, "summary") ?? tag(b, "content") ?? tag(b, "content:encoded")),
       publishedAt: date(tag(b, "pubDate") ?? tag(b, "published") ?? tag(b, "updated") ?? tag(b, "dc:date")),
       source: cleanSnippet(tag(b, "source"), 80),
+      sourceUrl: safeHttpUrl(b.match(/<source[^>]*\burl=["']([^"']+)["']/i)?.[1] ?? null),
     });
   }
   return out;
@@ -69,4 +78,14 @@ export function parseFeed(xml: string): FeedItem[] {
 export function feedTitle(xml: string): string | null {
   const head = xml.split(/<item[\s>]|<entry[\s>]/i)[0];
   return cleanSnippet(tag(head, "title"), 80);
+}
+
+/** Domínio sem "www." (ex.: "folha.uol.com.br"); inválido = null. */
+export function domainOf(url: string | null): string | null {
+  if (!url) return null;
+  try {
+    return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return null;
+  }
 }

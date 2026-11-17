@@ -9,9 +9,9 @@ import { NewsSetup } from "@/components/news/news-setup";
 import { NewsToolbar } from "@/components/news/news-toolbar";
 import { ToolGuide } from "@/components/tutorials/tutorials";
 import { Card, CardContent } from "@/components/ui/card";
-import type { NewsSummary } from "@/lib/ai/prompts/news";
 import { PERIODS, type Period, type StudyGoal, TAG_LABELS } from "@/lib/news/catalog";
 import { feedsFor, refreshFeeds } from "@/lib/news/service";
+import type { CheckedSummary } from "@/lib/news/verify";
 import { getUser } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -69,7 +69,7 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
 
   let query = supabase
     .from("news_items")
-    .select("id, title, url, snippet, source_name, published_at, tags, summary_json")
+    .select("id, feed_key, title, url, snippet, source_name, source_domain, published_at, tags, summary_json")
     .in("feed_key", source ? [source] : feeds.map((f) => f.key))
     .order("published_at", { ascending: false })
     .limit(60);
@@ -80,7 +80,12 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
     query = query.or(`title.ilike.%${safe}%,snippet.ilike.%${safe}%`);
   }
   const [{ data: rows }, { data: feedState }] = await Promise.all([query, supabase.from("news_feeds").select("feed_key, ok, fetched_at").in("feed_key", feeds.map((f) => f.key))]);
-  const items: NewsRow[] = (rows ?? []).map((r) => ({ ...r, summary: (r.summary_json as (NewsSummary & { partial: boolean }) | null) ?? null }));
+  const items: NewsRow[] = (rows ?? []).map(({ summary_json, feed_key, ...r }) => ({
+    ...r,
+    summary: (summary_json as CheckedSummary | null) ?? null,
+    // notícias da região chegam pelo Google Notícias: mostra o jornal real e o "via"
+    via: feed_key.startsWith("local:") ? "Google Notícias" : null,
+  }));
   const state = new Map((feedState ?? []).map((f) => [f.feed_key, f]));
   const waiting = feeds.some((f) => !state.get(f.key)?.fetched_at);
   const down = feeds.filter((f) => state.get(f.key)?.ok === false);
@@ -172,7 +177,8 @@ export default async function NewsPage({ searchParams }: { searchParams: Promise
         </div>
       )}
       <p className="text-muted-foreground text-center text-xs">
-        As notícias são dos sites de origem (toque no título para ler o original). O resumo é feito pela IA e pode ter erros.
+        Cada notícia mostra o jornal e o site de onde veio; toque em “Ler no site original” para a versão completa. O Gabarita não escreve
+        notícias: o resumo da Fuku é automático, conferido frase a frase com o texto, e na dúvida vale o original.
       </p>
     </div>
   );

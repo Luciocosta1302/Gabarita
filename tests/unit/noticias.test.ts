@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import { customFeedKey, localFeed, NEWS_SOURCES, suggestedSources, tagsFor } from "@/lib/news/catalog";
 import { newsPrefsSchema } from "@/lib/news/schema";
-import { cleanSnippet, feedTitle, parseFeed } from "@/lib/news/rss";
+import { cleanSnippet, domainOf, feedTitle, parseFeed } from "@/lib/news/rss";
+import { norm, verifySummary } from "@/lib/news/verify";
 
 const RSS = `<?xml version="1.0"?><rss version="2.0"><channel><title>Educação</title>
 <item><title><![CDATA[Inscrições do ENEM 2027 vão até 12 de dezembro]]></title><link>https://exemplo.com/enem?a=1&amp;b=2</link>
@@ -23,6 +24,9 @@ describe("notícias: leitura de feeds", () => {
     expect(items[0].snippet).toBe("O Inep divulgou o edital & o cronograma.");
     expect(items[0].publishedAt?.toISOString()).toBe("2026-11-16T13:00:00.000Z");
     expect(items[1].source).toBe("Folha");
+    // agregador (Google Notícias): o site de origem vem do <source url>
+    expect(domainOf(items[1].sourceUrl)).toBe("folha.uol.com.br");
+    expect(domainOf("https://www.g1.globo.com/x")).toBe("g1.globo.com");
   });
   it("nome do jornal vem do feed", () => {
     expect(feedTitle(RSS)).toBe("Educação");
@@ -30,7 +34,7 @@ describe("notícias: leitura de feeds", () => {
   });
   it("Atom", () => {
     expect(parseFeed(ATOM)).toEqual([
-      { title: "Bolsas de mestrado abertas", url: "https://blog.exemplo.com/bolsas", snippet: "Universidade abre 40 vagas.", publishedAt: new Date("2026-11-15T12:00:00Z"), source: null },
+      { title: "Bolsas de mestrado abertas", url: "https://blog.exemplo.com/bolsas", snippet: "Universidade abre 40 vagas.", publishedAt: new Date("2026-11-15T12:00:00Z"), source: null, sourceUrl: null },
     ]);
   });
   it("trecho longo é cortado numa palavra", () => {
@@ -64,5 +68,35 @@ describe("notícias: etiquetas, fontes e preferências", () => {
     expect(newsPrefsSchema.safeParse({ sources: ["inventada"], custom_feeds: [], state: null, city: null }).success).toBe(false);
     expect(newsPrefsSchema.safeParse({ sources: [], custom_feeds: ["javascript:alert(1)"], state: null, city: null }).success).toBe(false);
     expect(newsPrefsSchema.safeParse({ sources: [], custom_feeds: [], state: "XX", city: null }).success).toBe(false);
+  });
+});
+
+describe("resumo conferido (contra notícia inventada)", () => {
+  const texto = "O Inep confirmou nesta segunda-feira que as inscrições do Enem 2027 vão até 12/12. A taxa será de R$ 85,00 e quem estuda em escola pública tem isenção.";
+  it("mantém só frases com trecho literal no texto e números que aparecem nele", () => {
+    const r = verifySummary(
+      {
+        points: [
+          { text: "Inscrições do ENEM 2027 vão até 12/12.", evidence: "as inscrições do Enem 2027 vão até 12/12" },
+          { text: "A taxa é de R$ 85,00.", evidence: "A taxa será de R$ 85,00" },
+          // trecho que não existe no texto
+          { text: "O prazo foi prorrogado.", evidence: "o prazo foi prorrogado por mais uma semana" },
+          // trecho existe, mas o número da frase foi inventado
+          { text: "São 3 milhões de inscritos.", evidence: "quem estuda em escola pública tem isenção" },
+        ],
+        dates: [{ text: "Inscrições até 12/12", evidence: "vão até 12/12" }],
+      },
+      texto,
+      false,
+    );
+    expect(r.points.map((p) => p.text)).toEqual(["Inscrições do ENEM 2027 vão até 12/12.", "A taxa é de R$ 85,00."]);
+    expect(r.dates).toHaveLength(1);
+    expect(r.dropped).toBe(2);
+    expect(r.v).toBe(2);
+  });
+  it("trecho curto demais não vale como prova; acento, aspas e espaços não atrapalham", () => {
+    expect(verifySummary({ points: [{ text: "Enem.", evidence: "Enem" }], dates: [] }, texto, false).points).toHaveLength(0);
+    expect(norm("  “Inscrições”   ATÉ ") ).toBe("inscricoes ate");
+    expect(verifySummary({ points: [{ text: "Escola pública tem isenção.", evidence: "QUEM ESTUDA EM ESCOLA PUBLICA tem isencao" }], dates: [] }, texto, true).points).toHaveLength(1);
   });
 });

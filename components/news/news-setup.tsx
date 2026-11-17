@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { postJSON, selectClass } from "@/lib/api/client";
 import { NEWS_SOURCES, STATES, STUDY_GOALS, type StudyGoal, suggestedSources } from "@/lib/news/catalog";
+import { domainOf } from "@/lib/news/rss";
 import { cn } from "@/lib/utils";
+
+import { SourceLogo } from "./source-badge";
 
 type Prefs = { sources: string[]; custom_feeds: string[]; state: string | null; city: string | null };
 
@@ -87,6 +90,7 @@ export function NewsSetup({ goal: initialGoal, prefs, onDone }: { goal: StudyGoa
                   checked={on}
                   onChange={(e) => setSources(e.target.checked ? [...sources, s.id] : sources.filter((x) => x !== s.id))}
                 />
+                <SourceLogo domain={domainOf(s.url)} name={s.name} size={28} className="mt-0.5" />
                 <span className="grid">
                   <span className="text-sm font-bold">{s.name}</span>
                   <span className="text-muted-foreground text-xs">{s.about}</span>

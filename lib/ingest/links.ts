@@ -103,6 +103,15 @@ export async function safeFetch(raw: string, { accept, timeoutMs = TIMEOUT_MS }:
   return { res, url };
 }
 
+/** Lê o corpo com um limite próprio (ex.: ícones de 300 KB). */
+export async function readLimitedBytes(res: Response, max: number) {
+  const declared = Number(res.headers.get("content-length") ?? 0);
+  if (declared > max) throw new UserFacingError("Arquivo grande demais.");
+  const buf = new Uint8Array(await res.arrayBuffer());
+  if (buf.byteLength > max) throw new UserFacingError("Arquivo grande demais.");
+  return buf;
+}
+
 /** Lê o corpo como texto respeitando o charset (limite de 20 MB). */
 export async function readText(res: Response) {
   const type = (res.headers.get("content-type") ?? "").toLowerCase();
