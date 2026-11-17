@@ -10,4 +10,4 @@ export async function postJSON<T>(url: string, body: unknown): Promise<T> {
   return json as T;
 }
 
-export const selectClass = "border-input h-9 rounded-xl border bg-transparent px-3 text-sm";
+export const selectClass = "border-input h-9 w-full min-w-0 max-w-full truncate rounded-xl border bg-transparent px-3 text-sm";

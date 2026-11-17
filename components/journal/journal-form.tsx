@@ -71,7 +71,7 @@ export function JournalForm({ subjects, focusMinutes }: { subjects: { id: string
       {subjects.length > 0 && (
         <div className="grid gap-1.5">
           <Label htmlFor="subject">Matéria (opcional)</Label>
-          <select id="subject" className="bg-card h-9 rounded-md border px-2 text-sm" value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
+          <select id="subject" className="bg-card h-9 w-full max-w-full truncate rounded-md border px-2 text-sm" value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
             <option value="">—</option>
             {subjects.map((s) => (
               <option key={s.id} value={s.id}>

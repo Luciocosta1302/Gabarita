@@ -280,7 +280,7 @@ export function StudySpace({
           </a>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <Stat label="Foco hoje" value={`${stats.todayMinutes} min`} />
           <Stat
             label="Sequência"
@@ -498,9 +498,9 @@ function Stat({
   testId?: string;
 }) {
   return (
-    <div className="bg-card rounded-2xl border p-4 shadow-sm">
+    <div className="bg-card rounded-2xl border p-3 shadow-sm sm:p-4">
       <div className="text-muted-foreground text-xs">{label}</div>
-      <div className="font-display text-2xl font-bold" data-testid={testId}>
+      <div className="font-display text-lg font-bold sm:text-2xl" data-testid={testId}>
         {value}
       </div>
     </div>

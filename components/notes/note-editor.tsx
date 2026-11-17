@@ -72,7 +72,7 @@ export function NoteEditor({ note, subjects }: { note: Note; subjects: { id: str
           {status === "salvo" ? "Salvo ✓" : status === "salvando" ? "Salvando..." : status === "erro" ? "Erro ao salvar" : "Editando..."}
         </span>
       </div>
-      <div className="flex gap-2" role="tablist">
+      <div className="flex flex-wrap gap-2" role="tablist">
         <Button size="sm" role="tab" aria-selected={tab === "editar"} variant={tab === "editar" ? "default" : "outline"} onClick={() => setTab("editar")}>
           Escrever
         </Button>

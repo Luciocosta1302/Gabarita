@@ -85,7 +85,7 @@ export function UploadForm({ subjectId, purpose = "study" }: { subjectId: string
 
   return (
     <form ref={formRef} onSubmit={submit} className="grid gap-4">
-      <div className="flex gap-2" role="tablist">
+      <div className="flex flex-wrap gap-2" role="tablist">
         {(purpose === "study" ? (["files", "link", "text"] as const) : (["files", "text"] as const)).map((m) => (
           <Button
             key={m}
