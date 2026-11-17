@@ -20,7 +20,7 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
   return (
     <svg
       viewBox="0 0 120 132"
-      className={cn("overflow-visible", className)}
+      className={cn("char char-mochi overflow-visible", className)}
       {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true })}
     >
       <defs>
@@ -32,9 +32,10 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
         </clipPath>
       </defs>
       <ellipse cx="60" cy="126" rx="34" ry="5" fill={INK} opacity=".12" />
+      <g className="char-body">
 
       {/* rabinho curto (bobtail), atrás do corpo */}
-      <circle cx="92" cy="112" r="8" fill={ORANGE} stroke={INK} strokeWidth="2.5" />
+      <circle className="mochi-tail" cx="92" cy="112" r="8" fill={ORANGE} stroke={INK} strokeWidth="2.5" />
 
       {/* corpo */}
       <path d="M30 76 C28 104 36 122 60 122 C84 122 92 104 90 76 Z" fill={FUR} stroke={INK} strokeWidth="3" />
@@ -74,7 +75,7 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
 
       {/* pata acenando */}
       {waving && (
-        <g>
+        <g className="mochi-paw">
           <path d="M84 84 Q102 70 98 46" fill="none" stroke={INK} strokeWidth="14" strokeLinecap="round" />
           <path d="M84 84 Q102 70 98 46" fill="none" stroke={FUR} strokeWidth="9" strokeLinecap="round" />
           <circle cx="98" cy="44" r="8" fill={FUR} stroke={INK} strokeWidth="2.5" />
@@ -93,6 +94,7 @@ export function Mochi({ mood = "feliz", className, title = "Mochi, a gatinha do 
           <path d="M108 8 l1.5 4 4 1.5 -4 1.5 -1.5 4 -1.5 -4 -4 -1.5 4 -1.5 z" fill="#e3b45a" />
         </g>
       )}
+      </g>
     </svg>
   );
 }
@@ -102,6 +104,7 @@ function Face({ mood }: { mood: MochiMood }) {
   return (
     <g>
       {/* olhos */}
+      <g className={mood === "dormindo" ? undefined : "char-eyes"}>
       {mood === "dormindo" ? (
         <g stroke={INK} strokeWidth="3" strokeLinecap="round" fill="none">
           <path d="M38 58 Q44 63 50 58" />
@@ -121,6 +124,7 @@ function Face({ mood }: { mood: MochiMood }) {
           {mood === "pensando" && <path d="M36 44 Q44 40 52 44" fill="none" stroke={INK} strokeWidth="2.5" strokeLinecap="round" />}
         </g>
       )}
+      </g>
       {/* bochechas */}
       <ellipse cx="36" cy="68" rx="5.5" ry="3.2" fill={PINK} opacity=".75" />
       <ellipse cx="84" cy="68" rx="5.5" ry="3.2" fill={PINK} opacity=".75" />

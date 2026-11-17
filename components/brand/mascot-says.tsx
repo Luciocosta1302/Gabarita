@@ -23,8 +23,8 @@ export function MascotSays({
   const p: CharacterPose = pose ?? { who: "daru", mood: mood ?? "feliz", eyes };
   return (
     <div className={cn("flex items-end gap-3", className)}>
-      <Character pose={p} className={cn("shrink-0", size === "sm" ? "w-14" : "w-20 md:w-24")} />
-      <div className="relative mb-4 rounded-2xl border-2 border-ink bg-card px-4 py-3 text-sm leading-snug font-medium shadow-[0_3px_0_var(--ink)]">
+      <Character pose={p} className={cn("animate-char-pop shrink-0", size === "sm" ? "w-14" : "w-20 md:w-24")} />
+      <div className="animate-slide-up relative mb-4 [animation-delay:180ms] rounded-2xl border-2 border-ink bg-card px-4 py-3 text-sm leading-snug font-medium shadow-[0_3px_0_var(--ink)]">
         {/* rabinho do balão */}
         <span aria-hidden className="absolute -left-[9px] bottom-4 size-4 rotate-45 border-b-2 border-l-2 border-ink bg-card" />
         <span className="text-shu relative block text-[11px] font-bold tracking-[0.14em] uppercase">{CHARACTERS[p.who].name}</span>

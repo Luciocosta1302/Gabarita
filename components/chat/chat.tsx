@@ -99,7 +99,7 @@ export function Chat({ subjectId, materialId, initial = [] }: { subjectId: strin
         {busy && (
           <div className="flex items-center gap-2">
             <CharacterAvatar pose={{ who: "fuku", mood: "pensando" }} />
-            <div className="bg-card text-muted-foreground w-fit rounded-2xl border px-4 py-3 text-sm">A Fuku está procurando no material...</div>
+            <div className="bg-card text-muted-foreground w-fit rounded-2xl border px-4 py-3 text-sm">A Fuku está procurando no material<span className="ink-dots ml-2 inline-flex gap-1 align-middle"><span /><span /><span /></span></div>
           </div>
         )}
         <div ref={endRef} />

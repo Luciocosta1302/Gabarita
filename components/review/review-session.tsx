@@ -5,12 +5,15 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { Mochi } from "@/components/brand/mochi";
+import { Celebration } from "@/components/feedback/celebration";
+import { SoundToggle } from "@/components/feedback/sound-toggle";
 import { Hanko } from "@/components/brand/hanko";
 import { CardBack, CardFront } from "@/components/flashcards/flashcard";
 import { QuestionCard, type PublicQuestion } from "@/components/quiz/question-card";
 import { FlipCard } from "@/components/ui/flip-card";
 import { Button } from "@/components/ui/button";
 import { postJSON } from "@/lib/api/client";
+import { play } from "@/lib/feedback/sound";
 import { GRADE_LABELS, type ReviewGrade } from "@/lib/srs/grades";
 
 export type ReviewItem =
@@ -33,12 +36,13 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
   const [answered, setAnswered] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [celebrated, setCelebrated] = useState(false);
 
   if (i >= items.length) {
     return (
       <div className="bg-card animate-rise grid justify-items-center gap-3 rounded-2xl border-2 border-ink p-6 text-center shadow-[0_4px_0_var(--ink)]" data-testid="review-done">
         <div className="relative">
-          <Mochi mood="comemorando" className="w-24" />
+          <Mochi mood="comemorando" className="animate-hop w-24" />
           <Hanko className="animate-stamp absolute -right-8 -bottom-1 size-12" rotate={-10} />
         </div>
         <p className="font-display text-2xl font-extrabold">Tudo revisado por hoje</p>
@@ -46,6 +50,14 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
         <Button variant="outline" className="justify-self-center" onClick={() => router.refresh()}>
           Atualizar
         </Button>
+        {items.length > 0 && !celebrated && (
+          <Celebration
+            title="Revisão do dia feita!"
+            subtitle="O que você revisou volta na hora certa, antes de você esquecer."
+            stats={[{ label: "Itens revisados", value: items.length }]}
+            onContinue={() => setCelebrated(true)}
+          />
+        )}
       </div>
     );
   }
@@ -58,6 +70,7 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
   };
 
   async function grade(g: ReviewGrade) {
+    play(g === "good" || g === "easy" ? "correct" : "tap");
     setBusy(true);
     setError(null);
     try {
@@ -75,8 +88,9 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
       {/* a pilha: os cartões que ainda faltam aparecem atrás (ideia do Card Stack do Animata) */}
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span className="bg-card text-foreground rounded-full border-[1.5px] border-ink/70 px-2.5 py-0.5 font-bold">{item.subject}</span>
-        <span>
+        <span className="flex items-center gap-2">
           {i + 1} de {items.length}
+          <SoundToggle />
         </span>
       </div>
 
@@ -89,7 +103,10 @@ export function ReviewSession({ items }: { items: ReviewItem[] }) {
               key={item.id}
               className="relative"
               flipped={revealed}
-              onFlip={() => setRevealed(true)}
+              onFlip={() => {
+                setRevealed(true);
+                play("tap");
+              }}
               label={`Virar o cartão: ${item.front}`}
               front={<CardFront hint="Toque para ver a resposta">{item.front}</CardFront>}
               back={

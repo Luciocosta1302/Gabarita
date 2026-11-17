@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import type { AttemptResult } from "@/app/api/attempts/route";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,10 @@ import { cn } from "@/lib/utils";
 import { Fuku } from "@/components/brand/fuku";
 import { Mochi } from "@/components/brand/mochi";
 import { Hanko } from "@/components/brand/hanko";
+
+import { XpFloat } from "@/components/feedback/xp-float";
+import { petals } from "@/lib/feedback/celebrate";
+import { play } from "@/lib/feedback/sound";
 
 import { OpenFeedback } from "./open-feedback";
 
@@ -30,6 +34,7 @@ export function QuestionCard({
   header,
   onAnswered,
   submit,
+  combo = 0,
 }: {
   question: PublicQuestion;
   quizId?: string;
@@ -37,6 +42,8 @@ export function QuestionCard({
   onAnswered?: (r: AttemptResult) => void;
   /** envio próprio (ex.: tutor da trilha); padrão = /api/attempts */
   submit?: (body: { question_id: string; answer: string; confidence: Confidence; time_ms: number }) => Promise<AttemptResult>;
+  /** acertos seguidos antes desta questão (o som do acerto sobe de tom) */
+  combo?: number;
 }) {
   const open = question.options.length === 0; // discursiva (D10)
   const [chosen, setChosen] = useState<number | null>(null);
@@ -46,6 +53,7 @@ export function QuestionCard({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const started = useRef(Date.now());
+  const feedbackRef = useRef<HTMLDivElement>(null);
 
   async function answer() {
     if ((open ? !text.trim() : chosen == null) || !confidence) return;
@@ -60,6 +68,10 @@ export function QuestionCard({
       };
       const r = submit ? await submit(body) : await postJSON<AttemptResult>("/api/attempts", { ...body, quiz_id: quizId });
       setResult(r);
+      if (!r.feedback) {
+        play(r.correct ? "correct" : "wrong", { combo });
+        if (r.correct) setTimeout(() => play("stamp"), 260);
+      }
       onAnswered?.(r);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha ao enviar a resposta.");
@@ -67,6 +79,38 @@ export function QuestionCard({
       setBusy(false);
     }
   }
+
+  // pétalas saindo do painel de acerto
+  useEffect(() => {
+    if (!result || result.feedback) return;
+    if (result.correct) petals(feedbackRef.current, 12);
+    // no celular a explicação e o "Próxima" ficam abaixo da dobra: traz para a tela
+    const reduce = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    const t = setTimeout(() => feedbackRef.current?.scrollIntoView({ block: "center", behavior: reduce ? "auto" : "smooth" }), 250);
+    return () => clearTimeout(t);
+  }, [result]);
+
+  // atalhos: 1–5 ou A–E escolhem a alternativa; Enter responde
+  const answerRef = useRef(answer);
+  answerRef.current = answer;
+  useEffect(() => {
+    if (result || open) return;
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const k = e.key.toLowerCase();
+      const idx = /^[1-9]$/.test(k) ? Number(k) - 1 : /^[a-e]$/.test(k) ? k.charCodeAt(0) - 97 : -1;
+      if (idx >= 0 && idx < question.options.length) {
+        setChosen(idx);
+        play("tap");
+      } else if (k === "enter" && !(t && t.tagName === "BUTTON")) {
+        answerRef.current();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [result, open, question.options.length]);
 
   const correctIndex = result ? letterToIndex(result.answer) : null;
   const tf = isTrueFalse(question.options);
@@ -98,9 +142,14 @@ export function QuestionCard({
               role="radio"
               aria-checked={isChosen}
               disabled={!!result}
-              onClick={() => setChosen(i)}
+              onClick={() => {
+                setChosen(i);
+                play("tap");
+              }}
               className={cn(
                 "group flex items-center gap-3 rounded-xl border-2 p-2.5 text-left text-sm font-medium transition-[transform,box-shadow,background-color] duration-75",
+                state === "wrong" && "animate-shake",
+                state === "correct" && "animate-pop",
                 state === "idle" && "bg-card border-ink/25 shadow-[0_3px_0_rgb(31_26_23/0.18)] hover:border-ink/60 active:translate-y-[2px] active:shadow-none",
                 state === "chosen" && "border-shu bg-[#fbe9e4] shadow-[0_3px_0_var(--shu)]",
                 state === "correct" && "border-matcha bg-pastel-mint shadow-[0_3px_0_var(--matcha)]",
@@ -141,7 +190,10 @@ export function QuestionCard({
                   aria-checked={confidence === c}
                   size="sm"
                   variant={confidence === c ? "default" : "outline"}
-                  onClick={() => setConfidence(c)}
+                  onClick={() => {
+                    setConfidence(c);
+                    play("tap");
+                  }}
                 >
                   {CONFIDENCE_LABELS[c]}
                 </Button>
@@ -161,19 +213,22 @@ export function QuestionCard({
 
       {result?.feedback && <OpenFeedback result={result} questionId={question.id} />}
       {result && !result.feedback && (
+        <div className="relative">
+        <XpFloat amount={result.correct ? 5 : 2} className="top-2" />
         <div
+          ref={feedbackRef}
           role="status"
           data-testid="answer-feedback"
           className={cn(
-            "relative grid gap-2 overflow-hidden rounded-2xl border-2 p-4 text-sm",
+            "animate-slide-up relative grid gap-2 overflow-hidden rounded-2xl border-2 p-4 text-sm",
             result.correct ? "border-matcha bg-pastel-mint" : "border-shu bg-[#f8e3de]",
           )}
         >
           <div className="flex items-center gap-3">
             {result.correct ? (
-              <Mochi mood="comemorando" className="w-12 shrink-0" title="Mochi comemorando" />
+              <Mochi mood="comemorando" className="animate-char-pop w-14 shrink-0" title="Mochi comemorando" />
             ) : (
-              <Fuku mood="explicando" className="w-12 shrink-0" title="Fuku explicando" />
+              <Fuku mood="explicando" className="animate-char-pop w-14 shrink-0" title="Fuku explicando" />
             )}
             <p className={cn("font-display text-lg font-extrabold", result.correct ? "text-matcha" : "text-shu")}>
               {result.correct ? "Acertou!" : `Errou. A certa é ${tf ? question.options[correctIndex!] : result.answer}.`}
@@ -192,6 +247,7 @@ export function QuestionCard({
               tentar de novo.
             </p>
           )}
+        </div>
         </div>
       )}
     </div>

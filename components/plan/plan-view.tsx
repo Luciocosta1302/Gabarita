@@ -6,6 +6,8 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { postJSON } from "@/lib/api/client";
+import { petals } from "@/lib/feedback/celebrate";
+import { play } from "@/lib/feedback/sound";
 import { shortDateBR } from "@/lib/dates";
 import type { PlanDay, PlanTask } from "@/lib/planner/plan";
 import { cn } from "@/lib/utils";
@@ -115,7 +117,13 @@ export function PlanView({ subjectId, days, today }: { subjectId: string; days: 
                       aria-label={`Feito: ${t.title}`}
                       checked={!!t.done}
                       disabled={!!busy || day.status === "missed"}
-                      onChange={(e) => act(t.id, { action: "task", date: day.date, task_id: t.id, done: e.target.checked })}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          play("stamp");
+                          petals(e.target, 8);
+                        } else play("tap");
+                        act(t.id, { action: "task", date: day.date, task_id: t.id, done: e.target.checked });
+                      }}
                       className="accent-primary size-4"
                     />
                     <span className={cn("flex-1", t.done && "text-muted-foreground line-through")}>
@@ -132,7 +140,11 @@ export function PlanView({ subjectId, days, today }: { subjectId: string; days: 
 
               {canClose && (
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" disabled={!!busy} onClick={() => act(`done-${day.date}`, { action: "done", date: day.date })}>
+                  <Button size="sm" disabled={!!busy} onClick={(e) => {
+                    play("complete");
+                    petals(e.currentTarget, 18);
+                    act(`done-${day.date}`, { action: "done", date: day.date });
+                  }}>
                     Concluí o dia
                   </Button>
                   <Button

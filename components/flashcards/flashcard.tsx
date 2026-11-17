@@ -1,5 +1,6 @@
 "use client";
 
+import { play } from "@/lib/feedback/sound";
 import { RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
@@ -46,7 +47,10 @@ export function Flashcard({ front, back, chunkId }: { front: string; back: strin
   return (
     <FlipCard
       flipped={flipped}
-      onFlip={() => setFlipped(true)}
+      onFlip={() => {
+        setFlipped(true);
+        play("tap");
+      }}
       label={`Virar o cartão: ${front}`}
       front={<CardFront>{front}</CardFront>}
       back={

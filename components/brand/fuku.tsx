@@ -15,10 +15,11 @@ export function Fuku({ mood = "explicando", className, title = "Fuku, a coruja p
   return (
     <svg
       viewBox="0 0 120 132"
-      className={cn("overflow-visible", className)}
+      className={cn("char char-fuku overflow-visible", className)}
       {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true })}
     >
       <ellipse cx="60" cy="126" rx="32" ry="5" fill={INK} opacity=".12" />
+      <g className="char-body">
       {/* galho */}
       <path d="M14 120 L106 120" stroke="#6b4f3a" strokeWidth="6" strokeLinecap="round" />
       <path d="M86 120 Q96 112 102 114" stroke="#6b4f3a" strokeWidth="3" fill="none" strokeLinecap="round" />
@@ -46,7 +47,9 @@ export function Fuku({ mood = "explicando", className, title = "Fuku, a coruja p
       <path d="M60 26 C72 20 90 26 92 44 C94 58 82 66 60 62 C38 66 26 58 28 44 C30 26 48 20 60 26 Z" fill={BELLY} stroke={INK} strokeWidth="2.5" />
 
       {/* olhos grandes + óculos redondos */}
-      <Eyes mood={mood} />
+      <g className="char-eyes">
+        <Eyes mood={mood} />
+      </g>
       <g fill="none" stroke={INK} strokeWidth="2.6">
         <circle cx="45" cy="45" r="12" />
         <circle cx="75" cy="45" r="12" />
@@ -79,6 +82,7 @@ export function Fuku({ mood = "explicando", className, title = "Fuku, a coruja p
           <circle cx="110" cy="20" r="3.5" />
         </g>
       )}
+      </g>
     </svg>
   );
 }

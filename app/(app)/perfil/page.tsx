@@ -1,4 +1,5 @@
 import { NameForm } from "@/components/profile/profile-forms";
+import { SoundToggle } from "@/components/feedback/sound-toggle";
 import { ResetTutorials } from "@/components/tutorials/tutorials";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { addDays, todayBR } from "@/lib/dates";
@@ -24,6 +25,19 @@ export default async function ProfilePage() {
         </CardHeader>
         <CardContent>
           <NameForm name={profile?.name ?? ""} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Sons e animações</CardTitle>
+          <p className="text-muted-foreground text-sm">
+            Sons curtos de acerto, erro, carimbo e fim do Pomodoro. A escolha fica guardada neste aparelho. Para menos animação, ative “reduzir
+            movimento” nas configurações de acessibilidade do celular ou computador.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <SoundToggle withLabel />
         </CardContent>
       </Card>
 

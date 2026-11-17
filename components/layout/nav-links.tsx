@@ -94,7 +94,7 @@ function NavItemLink({ item, active, onClick }: { item: NavItem; active: boolean
       onClick={onClick}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-colors",
+        "relative flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition-[color,background-color,transform] hover:translate-x-0.5",
         active ? "bg-washi text-ink shadow-[0_2px_0_rgb(0_0_0/0.35)]" : "text-sidebar-foreground/80 hover:bg-white/8 hover:text-white",
       )}
     >
@@ -201,7 +201,7 @@ export function BottomNav({ email, logout }: { email: string; logout: React.Reac
               href={t.href}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex h-11 items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
+                "tap-spring flex h-11 items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
                 active ? "bg-primary text-primary-foreground border-2 border-ink px-4 shadow-[0_3px_0_var(--ink)]" : "text-ink/70 hover:bg-accent w-11",
               )}
             >
@@ -215,7 +215,7 @@ export function BottomNav({ email, logout }: { email: string; logout: React.Reac
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
           className={cn(
-            "flex h-11 items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
+            "tap-spring flex h-11 items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
             open || inMore ? "bg-primary text-primary-foreground border-2 border-ink px-4 shadow-[0_3px_0_var(--ink)]" : "text-ink/70 hover:bg-accent w-11",
           )}
         >

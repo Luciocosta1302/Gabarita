@@ -61,6 +61,11 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
     if (i === 0) await expect(page.getByTestId("answer-feedback")).toContainText("Errou");
     await page.getByRole("button", { name: i === 9 ? "Ver resultado" : "Próxima →" }).click();
   }
+  // fim do quiz: comemoração de tela cheia com o placar
+  const party = page.getByTestId("celebration");
+  await expect(party.getByRole("heading", { name: "Muito bem!" })).toBeVisible();
+  await expect(party).toContainText("9/10");
+  await party.getByRole("button", { name: "Ver resultado" }).click();
 
   await expect(page.getByTestId("quiz-score")).toHaveText("9 de 10 acertos");
   await expect(page.getByText('Quando você marca "tenho certeza", erra 100% das vezes (1 de 1).')).toBeVisible();

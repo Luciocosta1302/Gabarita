@@ -155,10 +155,10 @@ export function WelcomeTour() {
           {/* quem fala aparece na frente; os outros ficam menores */}
           {(["mochi", "daru", "fuku"] as const).map((who) => (
             <Character
-              key={who}
+              key={who === s.who ? `${who}-${step}` : who}
               pose={poseFor(who, who === s.who)}
               title=""
-              className={cn("transition-all duration-300", who === s.who ? "w-28 translate-y-3" : "w-14 translate-y-1 opacity-60")}
+              className={cn("transition-all duration-300", who === s.who ? "animate-hop w-28 translate-y-3" : "w-14 translate-y-1 opacity-60")}
             />
           ))}
         </div>

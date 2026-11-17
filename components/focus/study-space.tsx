@@ -9,6 +9,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { postJSON, selectClass } from "@/lib/api/client";
+import { petals } from "@/lib/feedback/celebrate";
+import { play } from "@/lib/feedback/sound";
 import { Ambience } from "@/lib/focus/audio";
 import {
   customPreset,
@@ -120,10 +122,12 @@ export function StudySpace({
   useEffect(() => save("espaco:cenario", scene), [scene]);
   useEffect(() => () => audio.current?.stop(), []);
 
+  const sceneRef = useRef<HTMLDivElement>(null);
   const sound = () => (audio.current ??= new Ambience());
 
   const finishPhase = useCallback(async () => {
-    sound().chime();
+    play("bell");
+    if (phase === "focus") petals(sceneRef.current, 20);
     setEndsAt(null);
     if (phase === "focus") {
       const done = completedFocus + 1;
@@ -198,6 +202,7 @@ export function StudySpace({
     <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
       <div className="grid content-start gap-4">
         <div
+          ref={sceneRef}
           className="relative aspect-video overflow-hidden rounded-3xl border-2 border-ink shadow-[0_4px_0_var(--ink)]"
           data-testid="study-scene"
           data-scene={scene}
@@ -206,8 +211,9 @@ export function StudySpace({
           <SceneArt scene={scene} tod={tod} raining={raining} label={`${SCENES.find((s) => s.id === scene)!.name}, ${TIME_LABELS[tod].toLowerCase()}`} />
           {/* a Mochi faz companhia: cochila enquanto você foca, acorda na pausa */}
           <Mochi
+            key={`${phase}-${running}`}
             mood={running && phase === "focus" ? "dormindo" : phase === "focus" ? "feliz" : "animada"}
-            className="absolute right-3 bottom-1 w-16 sm:w-20"
+            className="animate-hop absolute right-3 bottom-1 w-16 sm:w-20"
             title={running && phase === "focus" ? "Mochi cochilando enquanto você foca" : "Mochi, sua companhia de estudos"}
           />
           <span className="absolute top-3 left-3 rounded-full bg-black/35 px-3 py-1 text-xs text-white">

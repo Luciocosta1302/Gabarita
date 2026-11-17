@@ -46,7 +46,7 @@ export default async function AchievementsPage() {
             className={cn("bg-card grid gap-2 rounded-2xl border p-4 shadow-sm", !b.unlocked && "opacity-60")}
           >
             <div className="flex items-center gap-3">
-              <Medal kanji={b.icon} meaning={b.meaning} unlocked={b.unlocked} className="size-12" />
+              <Medal kanji={b.icon} meaning={b.meaning} unlocked={b.unlocked} className={cn("size-12", b.unlocked && "transition-transform duration-300 ease-[cubic-bezier(.2,.9,.3,1.5)] hover:scale-110 hover:rotate-12")} />
               <div>
                 <p className="font-semibold">
                   {b.name} {b.unlocked && <span className="text-xs">✓</span>}

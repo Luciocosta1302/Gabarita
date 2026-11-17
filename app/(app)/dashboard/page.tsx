@@ -127,7 +127,7 @@ export default async function DashboardPage() {
 
       {fresh.length > 0 && (
         <Link href="/conquistas" role="status" data-testid="new-achievements" className="bg-card animate-rise flex flex-wrap items-center gap-3 rounded-2xl border-2 border-ink px-4 py-3 shadow-[0_3px_0_var(--ink)]">
-          <Medal kanji={fresh[0].icon} meaning={fresh[0].meaning} unlocked className="size-10" />
+          <Medal kanji={fresh[0].icon} meaning={fresh[0].meaning} unlocked className="animate-seal size-10 [animation-delay:400ms]" />
           <span className="text-sm">
             <strong>{fresh.length === 1 ? "Nova conquista" : `${fresh.length} conquistas novas`}:</strong> {fresh.slice(0, 3).map((b) => b.name).join(", ")}
             {fresh.length > 3 ? ` e mais ${fresh.length - 3}` : ""} <span className="text-shu underline">Ver conquistas</span>
@@ -150,7 +150,7 @@ export default async function DashboardPage() {
             </p>
           </div>
           <ol className="mt-3 grid grid-cols-7 gap-1.5" aria-label="Dias estudados nos últimos 7 dias">
-            {seals.map((d) => {
+            {seals.map((d, si) => {
               const wd = new Date(`${d.date}T12:00:00Z`).getUTCDay();
               return (
                 <li key={d.date} className="grid justify-items-center gap-1">
@@ -162,7 +162,11 @@ export default async function DashboardPage() {
                     )}
                     aria-label={`${d.date}${d.studied ? ": estudou" : ""}`}
                   >
-                    {d.studied && <Hanko className="size-full" rotate={((wd * 7) % 11) - 5} />}
+                    {d.studied && (
+                      <span className="animate-seal block size-full" style={{ animationDelay: `${250 + si * 70}ms`, ["--r" as string]: "0deg" }}>
+                        <Hanko className="size-full" rotate={((wd * 7) % 11) - 5} />
+                      </span>
+                    )}
                   </span>
                   <span className={cn("text-[11px]", d.today ? "text-shu font-bold" : "text-muted-foreground")}>{d.today ? "hoje" : WEEKDAY[wd]}</span>
                 </li>
@@ -226,7 +230,7 @@ export default async function DashboardPage() {
                   <Link
                     href={`/subjects/${s.id}`}
                     className={cn(
-                      "seigaiha relative grid aspect-[3/4] content-between overflow-hidden rounded-r-2xl rounded-l-md border-2 border-ink p-3 shadow-[3px_4px_0_var(--ink)] transition-transform hover:-translate-y-1",
+                      "seigaiha notebook-lift relative grid aspect-[3/4] content-between overflow-hidden rounded-r-2xl rounded-l-md border-2 border-ink p-3 shadow-[3px_4px_0_var(--ink)] hover:shadow-[5px_10px_0_var(--ink)]",
                       cover.bg,
                       cover.text,
                     )}

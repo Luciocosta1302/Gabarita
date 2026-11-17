@@ -101,7 +101,7 @@ export function TutorSession({
   return (
     <div className="grid gap-4">
       {messages.length === 0 && (
-        <div className="bg-card text-muted-foreground animate-pulse rounded-2xl border p-5 text-sm">A Fuku está preparando a explicação...</div>
+        <div className="bg-card text-muted-foreground flex items-center gap-3 rounded-2xl border p-5 text-sm"><CharacterAvatar pose={{ who: "fuku", mood: "pensando" }} />A Fuku está preparando a explicação<span className="ink-dots ml-2 inline-flex gap-1 align-middle"><span /><span /><span /></span></div>
       )}
 
       <ol className="grid gap-4" data-testid="tutor-messages">
@@ -181,7 +181,7 @@ export function TutorSession({
               return (
                 <li key={m.id} data-testid="tutor-done" className="bg-pastel-mint animate-rise grid gap-2 rounded-2xl p-5">
                   <span className="flex items-center gap-3">
-                    <Character pose={{ who: "mochi", mood: "comemorando" }} className="w-14 shrink-0" title="Mochi comemorando" />
+                    <Character pose={{ who: "mochi", mood: "comemorando" }} className="animate-hop w-14 shrink-0" title="Mochi comemorando" />
                     <span className="font-display text-xl font-bold">Etapa concluída</span>
                   </span>
                   <p className="text-sm">{c.text}</p>
@@ -195,7 +195,7 @@ export function TutorSession({
           }
         })}
       </ol>
-      {busy === "answer" && <div className="text-muted-foreground animate-pulse text-sm">A Fuku está analisando sua resposta...</div>}
+      {busy === "answer" && <div className="text-muted-foreground text-sm">A Fuku está analisando sua resposta<span className="ink-dots ml-2 inline-flex gap-1 align-middle"><span /><span /><span /></span></div>}
       <div ref={endRef} />
 
       {error && (

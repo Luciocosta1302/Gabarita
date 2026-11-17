@@ -24,7 +24,7 @@ export function Daruma({
   const uid = useId().replace(/:/g, "");
   const ink = "#1f1a17";
   return (
-    <svg viewBox="0 0 120 132" className={cn("overflow-visible", className)} {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true })}>
+    <svg viewBox="0 0 120 132" className={cn("char char-daru overflow-visible", className)} {...(title ? { role: "img", "aria-label": title } : { "aria-hidden": true })}>
       <defs>
         <radialGradient id={`body-${uid}`} cx="38%" cy="30%" r="75%">
           <stop offset="0%" stopColor="#e0503f" />
@@ -34,6 +34,7 @@ export function Daruma({
       </defs>
       {/* sombra no chão */}
       <ellipse cx="60" cy="126" rx="38" ry="5" fill={ink} opacity=".12" />
+      <g className="char-body">
       {/* braços levantados ao comemorar */}
       {mood === "comemorando" && (
         <g stroke={ink} strokeWidth="3" strokeLinecap="round" fill="#c8372d">
@@ -79,7 +80,9 @@ export function Daruma({
         )}
       </g>
       {/* olhos */}
-      <Eyes mood={mood} one={eyes === "um"} ink={ink} />
+      <g className="char-eyes">
+        <Eyes mood={mood} one={eyes === "um"} ink={ink} />
+      </g>
       {/* bochechas */}
       <ellipse cx="36" cy="60" rx="5" ry="3" fill="#e8a29b" opacity=".7" />
       <ellipse cx="84" cy="60" rx="5" ry="3" fill="#e8a29b" opacity=".7" />
@@ -108,6 +111,7 @@ export function Daruma({
           <circle cx="106" cy="14" r="3.5" />
         </g>
       )}
+      </g>
     </svg>
   );
 }

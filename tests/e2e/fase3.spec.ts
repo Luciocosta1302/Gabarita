@@ -68,6 +68,7 @@ test("diferenciais da Fase 3", async ({ page }) => {
   await expect(card.getByTestId("open-score")).toHaveText(/\d/);
   await expect(card.getByTestId("open-feedback")).toContainText("Conteúdo");
   await page.getByRole("button", { name: "Ver resultado" }).click();
+  await page.getByTestId("celebration").getByRole("button", { name: "Ver resultado" }).click();
   await expect(page.getByTestId("quiz-review")).toContainText("Nota");
 
   // D9: Modo Feynman (texto)
