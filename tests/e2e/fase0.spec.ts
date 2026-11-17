@@ -15,7 +15,7 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
   await page.getByLabel("Senha").fill(password);
   await page.getByRole("button", { name: "Criar conta" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByText("Nenhuma matéria ainda.")).toBeVisible();
+  await expect(page.getByText("Crie sua primeira matéria e mande o material da prova.")).toBeVisible();
 
   await page.getByLabel("Matéria / prova").fill("Cálculo I — P1");
   await page.getByLabel("Data da prova").fill("2026-12-10");
@@ -25,7 +25,8 @@ test("cadastro, criar matéria, sair e entrar de novo", async ({ page }) => {
 
   const list = page.getByTestId("subject-list");
   await expect(list.getByText("Cálculo I — P1")).toBeVisible();
-  await expect(list.getByText("FGV · prova em 10/12/2026")).toBeVisible();
+  await expect(list.getByText("FGV", { exact: true })).toBeVisible();
+  await expect(list.getByText(/^\d+d$/)).toBeVisible(); // dias até a prova
 
   await list.getByText("Cálculo I — P1").click();
   await expect(page.getByRole("heading", { name: "Cálculo I — P1" })).toBeVisible();

@@ -47,7 +47,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* celular: barra fina em cima e menu embaixo, perto do polegar */}
-      <header className="bg-sidebar text-sidebar-foreground sticky top-0 z-30 flex items-center justify-between px-4 py-3 md:hidden">
+      <header className="bg-sidebar text-sidebar-foreground sticky top-0 z-30 flex items-center justify-between px-4 py-2.5 md:hidden">
         <Logo />
       </header>
       <BottomNav email={user.email ?? ""} logout={<LogoutButton />} />

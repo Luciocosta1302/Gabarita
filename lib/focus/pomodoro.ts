@@ -10,6 +10,35 @@ export const PRESETS: PomodoroPreset[] = [
   { id: "curto", label: "Aquecimento 15/3", focus: 15, shortBreak: 3, longBreak: 10, longEvery: 4 },
 ];
 
+/** Limites do Pomodoro personalizado (minutos; "longEvery" = pausa longa a cada N focos). */
+export const CUSTOM_LIMITS = {
+  focus: { min: 5, max: 120, step: 5 },
+  shortBreak: { min: 1, max: 30, step: 1 },
+  longBreak: { min: 5, max: 60, step: 5 },
+  longEvery: { min: 2, max: 8, step: 1 },
+} as const;
+export type CustomField = keyof typeof CUSTOM_LIMITS;
+
+export const DEFAULT_CUSTOM = { focus: 25, shortBreak: 5, longBreak: 15, longEvery: 4 };
+
+/** Monta o preset "Personalizado" a partir do que veio do navegador, sempre dentro dos limites. */
+export function customPreset(raw: Partial<Record<CustomField, unknown>> | null | undefined): PomodoroPreset {
+  const v = (k: CustomField) => {
+    const n = Math.round(Number(raw?.[k]));
+    const { min, max } = CUSTOM_LIMITS[k];
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : DEFAULT_CUSTOM[k];
+  };
+  const focus = v("focus");
+  const shortBreak = v("shortBreak");
+  return { id: "personalizado", label: `Personalizado ${focus}/${shortBreak}`, focus, shortBreak, longBreak: v("longBreak"), longEvery: v("longEvery") };
+}
+
+/** Um passo para cima/baixo no ajuste, sem sair dos limites. */
+export function stepCustom(preset: PomodoroPreset, field: CustomField, dir: 1 | -1): PomodoroPreset {
+  const { step } = CUSTOM_LIMITS[field];
+  return customPreset({ ...preset, [field]: preset[field] + dir * step });
+}
+
 export const PHASE_LABELS: Record<Phase, string> = { focus: "Foco", short_break: "Pausa", long_break: "Pausa longa" };
 
 export function phaseMinutes(preset: PomodoroPreset, phase: Phase) {

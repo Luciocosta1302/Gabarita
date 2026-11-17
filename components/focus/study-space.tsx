@@ -8,11 +8,14 @@ import { Input } from "@/components/ui/input";
 import { postJSON, selectClass } from "@/lib/api/client";
 import { Ambience } from "@/lib/focus/audio";
 import {
+  customPreset,
   formatClock,
   nextPhase,
   PHASE_LABELS,
   phaseMinutes,
+  type PomodoroPreset,
   PRESETS,
+  stepCustom,
   type Phase,
 } from "@/lib/focus/pomodoro";
 import {
@@ -27,6 +30,7 @@ import {
 } from "@/lib/focus/scenes";
 import { cn } from "@/lib/utils";
 
+import { PomodoroDial, PomodoroSettings } from "./pomodoro-dial";
 import { Scene } from "./scene";
 
 type Goal = { id: string; title: string; done: boolean };
@@ -71,7 +75,9 @@ export function StudySpace({
   const [tod, setTod] = useState<TimeOfDay>(initialTod);
   const [scene, setScene] = useState<SceneId>("quarto");
   const [presetId, setPresetId] = useState(PRESETS[0].id);
-  const preset = PRESETS.find((p) => p.id === presetId)!;
+  const [custom, setCustom] = useState<PomodoroPreset>(() => customPreset(null));
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const preset = presetId === "personalizado" ? custom : PRESETS.find((p) => p.id === presetId)!;
   const [phase, setPhase] = useState<Phase>("focus");
   const [completedFocus, setCompletedFocus] = useState(0);
   const [remaining, setRemaining] = useState(preset.focus * 60_000);
@@ -98,6 +104,16 @@ export function StudySpace({
     return () => clearInterval(t);
   }, [goalsKey, initialStats.totalMinutes]);
   useEffect(() => save(goalsKey, goals), [goals, goalsKey]);
+  // Pomodoro escolhido e o personalizado ficam guardados neste navegador
+  useEffect(() => {
+    const c = customPreset(load<Record<string, unknown> | null>("espaco:pomodoro:personalizado", null));
+    const id = load<string>("espaco:pomodoro", PRESETS[0].id);
+    setCustom(c);
+    if (id === "personalizado" || PRESETS.some((p) => p.id === id)) {
+      setPresetId(id);
+      setRemaining((id === "personalizado" ? c : PRESETS.find((p) => p.id === id)!).focus * 60_000);
+    }
+  }, []);
   useEffect(() => save("espaco:cenario", scene), [scene]);
   useEffect(() => () => audio.current?.stop(), []);
 
@@ -190,77 +206,54 @@ export function StudySpace({
           </span>
         </div>
 
-        <div
-          className="bg-sidebar text-sidebar-foreground grid gap-2 rounded-2xl p-5 shadow-sm"
-          data-testid="pomodoro"
-        >
-          <div className="flex items-center justify-between text-sm">
-            <span data-testid="pomodoro-phase">{PHASE_LABELS[phase]}</span>
-            <span className="opacity-80">
-              {completedFocus} {completedFocus === 1 ? "foco" : "focos"} hoje
-              aqui
-            </span>
-          </div>
-          <span
-            className="font-mono text-5xl tracking-tight"
-            data-testid="pomodoro-clock"
-            aria-live="off"
-          >
-            {formatClock(remaining)}
-          </span>
-          <div className="h-1 overflow-hidden rounded-full bg-white/25">
-            <div
-              className="h-full bg-white"
-              style={{
-                width: `${100 - (Math.max(0, remaining) / total) * 100}%`,
-              }}
-            />
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {running ? (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => setEndsAt(null)}
-              >
-                Pausar
-              </Button>
+        <div className="bg-sidebar relative overflow-hidden rounded-3xl p-5 shadow-sm sm:p-6" data-testid="pomodoro">
+          <div className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-[oklch(0.6_0.15_25/0.25)] blur-3xl" aria-hidden />
+          <div className="relative">
+            {settingsOpen ? (
+              <PomodoroSettings
+                presetId={presetId}
+                custom={custom}
+                onPick={(id) => {
+                  const p = id === "personalizado" ? custom : PRESETS.find((x) => x.id === id)!;
+                  setPresetId(id);
+                  save("espaco:pomodoro", id);
+                  setPhase("focus");
+                  setRemaining(p.focus * 60_000);
+                }}
+                onStep={(f, dir) => {
+                  const c = stepCustom(custom, f, dir);
+                  setCustom(c);
+                  save("espaco:pomodoro:personalizado", { focus: c.focus, shortBreak: c.shortBreak, longBreak: c.longBreak, longEvery: c.longEvery });
+                  if (phase === "focus") setRemaining(c.focus * 60_000);
+                  else setRemaining(phaseMinutes(c, phase) * 60_000);
+                }}
+                onClose={() => setSettingsOpen(false)}
+              />
             ) : (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={() => {
+              <PomodoroDial
+                phase={phase}
+                remaining={remaining}
+                total={total}
+                running={running}
+                cycleDone={phase === "long_break" ? preset.longEvery : completedFocus % preset.longEvery}
+                longEvery={preset.longEvery}
+                focusToday={completedFocus}
+                onStart={() => {
                   sound(); // libera o áudio no clique
                   setEndsAt(Date.now() + Math.max(1000, remaining));
                 }}
-              >
-                {remaining < total ? "Continuar" : "Começar"}
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-white hover:bg-white/15 hover:text-white"
-              onClick={() => {
-                setEndsAt(null);
-                setRemaining(total);
-              }}
-            >
-              Reiniciar
-            </Button>
-            {phase !== "focus" && (
-              <Button
-                size="sm"
-                variant="ghost"
-                className="text-white hover:bg-white/15 hover:text-white"
-                onClick={() => {
+                onPause={() => setEndsAt(null)}
+                onReset={() => {
+                  setEndsAt(null);
+                  setRemaining(total);
+                }}
+                onSkipBreak={() => {
                   setEndsAt(null);
                   setPhase("focus");
                   setRemaining(preset.focus * 60_000);
                 }}
-              >
-                Pular pausa
-              </Button>
+                onOpenSettings={() => setSettingsOpen(true)}
+              />
             )}
           </div>
         </div>
@@ -393,25 +386,7 @@ export function StudySpace({
           </p>
         </Panel>
 
-        <Panel title="Pomodoro">
-          <select
-            aria-label="Tipo de Pomodoro"
-            className={selectClass}
-            value={presetId}
-            disabled={running}
-            onChange={(e) => {
-              const p = PRESETS.find((x) => x.id === e.target.value)!;
-              setPresetId(p.id);
-              setPhase("focus");
-              setRemaining(p.focus * 60_000);
-            }}
-          >
-            {PRESETS.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.label}
-              </option>
-            ))}
-          </select>
+        <Panel title="Sessão">
           {subjects.length > 0 && (
             <select
               aria-label="Matéria da sessão"

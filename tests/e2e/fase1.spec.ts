@@ -28,7 +28,7 @@ test("PDF de 20 páginas → 10 questões com fonte → erro vai para o caderno 
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill("senha-forte-123");
   await page.getByRole("button", { name: "Criar conta" }).click();
-  await expect(page.getByRole("heading", { name: /Aluno!/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Aluno", exact: true })).toBeVisible();
 
   await page.getByLabel("Matéria / prova").fill("Biologia — P2");
   await page.getByRole("button", { name: "Criar matéria" }).click();

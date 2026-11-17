@@ -172,7 +172,7 @@ export function BottomNav({ email, logout }: { email: string; logout: React.Reac
       )}
       <nav
         aria-label="Menu principal"
-        className="bg-sidebar text-sidebar-foreground fixed inset-x-0 bottom-0 z-50 grid grid-cols-5 border-t border-white/10 pb-[env(safe-area-inset-bottom)] md:hidden"
+        className="bg-card/95 fixed inset-x-0 bottom-0 z-50 flex items-center justify-around border-t px-2 pt-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-[0_-6px_24px_-12px_rgb(0_0_0/0.25)] backdrop-blur md:hidden"
       >
         {TABS.map((t) => {
           const Icon = t.icon;
@@ -182,12 +182,13 @@ export function BottomNav({ email, logout }: { email: string; logout: React.Reac
               key={t.href}
               href={t.href}
               aria-current={active ? "page" : undefined}
-              className={cn("flex flex-col items-center gap-0.5 py-2.5 text-[11px]", active ? "text-white" : "text-sidebar-foreground/70")}
+              className={cn(
+                "flex h-11 items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
+                active ? "bg-primary text-primary-foreground px-4 shadow-md" : "text-primary/80 hover:bg-accent w-11",
+              )}
             >
-              <span className={cn("rounded-full px-4 py-1 transition-colors", active && "bg-sidebar-accent")}>
-                <Icon aria-hidden className="size-5" strokeWidth={1.8} />
-              </span>
-              {t.short ?? t.label}
+              <Icon aria-hidden className="size-5 shrink-0" strokeWidth={1.9} />
+              <span className={active ? "" : "sr-only"}>{t.short ?? t.label}</span>
             </Link>
           );
         })}
@@ -195,12 +196,13 @@ export function BottomNav({ email, logout }: { email: string; logout: React.Reac
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className={cn("flex flex-col items-center gap-0.5 py-2.5 text-[11px]", open || inMore ? "text-white" : "text-sidebar-foreground/70")}
+          className={cn(
+            "flex h-11 items-center justify-center gap-2 rounded-full text-sm font-medium transition-all",
+            open || inMore ? "bg-primary text-primary-foreground px-4 shadow-md" : "text-primary/80 hover:bg-accent w-11",
+          )}
         >
-          <span className={cn("rounded-full px-4 py-1", (open || inMore) && "bg-sidebar-accent")}>
-            <Ellipsis aria-hidden className="size-5" strokeWidth={1.8} />
-          </span>
-          Mais
+          <Ellipsis aria-hidden className="size-5 shrink-0" strokeWidth={1.9} />
+          <span className={open || inMore ? "" : "sr-only"}>Mais</span>
         </button>
       </nav>
     </>

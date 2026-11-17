@@ -38,3 +38,19 @@ describe("cenários", () => {
     expect(streakDays(["2026-11-13"], today)).toBe(0);
   });
 });
+
+describe("pomodoro personalizado", async () => {
+  const { customPreset, stepCustom } = await import("@/lib/focus/pomodoro");
+  it("respeita os limites e usa o padrão para valores inválidos", () => {
+    expect(customPreset({ focus: 500, shortBreak: 0, longBreak: "x", longEvery: 3 })).toMatchObject({ focus: 120, shortBreak: 1, longBreak: 15, longEvery: 3 });
+    expect(customPreset(null)).toMatchObject({ id: "personalizado", focus: 25, shortBreak: 5 });
+  });
+  it("+ e − andam de passo em passo sem passar do limite", () => {
+    let p = customPreset({ focus: 25 });
+    p = stepCustom(p, "focus", 1);
+    expect(p.focus).toBe(30);
+    expect(stepCustom(customPreset({ focus: 5 }), "focus", -1).focus).toBe(5);
+    expect(stepCustom(customPreset({ longEvery: 8 }), "longEvery", 1).longEvery).toBe(8);
+    expect(p.label).toBe("Personalizado 30/5");
+  });
+});

@@ -73,7 +73,13 @@ test("espaço de estudos: Pomodoro registra o foco e conta para os cenários", a
   await page.getByRole("button", { name: "+" }).click();
   await expect(page.getByTestId("session-goals")).toContainText("Ler o capítulo 3");
 
+  // ajustes: personalizado com − / + (fica guardado) e depois um modelo pronto
+  await page.getByRole("button", { name: "Ajustes do Pomodoro" }).click();
+  await page.getByLabel("Tipo de Pomodoro").selectOption("personalizado");
+  await page.getByRole("button", { name: "Aumentar Foco" }).click();
+  await expect(page.getByTestId("custom-focus")).toContainText("30");
   await page.getByLabel("Tipo de Pomodoro").selectOption("curto");
+  await page.getByRole("button", { name: "Fechar ajustes" }).click();
   await expect(page.getByTestId("pomodoro-clock")).toHaveText("15:00");
   await page.getByRole("button", { name: "Começar" }).click();
   await page.clock.fastForward("05:00");
